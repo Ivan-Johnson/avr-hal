@@ -29,6 +29,7 @@ mod mega;
 pub use mega::*;
 #[cfg(any(
     feature = "arduino-nano",
+    feature = "arduino-micro",
     feature = "arduino-uno",
     feature = "nano168",
     feature = "sparkfun-promini-3v3",
@@ -36,6 +37,7 @@ pub use mega::*;
 ))]
 mod uno;
 #[cfg(any(
+    feature = "arduino-micro",
     feature = "arduino-nano",
     feature = "arduino-uno",
     feature = "nano168",

@@ -11,6 +11,7 @@
 #![cfg_attr(feature = "arduino-mega2560", doc = "**Arduino Mega 2560**.")]
 #![cfg_attr(feature = "arduino-mega1280", doc = "**Arduino Mega 1280**.")]
 #![cfg_attr(feature = "arduino-nano", doc = "**Arduino Nano**.")]
+#![cfg_attr(feature = "arduino-micro", doc = "**Arduino Micro**.")]
 #![cfg_attr(feature = "arduino-uno", doc = "**Arduino Uno**.")]
 #![cfg_attr(feature = "sparkfun-promicro", doc = "**SparkFun ProMicro**.")]
 #![cfg_attr(
@@ -64,6 +65,7 @@ compile_error!(
     * arduino-leonardo
     * arduino-mega2560
     * arduino-mega1280
+    * arduino-micro
     * arduino-nano
     * arduino-uno
     * sparkfun-promicro
@@ -325,6 +327,7 @@ macro_rules! default_serial {
 /// ```
 #[cfg(any(
     feature = "arduino-nano",
+    feature = "arduino-micro",
     feature = "nano168",
     feature = "sparkfun-promini-3v3",
     feature = "sparkfun-promini-5v",
