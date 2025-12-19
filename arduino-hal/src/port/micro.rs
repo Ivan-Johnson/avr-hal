@@ -12,9 +12,6 @@ avr_hal_generic::renamed_pins! {
     /// * TODO: is this actually a good idea? Maybe I should use a
     ///   more logical ordering instead, where all the DX pins are grouped together, etc.
     ///
-    /// TODO: on the schematic, why are some pins labeled with an astrisk? Those
-    /// same pins are labeled with a tilde on the PCB.
-    ///
     /// TODO: more/better docs. ref leonardo.rs.
     pub struct Pins {
         /// `MOSI`
@@ -33,23 +30,23 @@ avr_hal_generic::renamed_pins! {
         pub d2: atmega_hal::port::PD1 = pd1,
         /// `D3` / `SCL`
         pub d3: atmega_hal::port::PD0 = pd0,
-        /// `D4*`
+        /// `D4`
         pub d4: atmega_hal::port::PD4 = pd4,
-        /// `D5*`
+        /// `D5`
         pub d5: atmega_hal::port::PC6 = pc6,
-        /// `D6*`
+        /// `D6`
         pub d6: atmega_hal::port::PD7 = pd7,
         /// `D7`
         pub d7: atmega_hal::port::PE6 = pe6,
         /// `IO8`
         pub io8: atmega_hal::port::PB4 = pb4,
-        /// `IO9*`
+        /// `IO9`
         pub io9: atmega_hal::port::PB5 = pb5,
-        /// `IO10*`
+        /// `IO10`
         pub io10: atmega_hal::port::PB6 = pb6,
-        /// `IO11*`
+        /// `IO11`
         pub io11: atmega_hal::port::PB7 = pb7,
-        /// `IO12*`
+        /// `IO12`
         pub io12: atmega_hal::port::PD6 = pd6,
 
 
@@ -90,7 +87,7 @@ avr_hal_generic::renamed_pins! {
 
         // 3V3
 
-        /// `IO13*`
+        /// `IO13`
         pub io13: atmega_hal::port::PC7 = pc7,
     }
 

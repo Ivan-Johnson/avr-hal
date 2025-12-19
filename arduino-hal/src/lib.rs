@@ -10,8 +10,8 @@
 #![cfg_attr(feature = "arduino-leonardo", doc = "**Arduino Leonardo**.")]
 #![cfg_attr(feature = "arduino-mega2560", doc = "**Arduino Mega 2560**.")]
 #![cfg_attr(feature = "arduino-mega1280", doc = "**Arduino Mega 1280**.")]
-#![cfg_attr(feature = "arduino-nano", doc = "**Arduino Nano**.")]
 #![cfg_attr(feature = "arduino-micro", doc = "**Arduino Micro**.")]
+#![cfg_attr(feature = "arduino-nano", doc = "**Arduino Nano**.")]
 #![cfg_attr(feature = "arduino-uno", doc = "**Arduino Uno**.")]
 #![cfg_attr(feature = "sparkfun-promicro", doc = "**SparkFun ProMicro**.")]
 #![cfg_attr(
@@ -216,8 +216,6 @@ pub mod prelude {
         }
     }
 }
-
-// TODO: Do I need `default_serial`? Maybe for flashing?
 
 /// Convenience macro to instantiate the [`Pins`] struct for this board.
 ///

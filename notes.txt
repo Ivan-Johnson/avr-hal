@@ -1,3 +1,17 @@
+Open questions:
+
+1. Do I need `default_serial`?
+
+   Given the lack of UART support, I would expect not. However,
+   `sparkfun-promicro` doesn't support it either and yet it has a
+   `default_serial`
+
+   https://github.com/Rahix/avr-hal/blob/0f7fa4d01755f1985d95ed2015d5464a29154b05/examples/sparkfun-promicro/Ravedude.toml#L4-L8
+
+   https://github.com/Rahix/avr-hal/blob/0f7fa4d01755f1985d95ed2015d5464a29154b05/arduino-hal/src/lib.rs#L254-L273
+
+
+
 https://github.com/Rahix/avr-hal/discussions/691
 
 * example 1:
