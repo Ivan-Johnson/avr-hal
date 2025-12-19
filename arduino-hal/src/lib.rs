@@ -217,6 +217,8 @@ pub mod prelude {
     }
 }
 
+// TODO: Do I need `default_serial`? Maybe for flashing?
+
 /// Convenience macro to instantiate the [`Pins`] struct for this board.
 ///
 /// # Example
@@ -327,7 +329,6 @@ macro_rules! default_serial {
 /// ```
 #[cfg(any(
     feature = "arduino-nano",
-    feature = "arduino-micro",
     feature = "nano168",
     feature = "sparkfun-promini-3v3",
     feature = "sparkfun-promini-5v",
