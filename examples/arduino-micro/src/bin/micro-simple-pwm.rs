@@ -1,3 +1,11 @@
+/*!
+ * Example of using simple_pwm to fade in and out the builtin LED.
+ *
+ * The Arduino Micro's bootloader does a similar animation, with a period of
+ * about one second per pulse. This example animation has a period of about five
+ * seconds per pulse in order to make it easily distinguishable from the
+ * bootloader's animation.
+ */
 #![no_std]
 #![no_main]
 

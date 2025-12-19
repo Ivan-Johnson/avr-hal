@@ -1,3 +1,6 @@
+/*!
+ * Blink the builtin LED - the "Hello World" of embedded programming.
+ */
 #![no_std]
 #![no_main]
 
@@ -10,18 +13,16 @@ fn main() -> ! {
 
     // IO pin 13 is connected to an onboard LED marked "L" (TODO: Is it actually marked L tho?)
     let mut led = pins.io13.into_output();
+    led.set_high();
 
     loop {
-        // One fast blink
-        led.set_high();
+        led.toggle();
         arduino_hal::delay_ms(100);
-        led.set_low();
+        led.toggle();
         arduino_hal::delay_ms(100);
-
-        // One slow blink
-        led.set_high();
+        led.toggle();
+        arduino_hal::delay_ms(100);
+        led.toggle();
         arduino_hal::delay_ms(800);
-        led.set_low();
-        arduino_hal::delay_ms(100);
     }
 }
