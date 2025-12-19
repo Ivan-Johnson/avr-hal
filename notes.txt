@@ -1,0 +1,9 @@
+https://github.com/Rahix/avr-hal/discussions/691
+
+* example 1:
+
+  https://github.com/Rahix/avr-hal/commit/190f2c3cb8d29e10f71119352b912369dc5a1fb7
+
+* example 2:
+
+  https://github.com/Rahix/avr-hal/commit/21342dcace7184f01fdc4e9703b01197bd4b4b4f

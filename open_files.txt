@@ -1,0 +1,3 @@
+open_files.txt
+notes.txt
+examples/arduino-micro/src/bin/micro-blink.rs
