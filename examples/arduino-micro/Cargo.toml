@@ -1,9 +1,12 @@
 [package]
 name = "arduino-micro-examples"
 version = "0.0.0"
+authors = ["Ivan Johnson <git@IvanJohnson.net>"]
 edition = "2021"
 publish = false
 
+# TODO: Do I need all these dependencies?
+# e.g. given the fact that I'm not doing a UART example, I shouldn't need `ufmt`?
 [dependencies]
 panic-halt = "1.0.0"
 ufmt = "0.2.0"

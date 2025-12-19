@@ -8,18 +8,20 @@ fn main() -> ! {
     let dp = arduino_hal::Peripherals::take().unwrap();
     let pins = arduino_hal::pins!(dp);
 
-    // Digital pin 13 is also connected to an onboard LED marked "L"
-    let mut led = pins.d13.into_output();
-    led.set_high();
+    // IO pin 13 is connected to an onboard LED marked "L" (TODO: Is it actually marked L tho?)
+    let mut led = pins.io13.into_output();
 
     loop {
-        led.toggle();
+        // One fast blink
+        led.set_high();
         arduino_hal::delay_ms(100);
         led.toggle();
         arduino_hal::delay_ms(100);
-        led.toggle();
-        arduino_hal::delay_ms(100);
-        led.toggle();
+
+        // One slow blink
+        led.set_high();
         arduino_hal::delay_ms(800);
+        led.toggle();
+        arduino_hal::delay_ms(100);
     }
 }
