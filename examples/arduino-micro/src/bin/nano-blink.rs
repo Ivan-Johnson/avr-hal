@@ -15,13 +15,13 @@ fn main() -> ! {
         // One fast blink
         led.set_high();
         arduino_hal::delay_ms(100);
-        led.toggle();
+        led.set_low();
         arduino_hal::delay_ms(100);
 
         // One slow blink
         led.set_high();
         arduino_hal::delay_ms(800);
-        led.toggle();
+        led.set_low();
         arduino_hal::delay_ms(100);
     }
 }
