@@ -9,10 +9,10 @@
 #![no_std]
 #![no_main]
 
-use panic_halt as _;
-use arduino_hal::simple_pwm::Prescaler;
 use arduino_hal::simple_pwm::IntoPwmPin;
+use arduino_hal::simple_pwm::Prescaler;
 use arduino_hal::simple_pwm::Timer4Pwm;
+use panic_halt as _;
 
 #[arduino_hal::entry]
 fn main() -> ! {
