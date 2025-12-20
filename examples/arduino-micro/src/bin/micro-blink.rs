@@ -11,8 +11,8 @@ fn main() -> ! {
     let dp = arduino_hal::Peripherals::take().unwrap();
     let pins = arduino_hal::pins!(dp);
 
-    // IO pin 13 is connected to an onboard LED
-    let mut led = pins.io13.into_output();
+    // pin D13 is connected to an onboard LED
+    let mut led = pins.d13.into_output();
     led.set_high();
 
     loop {

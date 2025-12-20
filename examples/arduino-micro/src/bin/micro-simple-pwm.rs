@@ -21,7 +21,7 @@ fn main() -> ! {
 
     let timer4 = Timer4Pwm::new(dp.TC4, Prescaler::Prescale64);
 
-    let mut pwm_led = pins.io13.into_output().into_pwm(&timer4);
+    let mut pwm_led = pins.d13.into_output().into_pwm(&timer4);
     pwm_led.enable();
 
     loop {
