@@ -12,6 +12,3 @@ panic-halt = "1.0.0"
 [dependencies.arduino-hal]
 path = "../../arduino-hal/"
 features = ["arduino-micro"]
-
-[dependencies.avr-device]
-version = "0.8"
