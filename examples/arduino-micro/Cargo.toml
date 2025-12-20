@@ -4,8 +4,6 @@ version = "0.0.0"
 edition = "2021"
 publish = false
 
-# TODO: Do I need all these dependencies?
-# e.g. given the fact that I'm not doing a UART example, I shouldn't need `ufmt`?
 [dependencies]
 panic-halt = "1.0.0"
 
