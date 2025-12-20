@@ -8,11 +8,6 @@ publish = false
 # e.g. given the fact that I'm not doing a UART example, I shouldn't need `ufmt`?
 [dependencies]
 panic-halt = "1.0.0"
-embedded-hal = "1.0"
-
-[dependencies.embedded-hal-v0]
-version = "0.2.3"
-package = "embedded-hal"
 
 [dependencies.arduino-hal]
 path = "../../arduino-hal/"
