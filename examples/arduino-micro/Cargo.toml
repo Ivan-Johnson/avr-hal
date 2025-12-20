@@ -8,7 +8,6 @@ publish = false
 # e.g. given the fact that I'm not doing a UART example, I shouldn't need `ufmt`?
 [dependencies]
 panic-halt = "1.0.0"
-# nb = "1.1.0"
 embedded-hal = "1.0"
 
 [dependencies.embedded-hal-v0]
