@@ -10,23 +10,23 @@ type Delay = atmega_hal::delay::Delay<crate::CoreClock>;
 
 // Below are examples of a delay helper functions
 fn delay_ms(ms: u16) {
-    Delay::new().delay_ms(u32::from(ms))
+	Delay::new().delay_ms(u32::from(ms))
 }
 
 #[allow(dead_code)]
 fn delay_us(us: u32) {
-    Delay::new().delay_us(us)
+	Delay::new().delay_us(us)
 }
 
 #[avr_device::entry]
 fn main() -> ! {
-    let dp = atmega_hal::Peripherals::take().unwrap();
-    let pins = atmega_hal::pins!(dp);
+	let dp = atmega_hal::Peripherals::take().unwrap();
+	let pins = atmega_hal::pins!(dp);
 
-    let mut led = pins.pb7.into_output();
+	let mut led = pins.pb7.into_output();
 
-    loop {
-        led.toggle();
-        delay_ms(1000);
-    }
+	loop {
+		led.toggle();
+		delay_ms(1000);
+	}
 }

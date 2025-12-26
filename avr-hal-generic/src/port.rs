@@ -9,71 +9,71 @@ use embedded_hal_v0::digital::v2::{InputPin as InputPinV0, OutputPin as OutputPi
 pub trait PinMode: crate::Sealed {}
 /// GPIO pin modes
 pub mod mode {
-    use core::marker::PhantomData;
+	use core::marker::PhantomData;
 
-    pub trait Io: crate::Sealed + super::PinMode {}
+	pub trait Io: crate::Sealed + super::PinMode {}
 
-    /// Pin is configured as a digital output.
-    pub struct Output;
-    impl super::PinMode for Output {}
-    impl Io for Output {}
-    impl crate::Sealed for Output {}
+	/// Pin is configured as a digital output.
+	pub struct Output;
+	impl super::PinMode for Output {}
+	impl Io for Output {}
+	impl crate::Sealed for Output {}
 
-    /// Pin is configured as a digital output with open drain behaviour
-    pub struct OpenDrain;
-    impl super::PinMode for OpenDrain {}
-    impl Io for OpenDrain {}
-    impl crate::Sealed for OpenDrain {}
+	/// Pin is configured as a digital output with open drain behaviour
+	pub struct OpenDrain;
+	impl super::PinMode for OpenDrain {}
+	impl Io for OpenDrain {}
+	impl crate::Sealed for OpenDrain {}
 
-    pub struct PwmOutput<TC> {
-        pub(crate) _timer: PhantomData<TC>,
-    }
-    impl<TC> super::PinMode for PwmOutput<TC> {}
-    impl<TC> crate::Sealed for PwmOutput<TC> {}
+	pub struct PwmOutput<TC> {
+		pub(crate) _timer: PhantomData<TC>,
+	}
+	impl<TC> super::PinMode for PwmOutput<TC> {}
+	impl<TC> crate::Sealed for PwmOutput<TC> {}
 
-    pub trait InputMode: crate::Sealed {}
+	pub trait InputMode: crate::Sealed {}
 
-    /// Pin is configured as digital input (floating or pulled-up).
-    pub struct Input<IMODE = AnyInput> {
-        pub(crate) _imode: PhantomData<IMODE>,
-    }
-    impl<IMODE: InputMode> super::PinMode for Input<IMODE> {}
-    impl<IMODE: InputMode> Io for Input<IMODE> {}
-    impl<IMODE: InputMode> crate::Sealed for Input<IMODE> {}
+	/// Pin is configured as digital input (floating or pulled-up).
+	pub struct Input<IMODE = AnyInput> {
+		pub(crate) _imode: PhantomData<IMODE>,
+	}
+	impl<IMODE: InputMode> super::PinMode for Input<IMODE> {}
+	impl<IMODE: InputMode> Io for Input<IMODE> {}
+	impl<IMODE: InputMode> crate::Sealed for Input<IMODE> {}
 
-    /// Floating input, used like `Input<Floating>`.
-    pub struct Floating;
-    impl InputMode for Floating {}
-    impl crate::Sealed for Floating {}
+	/// Floating input, used like `Input<Floating>`.
+	pub struct Floating;
+	impl InputMode for Floating {}
+	impl crate::Sealed for Floating {}
 
-    /// Pulled-up input, used like `Input<PullUp>`.
-    pub struct PullUp;
-    impl InputMode for PullUp {}
-    impl crate::Sealed for PullUp {}
+	/// Pulled-up input, used like `Input<PullUp>`.
+	pub struct PullUp;
+	impl InputMode for PullUp {}
+	impl crate::Sealed for PullUp {}
 
-    /// Any input (floating or pulled-up), used like `Input<AnyInput>`.
-    pub struct AnyInput;
-    impl InputMode for AnyInput {}
-    impl crate::Sealed for AnyInput {}
+	/// Any input (floating or pulled-up), used like `Input<AnyInput>`.
+	pub struct AnyInput;
+	impl InputMode for AnyInput {}
+	impl crate::Sealed for AnyInput {}
 
-    /// Pin is configured as an analog input (for the ADC).
-    pub struct Analog;
+	/// Pin is configured as an analog input (for the ADC).
+	pub struct Analog;
 }
 
 pub trait PinOps {
-    type Dynamic;
+	type Dynamic;
 
-    fn into_dynamic(self) -> Self::Dynamic;
+	fn into_dynamic(self) -> Self::Dynamic;
 
-    unsafe fn out_set(&mut self);
-    unsafe fn out_clear(&mut self);
-    unsafe fn out_toggle(&mut self);
-    unsafe fn out_get(&self) -> bool;
+	unsafe fn out_set(&mut self);
+	unsafe fn out_clear(&mut self);
+	unsafe fn out_toggle(&mut self);
+	unsafe fn out_get(&self) -> bool;
 
-    unsafe fn in_get(&self) -> bool;
+	unsafe fn in_get(&self) -> bool;
 
-    unsafe fn make_output(&mut self);
-    unsafe fn make_input(&mut self, pull_up: bool);
+	unsafe fn make_output(&mut self);
+	unsafe fn make_input(&mut self, pull_up: bool);
 }
 
 /// Representation of an MCU pin.
@@ -108,18 +108,18 @@ pub trait PinOps {
 /// let output: Pin<mode::Output, port::PD3> = pins.pd3.into_output();
 /// ```
 pub struct Pin<MODE, PIN> {
-    pub(crate) pin: PIN,
-    pub(crate) _mode: PhantomData<MODE>,
+	pub(crate) pin: PIN,
+	pub(crate) _mode: PhantomData<MODE>,
 }
 
 impl<PIN: PinOps> Pin<mode::Input<mode::Floating>, PIN> {
-    #[doc(hidden)]
-    pub fn new(pin: PIN) -> Self {
-        Pin {
-            pin,
-            _mode: PhantomData,
-        }
-    }
+	#[doc(hidden)]
+	pub fn new(pin: PIN) -> Self {
+		Pin {
+			pin,
+			_mode: PhantomData,
+		}
+	}
 }
 
 /// # Configuration
@@ -128,93 +128,93 @@ impl<PIN: PinOps> Pin<mode::Input<mode::Floating>, PIN> {
 /// does it have the mode-relevant methods availailable (e.g. `set_high()` is only available for
 /// `Output` pins).
 impl<PIN: PinOps, MODE: mode::Io> Pin<MODE, PIN> {
-    /// Convert this pin into an output pin, setting the state to low.
-    /// See [Digital Output](#digital-output).
-    pub fn into_output(mut self) -> Pin<mode::Output, PIN> {
-        unsafe { self.pin.out_clear() };
-        unsafe { self.pin.make_output() };
-        Pin {
-            pin: self.pin,
-            _mode: PhantomData,
-        }
-    }
+	/// Convert this pin into an output pin, setting the state to low.
+	/// See [Digital Output](#digital-output).
+	pub fn into_output(mut self) -> Pin<mode::Output, PIN> {
+		unsafe { self.pin.out_clear() };
+		unsafe { self.pin.make_output() };
+		Pin {
+			pin: self.pin,
+			_mode: PhantomData,
+		}
+	}
 
-    /// Convert this pin into an output pin, setting the state to high.
-    /// See [Digital Output](#digital-output).
-    pub fn into_output_high(mut self) -> Pin<mode::Output, PIN> {
-        unsafe { self.pin.out_set() };
-        unsafe { self.pin.make_output() };
-        Pin {
-            pin: self.pin,
-            _mode: PhantomData,
-        }
-    }
+	/// Convert this pin into an output pin, setting the state to high.
+	/// See [Digital Output](#digital-output).
+	pub fn into_output_high(mut self) -> Pin<mode::Output, PIN> {
+		unsafe { self.pin.out_set() };
+		unsafe { self.pin.make_output() };
+		Pin {
+			pin: self.pin,
+			_mode: PhantomData,
+		}
+	}
 
-    /// Convert this pin into an open-drain output pin, setting the state to low.
-    /// See [Digital Output Open Drain](#digital-output-open-drain)
-    pub fn into_opendrain(mut self) -> Pin<mode::OpenDrain, PIN> {
-        unsafe { self.pin.out_clear() };
-        unsafe { self.pin.make_output() };
-        Pin {
-            pin: self.pin,
-            _mode: PhantomData,
-        }
-    }
+	/// Convert this pin into an open-drain output pin, setting the state to low.
+	/// See [Digital Output Open Drain](#digital-output-open-drain)
+	pub fn into_opendrain(mut self) -> Pin<mode::OpenDrain, PIN> {
+		unsafe { self.pin.out_clear() };
+		unsafe { self.pin.make_output() };
+		Pin {
+			pin: self.pin,
+			_mode: PhantomData,
+		}
+	}
 
-    /// Convert this pin into an open-drain output pin, setting the state to high.
-    /// See [Digital Output Open Drain](#digital-output-open-drain)
-    pub fn into_opendrain_high(mut self) -> Pin<mode::OpenDrain, PIN> {
-        unsafe { self.pin.make_input(false) };
-        Pin {
-            pin: self.pin,
-            _mode: PhantomData,
-        }
-    }
+	/// Convert this pin into an open-drain output pin, setting the state to high.
+	/// See [Digital Output Open Drain](#digital-output-open-drain)
+	pub fn into_opendrain_high(mut self) -> Pin<mode::OpenDrain, PIN> {
+		unsafe { self.pin.make_input(false) };
+		Pin {
+			pin: self.pin,
+			_mode: PhantomData,
+		}
+	}
 
-    /// Convert this pin into a floating input pin.  See [Digital Input](#digital-input).
-    ///
-    /// *Note*: To read deterministic values from the pin, it must be externally pulled to a
-    /// defined level (either VCC or GND).
-    pub fn into_floating_input(mut self) -> Pin<mode::Input<mode::Floating>, PIN> {
-        unsafe { self.pin.make_input(false) };
-        Pin {
-            pin: self.pin,
-            _mode: PhantomData,
-        }
-    }
+	/// Convert this pin into a floating input pin.  See [Digital Input](#digital-input).
+	///
+	/// *Note*: To read deterministic values from the pin, it must be externally pulled to a
+	/// defined level (either VCC or GND).
+	pub fn into_floating_input(mut self) -> Pin<mode::Input<mode::Floating>, PIN> {
+		unsafe { self.pin.make_input(false) };
+		Pin {
+			pin: self.pin,
+			_mode: PhantomData,
+		}
+	}
 
-    /// Convert this pin into a pulled-up input pin.  See [Digital Input](#digital-input).
-    ///
-    /// With no external circuit pulling the pin low, it will be read high.
-    pub fn into_pull_up_input(mut self) -> Pin<mode::Input<mode::PullUp>, PIN> {
-        unsafe { self.pin.make_input(true) };
-        Pin {
-            pin: self.pin,
-            _mode: PhantomData,
-        }
-    }
+	/// Convert this pin into a pulled-up input pin.  See [Digital Input](#digital-input).
+	///
+	/// With no external circuit pulling the pin low, it will be read high.
+	pub fn into_pull_up_input(mut self) -> Pin<mode::Input<mode::PullUp>, PIN> {
+		unsafe { self.pin.make_input(true) };
+		Pin {
+			pin: self.pin,
+			_mode: PhantomData,
+		}
+	}
 
-    /// Convert this pin into an analog input (ADC channel).  See [Analog Input](#analog-input).
-    ///
-    /// Some pins can be repurposed as ADC channels.  For those pins, the `into_analog_input()`
-    /// method is available.
-    pub fn into_analog_input<H, ADC, CLOCK>(
-        self,
-        adc: &mut crate::adc::Adc<H, ADC, CLOCK>,
-    ) -> Pin<mode::Analog, PIN>
-    where
-        Pin<mode::Analog, PIN>: crate::adc::AdcChannel<H, ADC>,
-        ADC: crate::adc::AdcOps<H>,
-        CLOCK: crate::clock::Clock,
-    {
-        let mut new = Pin {
-            pin: self.pin,
-            _mode: PhantomData,
-        };
-        adc.enable_pin(&new);
-        unsafe { new.pin.make_input(false) };
-        new
-    }
+	/// Convert this pin into an analog input (ADC channel).  See [Analog Input](#analog-input).
+	///
+	/// Some pins can be repurposed as ADC channels.  For those pins, the `into_analog_input()`
+	/// method is available.
+	pub fn into_analog_input<H, ADC, CLOCK>(
+		self,
+		adc: &mut crate::adc::Adc<H, ADC, CLOCK>,
+	) -> Pin<mode::Analog, PIN>
+	where
+		Pin<mode::Analog, PIN>: crate::adc::AdcChannel<H, ADC>,
+		ADC: crate::adc::AdcOps<H>,
+		CLOCK: crate::clock::Clock,
+	{
+		let mut new = Pin {
+			pin: self.pin,
+			_mode: PhantomData,
+		};
+		adc.enable_pin(&new);
+		unsafe { new.pin.make_input(false) };
+		new
+	}
 }
 
 /// # Downgrading
@@ -234,15 +234,15 @@ impl<PIN: PinOps, MODE: mode::Io> Pin<MODE, PIN> {
 /// let pins: [Pin<mode::Output>; 2] = [any_output_pin1, any_output_pin2];
 /// ```
 impl<PIN: PinOps, MODE: mode::Io> Pin<MODE, PIN> {
-    /// "Erase" type-level information about which specific pin is represented.
-    ///
-    /// *Note*: The returned "dynamic" pin has runtime overhead compared to a specific pin.
-    pub fn downgrade(self) -> Pin<MODE, PIN::Dynamic> {
-        Pin {
-            pin: self.pin.into_dynamic(),
-            _mode: PhantomData,
-        }
-    }
+	/// "Erase" type-level information about which specific pin is represented.
+	///
+	/// *Note*: The returned "dynamic" pin has runtime overhead compared to a specific pin.
+	pub fn downgrade(self) -> Pin<MODE, PIN::Dynamic> {
+		Pin {
+			pin: self.pin.into_dynamic(),
+			_mode: PhantomData,
+		}
+	}
 }
 
 /// # Input-Mode Downgrading
@@ -273,229 +273,229 @@ impl<PIN: PinOps, MODE: mode::Io> Pin<MODE, PIN> {
 /// ];
 /// ```
 impl<PIN: PinOps, IMODE> Pin<mode::Input<IMODE>, PIN> {
-    /// "Erase" type-level information about whether the pin is currently a pull-up or a floating
-    /// input.
-    pub fn forget_imode(self) -> Pin<mode::Input, PIN> {
-        Pin {
-            pin: self.pin,
-            _mode: PhantomData,
-        }
-    }
+	/// "Erase" type-level information about whether the pin is currently a pull-up or a floating
+	/// input.
+	pub fn forget_imode(self) -> Pin<mode::Input, PIN> {
+		Pin {
+			pin: self.pin,
+			_mode: PhantomData,
+		}
+	}
 }
 
 /// # Digital Output
 impl<PIN: PinOps> Pin<mode::Output, PIN> {
-    /// Set pin high (pull it to supply voltage).
-    #[inline]
-    pub fn set_high(&mut self) {
-        unsafe { self.pin.out_set() }
-    }
+	/// Set pin high (pull it to supply voltage).
+	#[inline]
+	pub fn set_high(&mut self) {
+		unsafe { self.pin.out_set() }
+	}
 
-    /// Set pin low (pull it to GND).
-    #[inline]
-    pub fn set_low(&mut self) {
-        unsafe { self.pin.out_clear() }
-    }
+	/// Set pin low (pull it to GND).
+	#[inline]
+	pub fn set_low(&mut self) {
+		unsafe { self.pin.out_clear() }
+	}
 
-    /// Toggle a high pin to low and a low pin to high.
-    #[inline]
-    pub fn toggle(&mut self) {
-        unsafe { self.pin.out_toggle() }
-    }
+	/// Toggle a high pin to low and a low pin to high.
+	#[inline]
+	pub fn toggle(&mut self) {
+		unsafe { self.pin.out_toggle() }
+	}
 
-    /// Check whether the pin is set high.
-    ///
-    /// *Note*: The electrical state of the pin might differ due to external circuitry.
-    #[inline]
-    pub fn is_set_high(&self) -> bool {
-        unsafe { self.pin.out_get() }
-    }
+	/// Check whether the pin is set high.
+	///
+	/// *Note*: The electrical state of the pin might differ due to external circuitry.
+	#[inline]
+	pub fn is_set_high(&self) -> bool {
+		unsafe { self.pin.out_get() }
+	}
 
-    /// Check whether the pin is set low.
-    ///
-    /// *Note*: The electrical state of the pin might differ due to external circuitry.
-    #[inline]
-    pub fn is_set_low(&self) -> bool {
-        !unsafe { self.pin.out_get() }
-    }
+	/// Check whether the pin is set low.
+	///
+	/// *Note*: The electrical state of the pin might differ due to external circuitry.
+	#[inline]
+	pub fn is_set_low(&self) -> bool {
+		!unsafe { self.pin.out_get() }
+	}
 }
 
 // Implements OutputPinV0 from embedded-hal to make sure external libraries work
 impl<PIN: PinOps> OutputPinV0 for Pin<mode::Output, PIN> {
-    type Error = core::convert::Infallible;
+	type Error = core::convert::Infallible;
 
-    fn set_high(&mut self) -> Result<(), Self::Error> {
-        self.set_high();
-        Ok(())
-    }
+	fn set_high(&mut self) -> Result<(), Self::Error> {
+		self.set_high();
+		Ok(())
+	}
 
-    fn set_low(&mut self) -> Result<(), Self::Error> {
-        self.set_low();
-        Ok(())
-    }
+	fn set_low(&mut self) -> Result<(), Self::Error> {
+		self.set_low();
+		Ok(())
+	}
 }
 
 impl<PIN: PinOps> ErrorType for Pin<mode::Output, PIN> {
-    type Error = core::convert::Infallible;
+	type Error = core::convert::Infallible;
 }
 
 impl<PIN: PinOps> OutputPin for Pin<mode::Output, PIN> {
-    fn set_low(&mut self) -> Result<(), Self::Error> {
-        self.set_low();
-        Ok(())
-    }
+	fn set_low(&mut self) -> Result<(), Self::Error> {
+		self.set_low();
+		Ok(())
+	}
 
-    fn set_high(&mut self) -> Result<(), Self::Error> {
-        self.set_high();
-        Ok(())
-    }
+	fn set_high(&mut self) -> Result<(), Self::Error> {
+		self.set_high();
+		Ok(())
+	}
 }
 
 impl<PIN: PinOps> StatefulOutputPin for Pin<mode::Output, PIN> {
-    fn is_set_high(&mut self) -> Result<bool, Self::Error> {
-        Ok((*self).is_set_high())
-    }
+	fn is_set_high(&mut self) -> Result<bool, Self::Error> {
+		Ok((*self).is_set_high())
+	}
 
-    fn is_set_low(&mut self) -> Result<bool, Self::Error> {
-        Ok((*self).is_set_low())
-    }
+	fn is_set_low(&mut self) -> Result<bool, Self::Error> {
+		Ok((*self).is_set_low())
+	}
 }
 
 /// # Digital Output Open Drain
 impl<PIN: PinOps> Pin<mode::OpenDrain, PIN> {
-    /// Set the pin high (Input without PullUp so it is floating)
-    #[inline]
-    pub fn set_high(&mut self) {
-        unsafe { self.pin.make_input(false) }
-    }
+	/// Set the pin high (Input without PullUp so it is floating)
+	#[inline]
+	pub fn set_high(&mut self) {
+		unsafe { self.pin.make_input(false) }
+	}
 
-    /// Set pin low (pull it to GND, Output to low).
-    #[inline]
-    pub fn set_low(&mut self) {
-        unsafe { self.pin.make_output() }
-    }
+	/// Set pin low (pull it to GND, Output to low).
+	#[inline]
+	pub fn set_low(&mut self) {
+		unsafe { self.pin.make_output() }
+	}
 
-    /// Check whether the pin is set high.
-    ///
-    /// *Note*: The electrical state of the pin might differ due to external circuitry.
-    #[inline]
-    pub fn is_high(&self) -> bool {
-        unsafe { self.pin.in_get() }
-    }
+	/// Check whether the pin is set high.
+	///
+	/// *Note*: The electrical state of the pin might differ due to external circuitry.
+	#[inline]
+	pub fn is_high(&self) -> bool {
+		unsafe { self.pin.in_get() }
+	}
 
-    /// Check whether the pin is set low.
-    ///
-    /// *Note*: The electrical state of the pin might differ due to external circuitry.
-    #[inline]
-    pub fn is_low(&self) -> bool {
-        !self.is_high()
-    }
+	/// Check whether the pin is set low.
+	///
+	/// *Note*: The electrical state of the pin might differ due to external circuitry.
+	#[inline]
+	pub fn is_low(&self) -> bool {
+		!self.is_high()
+	}
 }
 
 // Implements OutputPinV0 from embedded-hal to make sure external libraries work
 impl<PIN: PinOps> OutputPinV0 for Pin<mode::OpenDrain, PIN> {
-    type Error = core::convert::Infallible;
+	type Error = core::convert::Infallible;
 
-    fn set_high(&mut self) -> Result<(), Self::Error> {
-        self.set_high();
-        Ok(())
-    }
+	fn set_high(&mut self) -> Result<(), Self::Error> {
+		self.set_high();
+		Ok(())
+	}
 
-    fn set_low(&mut self) -> Result<(), Self::Error> {
-        self.set_low();
-        Ok(())
-    }
+	fn set_low(&mut self) -> Result<(), Self::Error> {
+		self.set_low();
+		Ok(())
+	}
 }
 
 impl<PIN: PinOps> OutputPin for Pin<mode::OpenDrain, PIN> {
-    fn set_low(&mut self) -> Result<(), Self::Error> {
-        self.set_low();
-        Ok(())
-    }
+	fn set_low(&mut self) -> Result<(), Self::Error> {
+		self.set_low();
+		Ok(())
+	}
 
-    fn set_high(&mut self) -> Result<(), Self::Error> {
-        self.set_high();
-        Ok(())
-    }
+	fn set_high(&mut self) -> Result<(), Self::Error> {
+		self.set_high();
+		Ok(())
+	}
 }
 
 impl<PIN: PinOps> StatefulOutputPin for Pin<mode::OpenDrain, PIN> {
-    fn is_set_high(&mut self) -> Result<bool, Self::Error> {
-        Ok((*self).is_high())
-    }
+	fn is_set_high(&mut self) -> Result<bool, Self::Error> {
+		Ok((*self).is_high())
+	}
 
-    fn is_set_low(&mut self) -> Result<bool, Self::Error> {
-        Ok((*self).is_low())
-    }
+	fn is_set_low(&mut self) -> Result<bool, Self::Error> {
+		Ok((*self).is_low())
+	}
 }
 
 // Implements InputPinV0 from embedded-hal to make sure external libraries work
 impl<PIN: PinOps> InputPinV0 for Pin<mode::OpenDrain, PIN> {
-    type Error = core::convert::Infallible;
+	type Error = core::convert::Infallible;
 
-    fn is_high(&self) -> Result<bool, Self::Error> {
-        Ok(self.is_high())
-    }
+	fn is_high(&self) -> Result<bool, Self::Error> {
+		Ok(self.is_high())
+	}
 
-    fn is_low(&self) -> Result<bool, Self::Error> {
-        Ok(self.is_low())
-    }
+	fn is_low(&self) -> Result<bool, Self::Error> {
+		Ok(self.is_low())
+	}
 }
 
 impl<PIN: PinOps> ErrorType for Pin<mode::OpenDrain, PIN> {
-    type Error = core::convert::Infallible;
+	type Error = core::convert::Infallible;
 }
 
 impl<PIN: PinOps> InputPin for Pin<mode::OpenDrain, PIN> {
-    fn is_high(&mut self) -> Result<bool, Self::Error> {
-        Ok((*self).is_high())
-    }
+	fn is_high(&mut self) -> Result<bool, Self::Error> {
+		Ok((*self).is_high())
+	}
 
-    fn is_low(&mut self) -> Result<bool, Self::Error> {
-        Ok((*self).is_low())
-    }
+	fn is_low(&mut self) -> Result<bool, Self::Error> {
+		Ok((*self).is_low())
+	}
 }
 
 // Implements InputPinV0 from embedded-hal to make sure external libraries work
 impl<PIN: PinOps, IMODE: mode::InputMode> InputPinV0 for Pin<mode::Input<IMODE>, PIN> {
-    type Error = core::convert::Infallible;
+	type Error = core::convert::Infallible;
 
-    fn is_high(&self) -> Result<bool, Self::Error> {
-        Ok(self.is_high())
-    }
+	fn is_high(&self) -> Result<bool, Self::Error> {
+		Ok(self.is_high())
+	}
 
-    fn is_low(&self) -> Result<bool, Self::Error> {
-        Ok(self.is_low())
-    }
+	fn is_low(&self) -> Result<bool, Self::Error> {
+		Ok(self.is_low())
+	}
 }
 
 impl<PIN: PinOps, IMODE: mode::InputMode> ErrorType for Pin<mode::Input<IMODE>, PIN> {
-    type Error = core::convert::Infallible;
+	type Error = core::convert::Infallible;
 }
 
 impl<PIN: PinOps, IMODE: mode::InputMode> InputPin for Pin<mode::Input<IMODE>, PIN> {
-    fn is_high(&mut self) -> Result<bool, Self::Error> {
-        Ok((*self).is_high())
-    }
+	fn is_high(&mut self) -> Result<bool, Self::Error> {
+		Ok((*self).is_high())
+	}
 
-    fn is_low(&mut self) -> Result<bool, Self::Error> {
-        Ok((*self).is_low())
-    }
+	fn is_low(&mut self) -> Result<bool, Self::Error> {
+		Ok((*self).is_low())
+	}
 }
 
 /// # Digital Input
 impl<PIN: PinOps, IMODE: mode::InputMode> Pin<mode::Input<IMODE>, PIN> {
-    /// Check whether the pin is driven high.
-    #[inline]
-    pub fn is_high(&self) -> bool {
-        unsafe { self.pin.in_get() }
-    }
+	/// Check whether the pin is driven high.
+	#[inline]
+	pub fn is_high(&self) -> bool {
+		unsafe { self.pin.in_get() }
+	}
 
-    /// Check whether the pin is driven low.
-    #[inline]
-    pub fn is_low(&self) -> bool {
-        !unsafe { self.pin.in_get() }
-    }
+	/// Check whether the pin is driven low.
+	#[inline]
+	pub fn is_low(&self) -> bool {
+		!unsafe { self.pin.in_get() }
+	}
 }
 
 /// # Analog Input
@@ -515,48 +515,48 @@ impl<PIN: PinOps, IMODE: mode::InputMode> Pin<mode::Input<IMODE>, PIN> {
 /// let voltage = adc.read_blocking(&a0);
 /// ```
 impl<PIN: PinOps> Pin<mode::Analog, PIN> {
-    pub fn analog_read<H, ADC, CLOCK>(&self, adc: &mut crate::adc::Adc<H, ADC, CLOCK>) -> u16
-    where
-        Pin<mode::Analog, PIN>: crate::adc::AdcChannel<H, ADC>,
-        ADC: crate::adc::AdcOps<H>,
-        CLOCK: crate::clock::Clock,
-    {
-        adc.read_blocking(self)
-    }
+	pub fn analog_read<H, ADC, CLOCK>(&self, adc: &mut crate::adc::Adc<H, ADC, CLOCK>) -> u16
+	where
+		Pin<mode::Analog, PIN>: crate::adc::AdcChannel<H, ADC>,
+		ADC: crate::adc::AdcOps<H>,
+		CLOCK: crate::clock::Clock,
+	{
+		adc.read_blocking(self)
+	}
 
-    /// Convert this pin into a generic [`Channel`][adc-channel] type.
-    ///
-    /// The generic channel type can be used to store multiple channels in an array.
-    ///
-    /// [adc-channel]: crate::adc::Channel
-    pub fn into_channel<H, ADC>(self) -> crate::adc::Channel<H, ADC>
-    where
-        Pin<mode::Analog, PIN>: crate::adc::AdcChannel<H, ADC>,
-        ADC: crate::adc::AdcOps<H>,
-    {
-        crate::adc::Channel::new(self)
-    }
+	/// Convert this pin into a generic [`Channel`][adc-channel] type.
+	///
+	/// The generic channel type can be used to store multiple channels in an array.
+	///
+	/// [adc-channel]: crate::adc::Channel
+	pub fn into_channel<H, ADC>(self) -> crate::adc::Channel<H, ADC>
+	where
+		Pin<mode::Analog, PIN>: crate::adc::AdcChannel<H, ADC>,
+		ADC: crate::adc::AdcOps<H>,
+	{
+		crate::adc::Channel::new(self)
+	}
 
-    /// Convert this pin to a floating digital input pin.
-    ///
-    /// The pin is re-enabled in the digital input buffer and is no longer usable as an analog
-    /// input. You can get to other digital modes by calling one of the usual `into_...` methods
-    /// on the return value of this function.
-    pub fn into_digital<H, ADC, CLOCK>(
-        self,
-        adc: &mut crate::adc::Adc<H, ADC, CLOCK>,
-    ) -> Pin<mode::Input<mode::Floating>, PIN>
-    where
-        Pin<mode::Analog, PIN>: crate::adc::AdcChannel<H, ADC>,
-        ADC: crate::adc::AdcOps<H>,
-        CLOCK: crate::clock::Clock,
-    {
-        adc.disable_pin(&self);
-        Pin {
-            pin: self.pin,
-            _mode: PhantomData,
-        }
-    }
+	/// Convert this pin to a floating digital input pin.
+	///
+	/// The pin is re-enabled in the digital input buffer and is no longer usable as an analog
+	/// input. You can get to other digital modes by calling one of the usual `into_...` methods
+	/// on the return value of this function.
+	pub fn into_digital<H, ADC, CLOCK>(
+		self,
+		adc: &mut crate::adc::Adc<H, ADC, CLOCK>,
+	) -> Pin<mode::Input<mode::Floating>, PIN>
+	where
+		Pin<mode::Analog, PIN>: crate::adc::AdcChannel<H, ADC>,
+		ADC: crate::adc::AdcOps<H>,
+		CLOCK: crate::clock::Clock,
+	{
+		adc.disable_pin(&self);
+		Pin {
+			pin: self.pin,
+			_mode: PhantomData,
+		}
+	}
 }
 
 #[macro_export]

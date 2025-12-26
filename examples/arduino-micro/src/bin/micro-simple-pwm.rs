@@ -16,18 +16,18 @@ use panic_halt as _;
 
 #[arduino_hal::entry]
 fn main() -> ! {
-    let dp = arduino_hal::Peripherals::take().unwrap();
-    let pins = arduino_hal::pins!(dp);
+	let dp = arduino_hal::Peripherals::take().unwrap();
+	let pins = arduino_hal::pins!(dp);
 
-    let timer4 = Timer4Pwm::new(dp.TC4, Prescaler::Prescale64);
+	let timer4 = Timer4Pwm::new(dp.TC4, Prescaler::Prescale64);
 
-    let mut pwm_led = pins.d13.into_output().into_pwm(&timer4);
-    pwm_led.enable();
+	let mut pwm_led = pins.d13.into_output().into_pwm(&timer4);
+	pwm_led.enable();
 
-    loop {
-        for x in (0..=255).chain((0..=254).rev()) {
-            pwm_led.set_duty(x);
-            arduino_hal::delay_ms(10);
-        }
-    }
+	loop {
+		for x in (0..=255).chain((0..=254).rev()) {
+			pwm_led.set_duty(x);
+			arduino_hal::delay_ms(10);
+		}
+	}
 }

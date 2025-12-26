@@ -30,7 +30,7 @@ avr_hal_generic::impl_eeprom_atmega! {
     capacity: 256,
     addr_width: u8,
     set_address: |peripheral, address| {
-        peripheral.eearl().write(|w| w.bits(address));
+	peripheral.eearl().write(|w| w.bits(address));
     },
 }
 
@@ -41,7 +41,7 @@ avr_hal_generic::impl_eeprom_atmega! {
     capacity: 512,
     addr_width: u16,
     set_address: |peripheral, address| {
-        peripheral.eear().write(|w| w.bits(address));
+	peripheral.eear().write(|w| w.bits(address));
     },
 }
 
@@ -52,14 +52,14 @@ avr_hal_generic::impl_eeprom_atmega! {
     capacity: 512,
     addr_width: u16,
     set_address: |peripheral, address| {
-        peripheral.eear().write(|w| w.bits(address));
+	peripheral.eear().write(|w| w.bits(address));
     },
 }
 
 #[cfg(any(
-    feature = "atmega328pb",
-    feature = "atmega328p",
-    feature = "atmega32u4"
+	feature = "atmega328pb",
+	feature = "atmega328p",
+	feature = "atmega32u4"
 ))]
 avr_hal_generic::impl_eeprom_atmega! {
     hal: crate::Atmega,
@@ -67,14 +67,14 @@ avr_hal_generic::impl_eeprom_atmega! {
     capacity: 1024,
     addr_width: u16,
     set_address: |peripheral, address| {
-        peripheral.eear().write(|w| w.bits(address));
+	peripheral.eear().write(|w| w.bits(address));
     },
 }
 
 #[cfg(any(
-    feature = "atmega2560",
-    feature = "atmega1280",
-    feature = "atmega1284p"
+	feature = "atmega2560",
+	feature = "atmega1280",
+	feature = "atmega1284p"
 ))]
 avr_hal_generic::impl_eeprom_atmega! {
     hal: crate::Atmega,
@@ -82,7 +82,7 @@ avr_hal_generic::impl_eeprom_atmega! {
     capacity: 4096,
     addr_width: u16,
     set_address: |peripheral, address| {
-        peripheral.eear().write(|w| w.bits(address));
+	peripheral.eear().write(|w| w.bits(address));
     },
 }
 
@@ -93,7 +93,7 @@ avr_hal_generic::impl_eeprom_atmega_old! {
     capacity: 512,
     addr_width: u16,
     set_address: |peripheral, address| {
-        peripheral.eear().write(|w| w.bits(address));
+	peripheral.eear().write(|w| w.bits(address));
     },
 }
 
@@ -104,7 +104,7 @@ avr_hal_generic::impl_eeprom_atmega_old! {
     capacity: 1024,
     addr_width: u16,
     set_address: |peripheral, address| {
-        peripheral.eear().write(|w| w.bits(address));
+	peripheral.eear().write(|w| w.bits(address));
     },
 }
 
@@ -115,6 +115,6 @@ avr_hal_generic::impl_eeprom_atmega_old! {
     capacity: 4096,
     addr_width: u16,
     set_address: |peripheral, address| {
-        peripheral.eear().write(|w| w.bits(address));
+	peripheral.eear().write(|w| w.bits(address));
     },
 }
