@@ -4,8 +4,8 @@ use avr_hal_generic::usb::create_usb_bus;
 
 #[cfg(any(feature = "atmega32u4", feature = "atmega8u2"))]
 use crate::pac::{
-	usb_device::{udint, UDINT, ueintx, UEINTX},
-	USB_DEVICE, PLL,
+    usb_device::{udint, ueintx, UDINT, UEINTX},
+    PLL, USB_DEVICE,
 };
 
 #[cfg(feature = "atmega32u4")]
@@ -28,16 +28,16 @@ const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 64, 64, 64, 64];
 const DPRAM_SIZE: u16 = 176;
 
 create_usb_bus! {
-	AvrGenericUsbBus, // we have to pass the name along for visibility reasons
-	new,
-	with_suspend_notifier,
-	USB_DEVICE,
-	SuspendNotifier,
-	MAX_ENDPOINTS,
-	ENDPOINT_MAX_BUFSIZE,
-	DPRAM_SIZE,
-	cfg(feature = "atmega8u2"),
-	cfg(feature = "atmega32u4")
+    AvrGenericUsbBus, // we have to pass the name along for visibility reasons
+    new,
+    with_suspend_notifier,
+    USB_DEVICE,
+    SuspendNotifier,
+    MAX_ENDPOINTS,
+    ENDPOINT_MAX_BUFSIZE,
+    DPRAM_SIZE,
+    cfg(feature = "atmega8u2"),
+    cfg(feature = "atmega32u4")
 }
 
 /// Extension trait for conveniently clearing AVR interrupt flag registers.
@@ -56,84 +56,85 @@ create_usb_bus! {
 /// Implementers of this trait should provide an initial value to the callback
 /// with all _known_ interrupt flags set to the value that has no effect (which
 /// is 1, in most cases)
-pub trait ClearInterrupts { // This trait must live here due to the orphan rule
-	type Writer;
+pub trait ClearInterrupts {
+    // This trait must live here due to the orphan rule
+    type Writer;
 
-	fn clear_interrupts<F>(&self, f: F)
-	where
-		for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer;
+    fn clear_interrupts<F>(&self, f: F)
+    where
+        for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer;
 }
 
 impl ClearInterrupts for UDINT {
-	type Writer = udint::W;
+    type Writer = udint::W;
 
-	fn clear_interrupts<F>(&self, f: F)
-	where
-		for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer,
-	{
-		// Bits 1,7 reserved as do not set. Setting all other bits has no effect
-		self.write(|w| f(unsafe { w.bits(0x7d) }))
-	}
+    fn clear_interrupts<F>(&self, f: F)
+    where
+        for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer,
+    {
+        // Bits 1,7 reserved as do not set. Setting all other bits has no effect
+        self.write(|w| f(unsafe { w.bits(0x7d) }))
+    }
 }
 
 impl ClearInterrupts for UEINTX {
-	type Writer = ueintx::W;
+    type Writer = ueintx::W;
 
-	fn clear_interrupts<F>(&self, f: F)
-	where
-		for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer,
-	{
-		// Bit 5 read-only. Setting all other bits has no effect, EXCEPT:
-		//  - RXOUTI/KILLBK should not be set for "IN" endpoints (XXX end-user beware)
-		self.write(|w| f(unsafe { w.bits(0xdf) }))
-	}
+    fn clear_interrupts<F>(&self, f: F)
+    where
+        for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer,
+    {
+        // Bit 5 read-only. Setting all other bits has no effect, EXCEPT:
+        //  - RXOUTI/KILLBK should not be set for "IN" endpoints (XXX end-user beware)
+        self.write(|w| f(unsafe { w.bits(0xdf) }))
+    }
 }
 
 #[cfg(not(feature = "atmega8u2"))]
 impl ClearInterrupts for USBINT {
-	type Writer = usbint::W;
+    type Writer = usbint::W;
 
-	fn clear_interrupts<F>(&self, f: F)
-	where
-		for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer,
-	{
-		// Bits 7:1 are reserved as do not set.
-		self.write(|w| f(unsafe { w.bits(0x01) }))
-	}
+    fn clear_interrupts<F>(&self, f: F)
+    where
+        for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer,
+    {
+        // Bits 7:1 are reserved as do not set.
+        self.write(|w| f(unsafe { w.bits(0x01) }))
+    }
 }
 
 /// Receiver for handling suspend and resume events from the USB device.
 ///
 /// See [`UsbBus::with_suspend_notifier`] for more details.
 pub trait SuspendNotifier: Send + Sized + 'static {
-	/// Called by `UsbBus` when the USB peripheral has been suspended and the
-	/// PLL is safe to shut down.
-	fn suspend(&self) {}
+    /// Called by `UsbBus` when the USB peripheral has been suspended and the
+    /// PLL is safe to shut down.
+    fn suspend(&self) {}
 
-	/// Called by `UsbBus` when the USB peripheral is about to resume and is
-	/// waiting for PLL to be enabled.
-	///
-	/// This function should block until PLL lock has been established.
-	fn resume(&self) {}
+    /// Called by `UsbBus` when the USB peripheral is about to resume and is
+    /// waiting for PLL to be enabled.
+    ///
+    /// This function should block until PLL lock has been established.
+    fn resume(&self) {}
 }
 
 impl SuspendNotifier for () {}
 
 impl SuspendNotifier for PLL {
-	fn suspend(&self) {
-		self.pllcsr.modify(|_, w| w.plle().clear_bit());
-	}
+    fn suspend(&self) {
+        self.pllcsr.modify(|_, w| w.plle().clear_bit());
+    }
 
-	fn resume(&self) {
-		#[cfg(feature = "atmega32u4")]
-		self.pllcsr
-			.modify(|_, w| w.pindiv().set_bit().plle().set_bit());
-		#[cfg(feature = "atmega8u2")]
-		self.pllcsr
-			.modify(|_, w| w.pllp().val_0x05().plle().set_bit()); // REVIEW: is val_0x05 or val_0x03 correct? or something else?
+    fn resume(&self) {
+        #[cfg(feature = "atmega32u4")]
+        self.pllcsr
+            .modify(|_, w| w.pindiv().set_bit().plle().set_bit());
+        #[cfg(feature = "atmega8u2")]
+        self.pllcsr
+            .modify(|_, w| w.pllp().val_0x05().plle().set_bit()); // REVIEW: is val_0x05 or val_0x03 correct? or something else?
 
-		while self.pllcsr.read().plock().bit_is_clear() {}
-	}
+        while self.pllcsr.read().plock().bit_is_clear() {}
+    }
 }
 
 pub type AvrUsbBus = AvrGenericUsbBus<PLL>;

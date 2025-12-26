@@ -26,11 +26,22 @@
 
 mod std_stub;
 
-use arduino_hal::{pac::PLL, port::{mode::{Input, Output, PullUp}, Pin}, usb::{AvrGenericUsbBus, SuspendNotifier}, AvrUsbBus};
+use arduino_hal::{
+    pac::PLL,
+    port::{
+        mode::{Input, Output, PullUp},
+        Pin,
+    },
+    usb::{AvrGenericUsbBus, SuspendNotifier},
+    AvrUsbBus,
+};
 
 use avr_device::{asm::sleep, interrupt};
 
-use usb_device::{bus::UsbBusAllocator, descriptor::lang_id::LangID, device::UsbDevice, prelude::StringDescriptors};
+use usb_device::{
+    bus::UsbBusAllocator, descriptor::lang_id::LangID, device::UsbDevice,
+    prelude::StringDescriptors,
+};
 use usbd_hid::{
     descriptor::{KeyboardReport, SerializedDescriptor},
     hid_class::HIDClass,
@@ -63,13 +74,15 @@ fn main() -> ! {
 
     let usb_bus: &UsbBusAllocator<AvrGenericUsbBus<PLL>> = arduino_hal::default_usb_bus!(usb, pll);
 
-    let hid_class: HIDClass<AvrGenericUsbBus<PLL>> = HIDClass::new(usb_bus, KeyboardReport::desc(), 1);
-	let strings = StringDescriptors::new(LangID::EN)
+    let hid_class: HIDClass<AvrGenericUsbBus<PLL>> =
+        HIDClass::new(usb_bus, KeyboardReport::desc(), 1);
+    let strings = StringDescriptors::new(LangID::EN)
         .manufacturer("Foo")
         .product("Bar");
-	let usb_device: UsbDevice<AvrGenericUsbBus<PLL>> = arduino_hal::default_usb_device!(usb_bus, 0x1209, 0x0001, strings);
-	
-	unsafe {
+    let usb_device: UsbDevice<AvrGenericUsbBus<PLL>> =
+        arduino_hal::default_usb_device!(usb_bus, 0x1209, 0x0001, strings);
+
+    unsafe {
         USB_CTX = Some(UsbContext {
             usb_device,
             hid_class,
@@ -80,7 +93,7 @@ fn main() -> ! {
         });
     }
 
-	unsafe { interrupt::enable() };
+    unsafe { interrupt::enable() };
     loop {
         sleep();
     }

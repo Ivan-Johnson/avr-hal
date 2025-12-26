@@ -9,8 +9,8 @@ use arduino_hal::hal::Atmega;
 use arduino_hal::pac::USART1;
 use arduino_hal::port::mode::{Input, Output};
 use arduino_hal::port::Pin;
-use arduino_hal::{prelude::*, Usart};
 use arduino_hal::{delay_ms, pins, Peripherals};
+use arduino_hal::{prelude::*, Usart};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -39,7 +39,7 @@ fn panic(_info: &PanicInfo) -> ! {
 
     // if let Some(s) = _info.payload().downcast_ref::<&str>() {
     //     ufmt::uwriteln!(&mut serial, "More info: {}!\r", s).unwrap_infallible();
-    // } 
+    // }
 
     // let mut uart = UartWriter { uart: serial };
     // ::core::writeln!(uart, "{}", _info).ok();

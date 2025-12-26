@@ -181,7 +181,10 @@ pub mod usart {
 pub use usart::Usart;
 
 #[cfg(feature = "arduino-leonardo")]
-use usb_device::{bus::UsbBusAllocator, device::{UsbDeviceBuilder, UsbVidPid}};
+use usb_device::{
+    bus::UsbBusAllocator,
+    device::{UsbDeviceBuilder, UsbVidPid},
+};
 #[cfg(feature = "arduino-leonardo")]
 pub mod usb {
     pub use crate::hal::usb::*;
@@ -191,7 +194,6 @@ pub mod usb {
 #[doc(no_inline)]
 #[cfg(feature = "arduino-leonardo")]
 pub use usb::AvrUsbBus;
-
 
 #[cfg(feature = "board-selected")]
 pub mod eeprom {
@@ -361,7 +363,7 @@ macro_rules! default_serial {
 /// TODO
 /// ```
 #[cfg(feature = "arduino-leonardo")]
-pub macro default_usb_bus ($usb:expr, $pll:expr) {
+pub macro default_usb_bus($usb:expr, $pll:expr) {
     unsafe {
         static mut USB_BUS: Option<UsbBusAllocator<AvrUsbBus>> = None;
         &*USB_BUS.insert($crate::AvrUsbBus::with_suspend_notifier($usb, $pll))
@@ -375,12 +377,9 @@ pub macro default_usb_bus ($usb:expr, $pll:expr) {
 /// TODO
 /// ```
 #[cfg(feature = "arduino-leonardo")]
-pub macro default_usb_device ($usb_bus:expr, $vid:expr, $pid:expr, $strings:expr) {
-    UsbDeviceBuilder::new(
-        $usb_bus,
-        UsbVidPid($vid, $pid)
-    )
-    .strings(&[$strings])
-    .unwrap()
-    .build()
+pub macro default_usb_device($usb_bus:expr, $vid:expr, $pid:expr, $strings:expr) {
+    UsbDeviceBuilder::new($usb_bus, UsbVidPid($vid, $pid))
+        .strings(&[$strings])
+        .unwrap()
+        .build()
 }

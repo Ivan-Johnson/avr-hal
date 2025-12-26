@@ -3,7 +3,6 @@
 #![cfg_attr(not(avr_hal_asm_macro), feature(llvm_asm))]
 #![feature(decl_macro)]
 
-
 pub use embedded_hal as hal;
 pub use embedded_hal_v0 as hal_v0;
 
@@ -23,8 +22,8 @@ pub mod port;
 pub mod simple_pwm;
 pub mod spi;
 pub mod usart;
-pub mod wdt;
 pub mod usb;
+pub mod wdt;
 
 /// Prelude containing all HAL traits
 pub mod prelude {
