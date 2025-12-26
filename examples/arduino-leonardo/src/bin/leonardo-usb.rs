@@ -13,7 +13,7 @@
 //!   ```
 //!   cargo run --release --example arduino_keyboard
 //!   ```
-//!   
+//!
 //! 4. Open Notepad (or whatever editor or text input of your choosing). Press
 //! the button (or if you are not using one, short D2 to GND with a jumper). You
 //! should see it type "Hello World"
