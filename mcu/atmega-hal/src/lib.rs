@@ -124,6 +124,12 @@ pub mod adc;
 #[cfg(feature = "device-selected")]
 pub use adc::Adc;
 
+// TODO: gate behind a feature flag
+//
+// TODO: is this the right place for `usb`? Would the `arduino-hal` or `avr-hal-generic` crates be better?
+pub mod usb;
+pub use usb::MyUsbBus;
+
 #[cfg(feature = "device-selected")]
 pub mod i2c;
 #[cfg(feature = "device-selected")]

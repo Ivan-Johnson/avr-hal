@@ -38,6 +38,8 @@ docsrs = ["arduino-uno"]
 cfg-if = "1"
 embedded-hal = "1.0"
 ufmt = "0.2.0"
+# TODO: make this dependency optional
+usb-device = "0.3"
 
 [dependencies.avr-hal-generic]
 path = "../avr-hal-generic/"

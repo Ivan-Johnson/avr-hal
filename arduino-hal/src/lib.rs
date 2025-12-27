@@ -114,6 +114,10 @@ pub use attiny_hal::pac;
 #[cfg(feature = "board-selected")]
 pub use hal::Peripherals;
 
+// TODO: gate these behind a feature flag
+use atmega_hal::MyUsbBus;
+use usb_device::class_prelude::UsbBus;
+
 #[cfg(feature = "board-selected")]
 pub mod clock;
 #[cfg(feature = "board-selected")]
@@ -247,6 +251,14 @@ macro_rules! default_serial {
 			$crate::hal::usart::BaudrateExt::into_baudrate($baud),
 		)
 	};
+}
+
+// TODO: idk why `arduino_hal::pins!` and `arduino_hal::default_serial!` are
+// macros. Does this need to be a macro as well?
+use atmega_hal::pac::USB_DEVICE;
+#[cfg(feature = "arduino-micro")]
+pub fn default_usb_bus(usbsta: USB_DEVICE) -> impl UsbBus {
+	MyUsbBus::new(usbsta)
 }
 
 /// Convenience macro to instantiate the [`Usart`] driver for this board.

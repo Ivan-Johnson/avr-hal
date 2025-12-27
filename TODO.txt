@@ -1,0 +1,13 @@
+* Address all the TODOs that I can handle on my own, then ask for Rahix's help.
+
+* Does `usb-device` have a Discord or something where I can ask for help / peer reviews?
+
+* Fix build errors in all the other example crates
+
+* final cleanup before opening a PR: switch to a clean branch
+
+  * squash commits
+
+  * revert to normal format settings
+
+  * remove my personal files (`flake.nix`, `TODO.txt`, etc)

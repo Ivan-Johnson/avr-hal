@@ -1,0 +1,11 @@
+// Working on adding USB support:
+// https://github.com/Rahix/avr-hal/issues/40
+examples/arduino-micro/src/bin/micro-usb-serial.rs
+mcu/atmega-hal/src/usb.rs
+
+
+
+
+open_files.txt
+TODO.txt
+Notes/usb.txt
