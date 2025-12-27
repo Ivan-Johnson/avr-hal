@@ -1,10 +1,10 @@
 use avr_device::atmega32u4::USB_DEVICE;
-use ::usb_device::bus::PollResult;
-use ::usb_device::bus::UsbBus;
-use ::usb_device::endpoint::EndpointAddress;
-use ::usb_device::endpoint::EndpointType;
-use ::usb_device::UsbDirection;
-use ::usb_device::UsbError;
+use usb_device::bus::PollResult;
+use usb_device::bus::UsbBus;
+use usb_device::endpoint::EndpointAddress;
+use usb_device::endpoint::EndpointType;
+use usb_device::UsbDirection;
+use usb_device::UsbError;
 
 // TODO: rename. What are the naming conventions anyways?
 pub struct MyUsbBus {}
