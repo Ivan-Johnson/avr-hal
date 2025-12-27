@@ -31,6 +31,16 @@
 					})
 				];
 				RAVEDUDE_PORT = "/dev/ttyACM0";
+				AVR_HAL_BUILD_TARGETS = "all";
+
+				# Setting PATH directly doesn't work at all:
+				#
+				# PATH = ./devtools/bin;
+				#
+				# Even if it did work, it would probably copy everything into the nix store.
+				# I don't want to have to re-run `nix develop` every time I modify one of
+				# the devtools. As such, I go with this slightly uglier approach instead:
+				shellHook = ''PATH="$(realpath devtools/bin/):$PATH";'';
 			};
 		};
 }
