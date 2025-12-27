@@ -1,5 +1,4 @@
 use avr_device::atmega32u4::USB_DEVICE;
-// TODO: I've never seen `use ::foo` before... What's going on?
 use ::usb_device::bus::PollResult;
 use ::usb_device::bus::UsbBus;
 use ::usb_device::endpoint::EndpointAddress;

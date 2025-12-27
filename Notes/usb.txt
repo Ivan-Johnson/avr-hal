@@ -20,6 +20,9 @@ Context: https://github.com/Rahix/avr-hal/issues/40
 
 * upstream:
 
+  * original PR:
+    https://github.com/Rahix/avr-hal/pull/572/files
+
   * atmega-usbd: https://github.com/agausmann/atmega-usbd
 
     https://github.com/agausmann/atmega-usbd/blob/master/src/lib.rs

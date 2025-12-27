@@ -1,7 +1,6 @@
 [package]
 name = "arduino-micro-examples"
 version = "0.0.0"
-# TODO: Create issue for updating to 2024?
 edition = "2021"
 publish = false
 
