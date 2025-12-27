@@ -114,8 +114,9 @@ pub use attiny_hal::pac;
 #[cfg(feature = "board-selected")]
 pub use hal::Peripherals;
 
-// TODO: gate these behind a feature flag
+#[cfg(feature = "usb-support")]
 use atmega_hal::MyUsbBus;
+#[cfg(feature = "usb-support")]
 use usb_device::class_prelude::UsbBus;
 
 #[cfg(feature = "board-selected")]
