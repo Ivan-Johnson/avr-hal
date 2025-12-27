@@ -256,8 +256,9 @@ macro_rules! default_serial {
 
 // TODO: idk why `arduino_hal::pins!` and `arduino_hal::default_serial!` are
 // macros. Does this need to be a macro as well?
+#[cfg(feature = "usb-support")]
 use atmega_hal::pac::USB_DEVICE;
-#[cfg(feature = "arduino-micro")]
+#[cfg(feature = "usb-support")]
 pub fn default_usb_bus(usbsta: USB_DEVICE) -> impl UsbBus {
 	MyUsbBus::new(usbsta)
 }
