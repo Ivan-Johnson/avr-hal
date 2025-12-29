@@ -1,0 +1,17 @@
+// Working on adding USB support:
+// https://github.com/Rahix/avr-hal/issues/40
+arduino-hal/Cargo.toml
+arduino-hal/src/lib.rs
+avr-hal-generic/Cargo.toml
+avr-hal-generic/src/lib.rs
+examples/arduino-micro/Cargo.toml
+examples/arduino-micro/src/bin/micro-usb-serial.rs
+flake.nix
+mcu/atmega-hal/Cargo.toml
+mcu/atmega-hal/src/lib.rs
+mcu/atmega-hal/src/usb.rs
+meta.txt
+meta.txt
+Notes/usb.txt
+open_files.txt
+TODO.txt

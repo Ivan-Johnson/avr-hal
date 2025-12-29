@@ -31,7 +31,7 @@
 					})
 				];
 				RAVEDUDE_PORT = "/dev/ttyACM0";
-				AVR_HAL_BUILD_TARGETS = "all";
+				AVR_HAL_BUILD_TARGETS = "arduino-micro";
 
 				# Setting PATH directly doesn't work at all:
 				#

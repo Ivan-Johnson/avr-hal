@@ -1,0 +1,15 @@
+* Address all the TODOs that I can handle on my own, then ask for Rahix's help.
+
+* Does `usb-device` have a Discord or something where I can ask for help / peer reviews?
+
+* Read through existing `UsbBus` implementations:
+
+  * https://github.com/decaday/musb/blob/a9b9c5487127d03408d479aeda6f6027e801f9a5/src/usb_device_impl/mod.rs#L68
+
+* final cleanup before opening a PR: switch to a clean branch
+
+  * squash commits
+
+  * revert to normal format settings
+
+  * remove my personal files (`flake.nix`, `TODO.txt`, etc)

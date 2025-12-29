@@ -1,0 +1,29 @@
+Context: https://github.com/Rahix/avr-hal/issues/40
+
+> Add usb-device support to atmega32u4
+
+
+* FIND OFFICIAL ARDUINO CODE
+
+  Use their code as reference
+
+
+
+* misc usb-device examples: https://github.com/rust-embedded-community/usb-device?tab=readme-ov-file#hardware-driver-crates
+
+  A lot of the examples have unsafe code... These two don't:
+
+  * https://github.com/py32-rs/py32-hal/blob/main/examples/usbd-f072/src/bin/hid.rs
+
+  * https://github.com/py32-rs/py32-hal/blob/main/examples/usbd-f072/src/bin/serial.rs
+
+
+* upstream:
+
+  * original PR:
+    https://github.com/Rahix/avr-hal/pull/572/files
+
+  * atmega-usbd: https://github.com/agausmann/atmega-usbd
+
+    https://github.com/agausmann/atmega-usbd/blob/master/src/lib.rs
+    https://github.com/agausmann/atmega-usbd/blob/master/examples/arduino_keyboard.rs
