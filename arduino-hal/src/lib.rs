@@ -262,9 +262,9 @@ macro_rules! default_serial {
 #[cfg(feature = "usb-support")]
 #[macro_export]
 macro_rules! default_usb_bus {
-    ($p:expr) => {
-        $crate::UsbdBus::new($p.USB_DEVICE, $p.PLL)
-    };
+	($p:expr) => {
+		$crate::UsbdBus::new($p.USB_DEVICE, $p.PLL)
+	};
 }
 
 /// Convenience macro to instantiate the [`Usart`] driver for this board.
