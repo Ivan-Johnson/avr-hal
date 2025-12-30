@@ -27,7 +27,12 @@
 					pkgs.ravedude
 					(fenix.packages.x86_64-linux.fromToolchainFile {
 						file = ./rust-toolchain.toml;
-						sha256 = "sha256-z8J/GH7znPPg9kKvPirKcBeXqHikj1M7KB+anwsDx0M=";
+
+						# cadence
+						#sha256 = "sha256-z8J/GH7znPPg9kKvPirKcBeXqHikj1M7KB+anwsDx0M=";
+
+						# aria
+						sha256 = "sha256-UTAqJO6LFvfLyZTO7d3myyE+rdMP/Mny0m0n/jBKzLQ=";
 					})
 				];
 				RAVEDUDE_PORT = "/dev/ttyACM0";
