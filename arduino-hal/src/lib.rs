@@ -263,7 +263,7 @@ macro_rules! default_serial {
 #[macro_export]
 macro_rules! default_usb_bus {
 	($p:expr) => {
-		$crate::UsbdBus::new($p.USB_DEVICE, $p.PLL)
+		$crate::UsbdBus::new($p.USB_DEVICE)
 	};
 }
 
