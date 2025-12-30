@@ -181,7 +181,7 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
         let entry = &mut self.endpoints[ep_addr.index()];
         entry.eptype_bits = match ep_type {
             EndpointType::Control => EP_TYPE_CONTROL,
-            EndpointType::Isochronous => EP_TYPE_ISOCHRONOUS,
+            EndpointType::Isochronous { .. } => EP_TYPE_ISOCHRONOUS,
             EndpointType::Bulk => EP_TYPE_BULK,
             EndpointType::Interrupt => EP_TYPE_INTERRUPT,
         };
@@ -413,12 +413,12 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
                 return PollResult::Reset;
             }
             if udint.sofi().bit_is_set() {
-                usb.udint.clear_interrupts(|w| w.sofi().clear_bit());
+                usb.udint().clear_interrupts(|w| w.sofi().clear_bit());
             }
 
             // Can only query endpoints while clock is running
             // (e.g. not in suspend state)
-            if usb.usbcon.read().frzclk().bit_is_clear() {
+            if usb.usbcon().read().frzclk().bit_is_clear() {
                 let mut ep_out = 0u8;
                 let mut ep_setup = 0u8;
                 let mut ep_in_complete = 0u8;
@@ -430,7 +430,7 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
                         break;
                     }
 
-                    let ueintx = usb.ueintx.read();
+                    let ueintx = usb.ueintx().read();
                     if ueintx.rxouti().bit_is_set() {
                         ep_out |= 1 << index;
                     }
