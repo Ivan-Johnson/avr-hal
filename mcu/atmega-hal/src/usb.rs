@@ -247,7 +247,7 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
     fn set_device_address(&self, addr: u8) {
         interrupt::free(|cs| {
             let usb = self.usb.borrow(cs);
-            usb.udaddr().modify(|_, w| w.uadd().bits(addr));
+            usb.udaddr().modify(|_, w| unsafe { w.uadd().bits(addr) });
             // NB: ADDEN and UADD shall not be written at the same time.
             usb.udaddr().modify(|_, w| w.adden().set_bit());
         });
@@ -306,7 +306,7 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
             let endpoint = &self.endpoints[ep_addr.index()];
 
             if endpoint.eptype_bits == EP_TYPE_CONTROL {
-                let ueintx = usb.ueintx.read();
+                let ueintx = usb.ueintx().read();
                 if ueintx.rxouti().bit_is_clear() && ueintx.rxstpi().bit_is_clear() {
                     return Err(UsbError::WouldBlock);
                 }
@@ -317,31 +317,30 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
                 }
 
                 for slot in &mut buf[..bytes_to_read] {
-                    *slot = usb.uedatx.read().bits();
+                    *slot = usb.uedatx().read().bits();
                 }
-                    usb.ueintx().clear_interrupts(|w| w.rxouti().clear_bit().rxstpi().clear_bit());
+                usb.ueintx().clear_interrupts(|w| w.rxouti().clear_bit().rxstpi().clear_bit());
 
                 Ok(bytes_to_read)
             } else {
-                if usb.ueintx.read().rxouti().bit_is_clear() {
+                if usb.ueintx().read().rxouti().bit_is_clear() {
                     return Err(UsbError::WouldBlock);
                 }
-                usb.ueintx.clear_interrupts(|w| w.rxouti().clear_bit());
+                usb.ueintx().clear_interrupts(|w| w.rxouti().clear_bit());
 
                 let mut bytes_read = 0;
                 for slot in buf {
-                    if usb.ueintx.read().rwal().bit_is_clear() {
+                    if usb.ueintx().read().rwal().bit_is_clear() {
                         break;
                     }
-                    *slot = usb.uedatx.read().bits();
+                    *slot = usb.uedatx().read().bits();
                     bytes_read += 1;
                 }
-
-                if usb.ueintx.read().rwal().bit_is_set() {
+                if usb.ueintx().read().rwal().bit_is_set() {
                     return Err(UsbError::BufferOverflow);
                 }
 
-                usb.ueintx.clear_interrupts(|w| w.fifocon().clear_bit());
+                usb.ueintx().clear_interrupts(|w| w.fifocon().clear_bit());
                 Ok(bytes_read)
             }
         })
@@ -351,8 +350,7 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
         interrupt::free(|cs| {
             let usb = self.usb.borrow(cs);
             if self.set_current_endpoint(cs, ep_addr.index()).is_ok() {
-                usb.ueconx
-                    .modify(|_, w| w.stallrq().bit(stalled).stallrqc().bit(!stalled));
+                usb.ueconx().modify(|_, w| w.stallrq().bit(stalled).stallrqc().bit(!stalled));
             }
         });
     }
@@ -361,7 +359,7 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
         interrupt::free(|cs| {
             let usb = self.usb.borrow(cs);
             if self.set_current_endpoint(cs, ep_addr.index()).is_ok() {
-                usb.ueconx.read().stallrq().bit_is_set()
+                usb.ueconx().read().stallrq().bit_is_set()
             } else {
                 false
             }
@@ -371,11 +369,9 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
     fn suspend(&self) {
         interrupt::free(|cs| {
             let usb = self.usb.borrow(cs);
-            usb.udint
-                .clear_interrupts(|w| w.suspi().clear_bit().wakeupi().clear_bit());
-            usb.udien
-                .modify(|_, w| w.wakeupe().set_bit().suspe().clear_bit());
-            usb.usbcon.modify(|_, w| w.frzclk().set_bit());
+            usb.udint().clear_interrupts(|w| w.suspi().clear_bit().wakeupi().clear_bit());
+            usb.udien().modify(|_, w| w.wakeupe().set_bit().suspe().clear_bit());
+            usb.usbcon().modify(|_, w| w.frzclk().set_bit());
 
             self.suspend_notifier.borrow(cs).suspend();
         });
@@ -386,11 +382,9 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
             self.suspend_notifier.borrow(cs).resume();
 
             let usb = self.usb.borrow(cs);
-            usb.usbcon.modify(|_, w| w.frzclk().clear_bit());
-            usb.udint
-                .clear_interrupts(|w| w.wakeupi().clear_bit().suspi().clear_bit());
-            usb.udien
-                .modify(|_, w| w.wakeupe().clear_bit().suspe().set_bit());
+            usb.usbcon().modify(|_, w| w.frzclk().clear_bit());
+            usb.udint().clear_interrupts(|w| w.wakeupi().clear_bit().suspi().clear_bit());
+            usb.udien().modify(|_, w| w.wakeupe().clear_bit().suspe().set_bit());
         });
     }
 
@@ -398,12 +392,12 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
         interrupt::free(|cs| {
             let usb = self.usb.borrow(cs);
 
-            let usbint = usb.usbint.read();
-            let udint = usb.udint.read();
-            let udien = usb.udien.read();
+            let usbint = usb.usbint().read();
+            let udint = usb.udint().read();
+            let udien = usb.udien().read();
             if usbint.vbusti().bit_is_set() {
-                usb.usbint.clear_interrupts(|w| w.vbusti().clear_bit());
-                if usb.usbsta.read().vbus().bit_is_set() {
+                usb.usbint().clear_interrupts(|w| w.vbusti().clear_bit());
+                if usb.usbsta().read().vbus().bit_is_set() {
                     return PollResult::Resume;
                 } else {
                     return PollResult::Suspend;
