@@ -1,4 +1,4 @@
-use core::{arch::asm, cell::Cell, cmp::max};
+use core::{cell::Cell, cmp::max};
 
 use avr_device::atmega32u4::PLL;
 use avr_device::atmega32u4::USB_DEVICE;
