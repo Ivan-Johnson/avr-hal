@@ -25,7 +25,7 @@
 					(pkgs.python3.withPackages (python-pkgs: with python-pkgs; [ pyserial ]))
 					pkgs.minicom
 					pkgs.ravedude
-					pkgs.vscode
+					# pkgs.vscode
 					(fenix.packages.x86_64-linux.fromToolchainFile {
 						file = ./rust-toolchain.toml;
 
@@ -38,7 +38,7 @@
 				];
 				RAVEDUDE_PORT = "/dev/ttyACM0";
 				AVR_HAL_BUILD_TARGETS = "arduino-micro";
-				NIXPKGS_ALLOW_UNFREE=1;
+				# NIXPKGS_ALLOW_UNFREE=1;
 
 				# Setting PATH directly doesn't work at all:
 				#
