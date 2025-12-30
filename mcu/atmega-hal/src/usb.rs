@@ -103,7 +103,7 @@ impl<S: SuspendNotifier> UsbdBus<S> {
         if usb.usbcon().read().frzclk().bit_is_set() {
             return Err(UsbError::InvalidState);
         }
-        usb.uenum().write(|w| w.bits(index as u8));
+        usb.uenum().write(|w| unsafe { w.bits(index as u8) });
         if usb.uenum().read().bits() & 0b111 != (index as u8) {
             return Err(UsbError::InvalidState);
         }
@@ -122,14 +122,13 @@ impl<S: SuspendNotifier> UsbdBus<S> {
         usb.ueconx().modify(|_, w| w.epen().set_bit());
         usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
 
-        usb.uecfg0x().write(|w| {
+        usb.uecfg0x().write(|w| unsafe {
             w.epdir()
                 .bit(endpoint.epdir_bit)
                 .eptype()
                 .bits(endpoint.eptype_bits)
         });
-        usb.uecfg1x()
-            .write(|w| w.epbk().bits(0).epsize().bits(endpoint.epsize_bits));
+        usb.uecfg1x().write(|w| unsafe { w.epbk().bits(0).epsize().bits(endpoint.epsize_bits) });
         usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
 
         assert!(
@@ -270,9 +269,9 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
                     return Err(UsbError::BufferOverflow);
                 }
 
-                for &byte in buf {
-                    usb.uedatx().write(|w| w.bits(byte));
-                }
+                    for &byte in buf {
+                        usb.uedatx().write(|w| unsafe { w.bits(byte) });
+                    }
 
                 usb.ueintx().clear_interrupts(|w| w.txini().clear_bit());
             } else {
@@ -286,7 +285,7 @@ impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
                     if usb.ueintx().read().rwal().bit_is_clear() {
                         return Err(UsbError::BufferOverflow);
                     }
-                    usb.uedatx().write(|w| w.bits(byte));
+                        usb.uedatx().write(|w| unsafe { w.bits(byte) });
                 }
 
                 //NB: RXOUTI serves as KILLBK for IN endpoints and needs to stay zero:
