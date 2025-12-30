@@ -1,5 +1,3 @@
-#![no_std]
-
 use core::{arch::asm, cell::Cell, cmp::max};
 
 use avr_device::atmega32u4::PLL;
