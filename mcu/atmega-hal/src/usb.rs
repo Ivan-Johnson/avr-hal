@@ -535,23 +535,3 @@ impl SuspendNotifier for PLL {
 		while self.pllcsr().read().plock().bit_is_clear() {}
 	}
 }
-
-#[inline(always)]
-fn delay_cycles(cycles: u32) {
-	let mut cycles_bytes = cycles.to_le_bytes();
-	unsafe {
-		asm!(
-		    "1:",
-		    "subi {r0}, 6",
-		    "sbci {r1}, 0",
-		    "sbci {r2}, 0",
-		    "sbci {r3}, 0",
-		    "brcc 1b",
-
-		    r0 = inout(reg_upper) cycles_bytes[0],
-		    r1 = inout(reg_upper) cycles_bytes[1],
-		    r2 = inout(reg_upper) cycles_bytes[2],
-		    r3 = inout(reg_upper) cycles_bytes[3],
-		)
-	}
-}
