@@ -18,7 +18,7 @@
 		let
 			pkgs = import nixpkgs {
 				system = "x86_64-linux";
-				config.allowUnfree = true;
+				config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "vscode" ];
 			};
 		in
 		{
