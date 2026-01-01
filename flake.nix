@@ -16,7 +16,10 @@
 			fenix,
 		}:
 		let
-			pkgs = import nixpkgs { system = "x86_64-linux"; };
+			pkgs = import nixpkgs {
+				system = "x86_64-linux";
+				config.allowUnfree = true;
+			};
 		in
 		{
 			devShells.x86_64-linux.default = pkgs.mkShell {
@@ -25,7 +28,7 @@
 					(pkgs.python3.withPackages (python-pkgs: with python-pkgs; [ pyserial ]))
 					pkgs.minicom
 					pkgs.ravedude
-					# pkgs.vscode
+					pkgs.vscode
 					(fenix.packages.x86_64-linux.fromToolchainFile {
 						file = ./rust-toolchain.toml;
 
