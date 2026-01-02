@@ -27,6 +27,8 @@
 					pkgs.pkgsCross.avr.buildPackages.gcc
 					(pkgs.python3.withPackages (python-pkgs: with python-pkgs; [ pyserial ]))
 					pkgs.minicom
+					pkgs.arduino-cli
+					pkgs.arduino-ide
 					pkgs.ravedude
 					pkgs.vscode
 					(fenix.packages.x86_64-linux.fromToolchainFile {
