@@ -1,8 +1,11 @@
-use core::{cell::Cell, cmp::max};
+use core::cell::Cell;
+use core::cmp::max;
 
 use avr_device::atmega32u4::PLL;
 use avr_device::atmega32u4::USB_DEVICE;
-use avr_device::interrupt::{self, CriticalSection, Mutex};
+use avr_device::interrupt;
+use avr_device::interrupt::CriticalSection;
+use avr_device::interrupt::Mutex;
 use usb_device::bus::PollResult;
 use usb_device::bus::UsbBus as UsbDeviceBus;
 use usb_device::endpoint::EndpointAddress;
