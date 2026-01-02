@@ -32,10 +32,7 @@
 					(fenix.packages.x86_64-linux.fromToolchainFile {
 						file = ./rust-toolchain.toml;
 
-						# cadence
-						#sha256 = "sha256-z8J/GH7znPPg9kKvPirKcBeXqHikj1M7KB+anwsDx0M=";
-
-						# aria
+						# 20251230->present
 						sha256 = "sha256-UTAqJO6LFvfLyZTO7d3myyE+rdMP/Mny0m0n/jBKzLQ=";
 					})
 				];
