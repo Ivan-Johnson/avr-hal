@@ -7,7 +7,7 @@ use avr_device::interrupt;
 use avr_device::interrupt::CriticalSection;
 use avr_device::interrupt::Mutex;
 use usb_device::bus::PollResult;
-use usb_device::bus::UsbBus as UsbDeviceBus;
+use usb_device::bus::UsbBus;
 use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
@@ -145,7 +145,7 @@ impl<S: SuspendNotifier> UsbdBus<S> {
 	}
 }
 
-impl<S: SuspendNotifier> UsbDeviceBus for UsbdBus<S> {
+impl<S: SuspendNotifier> UsbBus for UsbdBus<S> {
 	fn alloc_ep(
 		&mut self,
 		ep_dir: UsbDirection,
