@@ -91,6 +91,15 @@ impl UsbdBus {
 			.filter(|&(_, ep)| ep.is_allocated)
 	}
 
+	/**
+	 * Docs from the data sheet: 
+	 *
+	 * > Prior to any operation performed by the CPU, the endpoint must first be selected. This
+	 * > is done by setting the EPNUM2:0 bits (UENUM register) with the endpoint number which 
+	 * > will be managed by the CPU.
+	 * >
+     * > The CPU can then access to the various endpoint registers and data
+	 */
 	fn set_current_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		if index >= MAX_ENDPOINTS {
 			return Err(UsbError::InvalidEndpoint);
@@ -124,6 +133,7 @@ the software.
 		((usb.uebchx().read().bits() as u16) << 8) | (usb.uebclx().read().bits() as u16)
 	}
 
+	// TODO: resume documenting here
 	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		let usb = self.usb.borrow(cs);
 		self.set_current_endpoint(cs, index)?;
