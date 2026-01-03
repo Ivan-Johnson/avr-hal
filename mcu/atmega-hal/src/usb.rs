@@ -13,14 +13,28 @@ use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
 use usb_device::UsbError;
 
+
 const MAX_ENDPOINTS: usize = 7;
+
+// From datasheet section 22.1
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];
+
+// From datasheet section 21.1
+//
+// TODO: Why 832? 64*6 + 256 = 640
 const DPRAM_SIZE: u16 = 832;
 
-const EP_TYPE_CONTROL: u8 = 0b00;
-const EP_TYPE_ISOCHRONOUS: u8 = 0b01;
-const EP_TYPE_BULK: u8 = 0b10;
-const EP_TYPE_INTERRUPT: u8 = 0b11;
+/// Convert the EndpointType enum to the bits used by the eptype field in UECFG0X.
+///
+/// Refer to section 22.18.2 of the datasheet.
+fn eptype_bits_from_ep_type(ep_type: EndpointType) -> u8 {
+	match ep_type {
+		EndpointType::Control => 0b00,
+		EndpointType::Isochronous { .. } => 0b01,
+		EndpointType::Bulk => 0b10,
+		EndpointType::Interrupt => 0b11,
+	}
+}
 
 const EP_DIR_IN: bool = true;
 const EP_DIR_OUT: bool = false;
@@ -40,12 +54,23 @@ const EP_SIZE_512: u8 = 0b110;
 //
 // Do we respect this?
 
-#[derive(Default)]
 struct EndpointTableEntry {
 	is_allocated: bool,
-	eptype_bits: u8,
+	ep_type: EndpointType,
 	epdir_bit: bool,
 	epsize_bits: u8,
+}
+
+impl Default for EndpointTableEntry {
+	fn default() -> Self {
+		Self {
+			// None of the other fields matter as long as `is_allocated` is false
+			is_allocated: false,
+			ep_type: EndpointType::Bulk,
+			epdir_bit: EP_DIR_OUT,
+			epsize_bits: EP_SIZE_8,
+		}
+	}
 }
 
 impl EndpointTableEntry {
@@ -153,7 +178,7 @@ the software.
 			w.epdir()
 				.bit(endpoint.epdir_bit)
 				.eptype()
-				.bits(endpoint.eptype_bits)
+				.bits(eptype_bits_from_ep_type(endpoint.ep_type))
 		});
 		usb.uecfg1x()
 			.write(|w| unsafe { w.epbk().bits(0).epsize().bits(endpoint.epsize_bits) });
@@ -172,6 +197,11 @@ the software.
 }
 
 impl UsbBus for UsbdBus {
+	/// PESONAL NOTE:
+	///
+	/// * This function doesn't actually modify the hardware state, it just updates `self`'s internals.
+	///   The actual hardware configuration is done in `enable()`.
+	///
     /// Allocates an endpoint and specified endpoint parameters. This method is called by the device
     /// and class implementations to allocate endpoints, and can only be called before
     /// [`enable`](UsbBus::enable) is called.
@@ -227,14 +257,8 @@ impl UsbBus for UsbdBus {
 				EndpointAddress::from_parts(index, ep_dir)
 			}
 		};
-		let entry = &mut self.endpoints[ep_addr.index()];
-		entry.eptype_bits = match ep_type {
-			EndpointType::Control => EP_TYPE_CONTROL,
-			EndpointType::Isochronous { .. } => EP_TYPE_ISOCHRONOUS,
-			EndpointType::Bulk => EP_TYPE_BULK,
-			EndpointType::Interrupt => EP_TYPE_INTERRUPT,
-		};
-		entry.epdir_bit = match ep_dir {
+
+		let epdir_bit = match ep_dir {
 			UsbDirection::Out => EP_DIR_OUT,
 			UsbDirection::In => EP_DIR_IN,
 		};
@@ -242,7 +266,7 @@ impl UsbBus for UsbdBus {
 		if DPRAM_SIZE - self.dpram_usage < ep_size {
 			return Err(UsbError::EndpointMemoryOverflow);
 		}
-		entry.epsize_bits = match ep_size {
+		let epsize_bits = match ep_size {
 			8 => EP_SIZE_8,
 			16 => EP_SIZE_16,
 			32 => EP_SIZE_32,
@@ -253,8 +277,12 @@ impl UsbBus for UsbdBus {
 			_ => return Err(UsbError::EndpointMemoryOverflow),
 		};
 
-		// Configuration succeeded, commit/finalize:
-		entry.is_allocated = true;
+		self.endpoints[ep_addr.index()] = EndpointTableEntry {
+			is_allocated: true,
+			ep_type,
+			epdir_bit,
+			epsize_bits,
+		};
 		self.dpram_usage += ep_size;
 		Ok(ep_addr)
 	}
@@ -340,7 +368,7 @@ impl UsbBus for UsbdBus {
 			self.set_current_endpoint(cs, ep_addr.index())?;
 			let endpoint = &self.endpoints[ep_addr.index()];
 
-			if endpoint.eptype_bits == EP_TYPE_CONTROL {
+			if endpoint.ep_type == EndpointType::Control {
 				if usb.ueintx().read().txini().bit_is_clear() {
 					return Err(UsbError::WouldBlock);
 				}
@@ -406,7 +434,7 @@ impl UsbBus for UsbdBus {
 			self.set_current_endpoint(cs, ep_addr.index())?;
 			let endpoint = &self.endpoints[ep_addr.index()];
 
-			if endpoint.eptype_bits == EP_TYPE_CONTROL {
+			if endpoint.ep_type == EndpointType::Control {
 				let ueintx = usb.ueintx().read();
 				if ueintx.rxouti().bit_is_clear() && ueintx.rxstpi().bit_is_clear() {
 					return Err(UsbError::WouldBlock);
