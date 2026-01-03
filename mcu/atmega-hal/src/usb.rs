@@ -56,12 +56,6 @@ impl EndpointTableEntry {
 	}
 }
 
-/// USB bus implementation for ATmega32U4-based devices.
-///
-/// This is a lightweight port of the implementation used elsewhere in this
-/// repository. It exposes `UsbdBus::new(usb, pll)` which conveniently lets
-/// callers pass the device `USB_DEVICE` and the `PLL` resource for automatic
-/// suspend/resume handling.
 pub struct UsbdBus {
 	usb: Mutex<USB_DEVICE>,
 	_pll: Mutex<PLL>,
@@ -506,26 +500,5 @@ impl ClearInterrupts for USBINT {
 	{
 		// Bits 7:1 are reserved as do not set.
 		self.write(|w| f(unsafe { w.bits(0x01) }));
-	}
-}
-
-/// Receiver for handling suspend and resume events from the USB device.
-pub trait SuspendNotifier: Send + Sized + 'static {
-	fn suspend(&self) {}
-	fn resume(&self) {}
-}
-
-impl SuspendNotifier for () {}
-
-impl SuspendNotifier for PLL {
-	fn suspend(&self) {
-		self.pllcsr().modify(|_, w| w.plle().clear_bit());
-	}
-
-	fn resume(&self) {
-		self.pllcsr()
-			.modify(|_, w| w.pindiv().set_bit().plle().set_bit());
-
-		while self.pllcsr().read().plock().bit_is_clear() {}
 	}
 }
