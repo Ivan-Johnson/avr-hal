@@ -580,7 +580,7 @@ impl UsbBus for UsbdBus {
     ///
     /// * [`Unsupported`](crate::UsbError::Unsupported) - This UsbBus implementation doesn't support
     ///   simulating a disconnect or it has not been enabled at creation time.
-    fn force_reset(&self) -> Result<()> {
+    fn force_reset(&self) -> Result<(), UsbError> {
         Err(UsbError::Unsupported)
     }	
 }
