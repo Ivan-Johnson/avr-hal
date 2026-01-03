@@ -62,33 +62,28 @@ impl EndpointTableEntry {
 /// repository. It exposes `UsbdBus::new(usb, pll)` which conveniently lets
 /// callers pass the device `USB_DEVICE` and the `PLL` resource for automatic
 /// suspend/resume handling.
-pub struct UsbdBus<S: SuspendNotifier> {
+pub struct UsbdBus {
 	usb: Mutex<USB_DEVICE>,
-	suspend_notifier: Mutex<S>,
+	suspend_notifier: Mutex<PLL>,
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [EndpointTableEntry; MAX_ENDPOINTS],
 	dpram_usage: u16,
 }
 
-impl UsbdBus<PLL> {
+impl UsbdBus {
 	/// Construct a bus using the `PLL` as the suspend notifier (common case).
 	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
-		UsbdBus::with_suspend_notifier(usb, pll)
-	}
-}
-
-impl<S: SuspendNotifier> UsbdBus<S> {
-	/// Construct a bus with a custom suspend notifier.
-	pub fn with_suspend_notifier(usb: USB_DEVICE, suspend_notifier: S) -> Self {
 		Self {
 			usb: Mutex::new(usb),
-			suspend_notifier: Mutex::new(suspend_notifier),
+			suspend_notifier: Mutex::new(pll),
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
 			dpram_usage: 0,
 		}
 	}
+}
 
+impl UsbdBus {
 	fn active_endpoints(&self) -> impl Iterator<Item = (usize, &EndpointTableEntry)> {
 		self.endpoints
 			.iter()
@@ -145,7 +140,7 @@ impl<S: SuspendNotifier> UsbdBus<S> {
 	}
 }
 
-impl<S: SuspendNotifier> UsbBus for UsbdBus<S> {
+impl UsbBus for UsbdBus {
 	fn alloc_ep(
 		&mut self,
 		ep_dir: UsbDirection,
