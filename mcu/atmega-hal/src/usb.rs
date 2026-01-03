@@ -99,6 +99,7 @@ impl UsbdBus {
 		if usb.usbcon().read().frzclk().bit_is_set() {
 			return Err(UsbError::InvalidState);
 		}
+		// TODO: why is this unsafe, when everything else isn't?
 		usb.uenum().write(|w| unsafe { w.bits(index as u8) });
 		if usb.uenum().read().bits() & 0b111 != (index as u8) {
 			return Err(UsbError::InvalidState);
@@ -106,8 +107,20 @@ impl UsbdBus {
 		Ok(())
 	}
 
+	/**
+	 *  This function returns the full eleven-bit value of the BYCT register.
+	 *
+	 *  The docs from the datasheet say:
+	 *
+	 *  > Set by the hardware. BYCT10:0 is:
+     *  > * (for IN endpoint) increased after each writing into the endpoint and decremented after each byte sent,
+     *  > * (for OUT endpoint) increased after each byte sent by the host, and decremented after each byte read by
+the software.
+	 */
 	fn endpoint_byte_count(&self, cs: CriticalSection) -> u16 {
 		let usb = self.usb.borrow(cs);
+		// The BYCT register is split across two registers:
+		// uebclx (low eight bits) and uebchx (high three bits).
 		((usb.uebchx().read().bits() as u16) << 8) | (usb.uebclx().read().bits() as u16)
 	}
 
