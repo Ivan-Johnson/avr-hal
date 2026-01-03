@@ -33,6 +33,13 @@ const EP_SIZE_128: u8 = 0b100;
 const EP_SIZE_256: u8 = 0b101;
 const EP_SIZE_512: u8 = 0b110;
 
+// TODO: section 21.9 of the datasheet says:
+//
+// > The reservation of a Pipe or an Endpoint can only be made in the increasing order (Pipe/Endpoint 0 to the last
+// > Pipe/Endpoint). The firmware shall thus configure them in the same order
+//
+// Do we respect this?
+
 #[derive(Default)]
 struct EndpointTableEntry {
 	is_allocated: bool,
@@ -134,6 +141,7 @@ the software.
 	}
 
 	// TODO: resume documenting here
+	// sec 22.6
 	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		let usb = self.usb.borrow(cs);
 		self.set_current_endpoint(cs, index)?;
@@ -234,7 +242,10 @@ impl UsbBus for UsbdBus {
 	fn enable(&mut self) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
+			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L683
 			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
+
+			// 
 			usb.usbcon()
 				.modify(|_, w| w.usbe().set_bit().otgpade().set_bit());
 			// NB: FRZCLK cannot be set/cleared when USBE=0, and

@@ -3,6 +3,10 @@ Context: https://github.com/Rahix/avr-hal/issues/40
 > Add usb-device support to atmega32u4
 
 
+* TODO:
+
+  https://learn.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-concepts-for-all-developers
+
 * usbbus trait docs:
 
   https://github.com/rust-embedded-community/usb-device/blob/master/src/bus.rs
@@ -42,6 +46,9 @@ Context: https://github.com/Rahix/avr-hal/issues/40
 
 
     https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBAPI.h
+
+  * https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.h
+    https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp
 
 
 
