@@ -1,9 +1,0 @@
-{
-  "terminal.integrated.profiles.linux": {
-    "bash-norc": {
-      "path": "/bin/bash",
-      "args": ["--norc"]
-    }
-  },
-  "terminal.integrated.defaultProfile.linux": "bash-norc"
-}
