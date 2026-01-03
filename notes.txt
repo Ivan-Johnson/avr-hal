@@ -3,6 +3,11 @@ Context: https://github.com/Rahix/avr-hal/issues/40
 > Add usb-device support to atmega32u4
 
 
+* usbbus trait docs:
+
+  https://github.com/rust-embedded-community/usb-device/blob/master/src/bus.rs
+
+
 * FIND OFFICIAL ARDUINO CODE
 
   Use their code as reference

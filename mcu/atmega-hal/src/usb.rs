@@ -64,7 +64,7 @@ impl EndpointTableEntry {
 /// suspend/resume handling.
 pub struct UsbdBus {
 	usb: Mutex<USB_DEVICE>,
-	suspend_notifier: Mutex<PLL>,
+	_pll: Mutex<PLL>,
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [EndpointTableEntry; MAX_ENDPOINTS],
 	dpram_usage: u16,
@@ -75,7 +75,7 @@ impl UsbdBus {
 	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
 		Self {
 			usb: Mutex::new(usb),
-			suspend_notifier: Mutex::new(pll),
+			_pll: Mutex::new(pll),
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
 			dpram_usage: 0,
@@ -379,15 +379,11 @@ impl UsbBus for UsbdBus {
 			usb.udien()
 				.modify(|_, w| w.wakeupe().set_bit().suspe().clear_bit());
 			usb.usbcon().modify(|_, w| w.frzclk().set_bit());
-
-			self.suspend_notifier.borrow(cs).suspend();
 		});
 	}
 
 	fn resume(&self) {
 		interrupt::free(|cs| {
-			self.suspend_notifier.borrow(cs).resume();
-
 			let usb = self.usb.borrow(cs);
 			usb.usbcon().modify(|_, w| w.frzclk().clear_bit());
 			usb.udint()
