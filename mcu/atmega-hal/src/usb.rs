@@ -36,8 +36,12 @@ fn eptype_bits_from_ep_type(ep_type: EndpointType) -> u8 {
 	}
 }
 
-const EP_DIR_IN: bool = true;
-const EP_DIR_OUT: bool = false;
+fn epdir_bit_from_direction(direction: UsbDirection) -> bool {
+	match direction {
+		UsbDirection::In => true,
+		UsbDirection::Out => false,
+	}
+}
 
 const EP_SIZE_8: u8 = 0b000;
 const EP_SIZE_16: u8 = 0b001;
@@ -57,7 +61,7 @@ const EP_SIZE_512: u8 = 0b110;
 struct EndpointTableEntry {
 	is_allocated: bool,
 	ep_type: EndpointType,
-	epdir_bit: bool,
+	direction: UsbDirection,
 	epsize_bits: u8,
 }
 
@@ -67,7 +71,7 @@ impl Default for EndpointTableEntry {
 			// None of the other fields matter as long as `is_allocated` is false
 			is_allocated: false,
 			ep_type: EndpointType::Bulk,
-			epdir_bit: EP_DIR_OUT,
+			direction: UsbDirection::Out,
 			epsize_bits: EP_SIZE_8,
 		}
 	}
@@ -176,7 +180,7 @@ the software.
 
 		usb.uecfg0x().write(|w| unsafe {
 			w.epdir()
-				.bit(endpoint.epdir_bit)
+				.bit(epdir_bit_from_direction(endpoint.direction))
 				.eptype()
 				.bits(eptype_bits_from_ep_type(endpoint.ep_type))
 		});
@@ -258,10 +262,6 @@ impl UsbBus for UsbdBus {
 			}
 		};
 
-		let epdir_bit = match ep_dir {
-			UsbDirection::Out => EP_DIR_OUT,
-			UsbDirection::In => EP_DIR_IN,
-		};
 		let ep_size = max(8, max_packet_size.next_power_of_two());
 		if DPRAM_SIZE - self.dpram_usage < ep_size {
 			return Err(UsbError::EndpointMemoryOverflow);
@@ -280,7 +280,7 @@ impl UsbBus for UsbdBus {
 		self.endpoints[ep_addr.index()] = EndpointTableEntry {
 			is_allocated: true,
 			ep_type,
-			epdir_bit,
+			direction: ep_dir,
 			epsize_bits,
 		};
 		self.dpram_usage += ep_size;
