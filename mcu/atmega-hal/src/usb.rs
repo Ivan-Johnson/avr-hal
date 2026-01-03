@@ -67,6 +67,12 @@ pub struct UsbdBus {
 impl UsbdBus {
 	/// Construct a bus using the `PLL` as the suspend notifier (common case).
 	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
+		// TODO: what does this do?
+		// https://github.com/agausmann/atmega-usbd/blob/master/examples/arduino_keyboard.rs#L62-L73
+		pll.pllcsr().write(|w| w.pindiv().set_bit());
+		pll.pllfrq().write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
+		pll.pllcsr().modify(|_, w| w.plle().set_bit());
+
 		Self {
 			usb: Mutex::new(usb),
 			_pll: Mutex::new(pll),
