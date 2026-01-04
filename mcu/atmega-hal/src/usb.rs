@@ -343,7 +343,8 @@ impl UsbBus for UsbdBus {
 
 				if self.endpoints[index].is_some() || max_packet_size > ENDPOINT_MAX_BUFSIZE[index] {
 					// `usb-device`'s docs say that we *should attempt* to use the specified address.
-					// If it is not available, simply falling back to automatic allocation is acceptable.
+					// Since the requested address is not availabe, falling back to automatic allocation 
+					// is acceptable.
 					return self.alloc_ep(ep_dir, None, ep_type, max_packet_size, interval);
 				}
 
