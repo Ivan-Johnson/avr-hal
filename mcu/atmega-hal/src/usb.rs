@@ -27,6 +27,8 @@ const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64]
 // * This UsbdBus implementation is based on the assumption that we're able to allocate
 //   all endpoints with their respective maximum sizes. If this is not the case, then
 //   we will need to restore the old `dpram_usage` checks.
+//
+// * Ah. I guess this has to do with double bank mode? i.e. the `EPBK` field.
 const _DPRAM_SIZE: u16 = 832;
 
 /// Convert the EndpointType enum to the bits used by the eptype field in UECFG0X.
