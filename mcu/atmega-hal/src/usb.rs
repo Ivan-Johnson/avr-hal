@@ -283,8 +283,7 @@ impl UsbdBus {
 impl UsbBus for UsbdBus {
 	/// PESONAL NOTE:
 	///
-	/// * This function doesn't actually modify the hardware state, it just updates `self`'s internals.
-	///   The actual hardware configuration is done in `enable()`.
+	/// * This function initializes a single element in `self.endpoints`
 	///
 	/// Allocates an endpoint and specified endpoint parameters. This method is called by the device
 	/// and class implementations to allocate endpoints, and can only be called before
@@ -314,17 +313,18 @@ impl UsbBus for UsbdBus {
 		max_packet_size: u16,
 		interval: u8,
 	) -> Result<EndpointAddress, UsbError> {
+		// We intentionally don't use a critical section here. This is because, unlike all the other
+		// functions in this trait, this function only modifies `self`'s internal state.
+
 		let ep_addr = match ep_addr {
 			Some(addr) => {
 				let index = addr.index();
 
 				if addr.direction() != ep_dir {
-					// TODO: The fact that this is even possible makes me think I'm misunderstanding something
-					return Err(UsbError::ParseError);
+					unreachable!("Requested endpoint address has mismatched direction. This is a bug in usb-device?");
 				}
 
-				if addr.index() >= self.endpoints.len() {
-					// This shouldn't ever happen, unless something's gone terribly wrong? As such, returning an error is probably smarter than falling back to automatic allocation.
+				if index >= self.endpoints.len() {
 					return Err(UsbError::InvalidEndpoint);
 				}
 
@@ -337,7 +337,7 @@ impl UsbBus for UsbdBus {
 				// ref @FOOTNOTE-EP0
 				//
 				// (FWIW, section 22.18.2's docs for UECFG0X.EPDIR confirm that ep0 must be configured as "OUT")
-				if ep_addr == Some(EndpointAddress::from_parts(0, UsbDirection::In)) {
+				if index == 0 && addr.direction() == UsbDirection::In {
 					return Ok(ep_addr.unwrap());
 				}
 
