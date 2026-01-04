@@ -226,8 +226,6 @@ impl UsbdBus {
 		}
 	}
 
-	// TODO: resume documenting here
-	// sec 22.6
 	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		let usb = self.usb.borrow(cs);
 		let endpoint = self.get_endpoint_table_entry(cs, index)?;
@@ -239,31 +237,45 @@ impl UsbdBus {
 		// 2. Activate the endpoint
 		usb.ueconx().modify(|_, w| w.epen().set_bit());
 
-		// X. Unallocate the endpoint's memory.
-
+		// X. It isn't actually mentioned in section 22.6, but if the `alloc` bit is already
+		//    set then it's a good idea to toggle it off first.
+		//
+		//    This ensures that there isn't any wasted memory in between `index`'s buffer and
+		//    `index - 1`'s buffer (refer to section 21.9: Memory Management).
 		usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
 
+		// 3. Configure the endpoint direction and type
 		usb.uecfg0x().write(|w| unsafe {
 			w.epdir()
 				.bit(epdir_bit_from_direction(endpoint.direction))
 				.eptype()
 				.bits(eptype_bits_from_ep_type(endpoint.ep_type))
 		});
+
+		// 4A. Configure the endpoint size and number of banks
 		usb.uecfg1x().write(|w| unsafe {
 			w.epbk().bits(0)
 				.epsize()
 				.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
 		});
+
+		// 4B. Allocate the endpoint buffer memory
+		//
+		//     TODO: does this actually need to be a separate write?
+		//     * `agausmann/atmega-usbd` suggests so
+		//     * Figure 22-2 suggests not
+		//     * TODO check the Arduino C++ implementation? Or just test it and see?
 		usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
 
+		// 5. Check CFGOK (config okay)
 		assert!(
 			usb.uesta0x().read().cfgok().bit_is_set(),
 			"could not configure endpoint {}",
 			index
 		);
 
-		usb.ueienx()
-			.modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
+		// TODO verify that we don't actually need to enable the interrupts
+		// usb.ueienx().modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
 		Ok(())
 	}
 }
@@ -304,13 +316,9 @@ impl UsbBus for UsbdBus {
 	) -> Result<EndpointAddress, UsbError> {
 		let ep_addr = match ep_addr {
 			Some(addr) => {
-				// `usb-device`'s docs say that we *should attempt* to use the specified endpoint.
-				// If it is not available, we typically fallback to automatic allocation.
-
 				let index = addr.index();
-				let dir = addr.direction();
 
-				if dir != ep_dir {
+				if addr.direction() != ep_dir {
 					// TODO: The fact that this is even possible makes me think I'm misunderstanding something
 					return Err(UsbError::ParseError);
 				}
@@ -334,18 +342,20 @@ impl UsbBus for UsbdBus {
 				}
 
 				if self.endpoints[index].is_some() || max_packet_size > ENDPOINT_MAX_BUFSIZE[index] {
+					// `usb-device`'s docs say that we *should attempt* to use the specified address.
+					// If it is not available, simply falling back to automatic allocation is acceptable.
 					return self.alloc_ep(ep_dir, None, ep_type, max_packet_size, interval);
 				}
 
 				addr
 			}
 			None => {
-				// Find next free endpoint
+				// Find the next free endpoint
 				let index = self
 					.endpoints
 					.iter()
 					.enumerate()
-					.skip(1)
+					.skip(1) // Skip the control endpoint, which is always index zero
 					.find_map(|(index, ep)| {
 						if ep.is_none() && max_packet_size <= ENDPOINT_MAX_BUFSIZE[index] {
 							Some(index)
@@ -353,7 +363,7 @@ impl UsbBus for UsbdBus {
 							None
 						}
 					})
-					.ok_or(UsbError::EndpointOverflow)?;
+					.ok_or(UsbError::EndpointMemoryOverflow)?;
 				EndpointAddress::from_parts(index, ep_dir)
 			}
 		};
@@ -382,6 +392,7 @@ impl UsbBus for UsbdBus {
 			usb.usbcon()
 				.modify(|_, w| w.frzclk().clear_bit().vbuste().set_bit());
 
+			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			for (index, _ep) in self.active_endpoints() {
 				self.configure_endpoint(cs, index).unwrap();
 			}
@@ -402,6 +413,7 @@ impl UsbBus for UsbdBus {
 			let usb = self.usb.borrow(cs);
 			usb.udint().modify(|_, w| w.eorsti().clear_bit());
 
+			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			for (index, _ep) in self.active_endpoints() {
 				self.configure_endpoint(cs, index).unwrap();
 			}
