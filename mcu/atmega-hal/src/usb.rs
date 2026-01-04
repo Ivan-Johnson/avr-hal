@@ -289,9 +289,7 @@ impl UsbdBus {
 			"could not configure endpoint {}",
 			index
 		);
-
-		// TODO verify that we don't actually need to enable the interrupts
-		// usb.ueienx().modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
+		
 		Ok(())
 	}
 }
@@ -411,7 +409,7 @@ impl UsbBus for UsbdBus {
 			// NB: FRZCLK cannot be set/cleared when USBE=0, and
 			// cannot be modified at the same time.
 			usb.usbcon()
-				.modify(|_, w| w.frzclk().clear_bit().vbuste().set_bit());
+				.modify(|_, w| w.frzclk().clear_bit());
 
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			for (index, _ep) in self.active_endpoints() {
