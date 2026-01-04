@@ -102,7 +102,17 @@ impl UsbdBus {
 	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
 		// TODO: what does this do?
 		// https://github.com/agausmann/atmega-usbd/blob/master/examples/arduino_keyboard.rs#L62-L73
+
+		// TODO
+		//// The PLL input clock must be set to 8Mhz.
+		//if (crate::DefaultClock == avr_hal_generic::clock::MHz16) {
 		pll.pllcsr().write(|w| w.pindiv().set_bit());
+		//} else if (crate::DefaultClock == avr_hal_generic::clock::MHz8) {
+		//	pll.pllcsr().write(|w| w.pindiv().clear_bit());
+		//} else {
+		//	panic!("USB requires an 8MHz or 16MHz clock");
+		//}
+
 		pll.pllfrq()
 			.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
 		pll.pllcsr().modify(|_, w| w.plle().set_bit());
@@ -114,7 +124,7 @@ impl UsbdBus {
 			endpoints: Default::default(),
 		}
 	}
-	
+
 	fn active_endpoints(&self) -> impl Iterator<Item = (usize, &EndpointTableEntry)> {
 		self.endpoints
 			.iter()
