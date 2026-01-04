@@ -213,9 +213,16 @@ impl UsbdBus {
 	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		let usb = self.usb.borrow(cs);
 		let endpoint = &self.endpoints[index];
-		
+
+		// Section 22.6, figure 22-2: Endpoint Activation Flow
+		// 1. Select the endpoint
 		self.set_current_endpoint(cs, index)?;
+
+		// 2. Activate the endpoint
 		usb.ueconx().modify(|_, w| w.epen().set_bit());
+
+		// X. Unallocate the endpoint's memory.
+
 		usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
 
 		usb.uecfg0x().write(|w| unsafe {
