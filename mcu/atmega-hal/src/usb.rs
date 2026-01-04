@@ -381,6 +381,8 @@ impl UsbBus for UsbdBus {
 	/// there is no need to perform a USB reset in this method.
 	fn enable(&mut self) {
 		interrupt::free(|cs| {
+			// TODO: resume here, with section 21.12?
+
 			let usb = self.usb.borrow(cs);
 			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L683
 			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
@@ -412,23 +414,25 @@ impl UsbBus for UsbdBus {
 	fn reset(&self) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
-			usb.udint().modify(|_, w| w.eorsti().clear_bit());
 
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			for (index, _ep) in self.active_endpoints() {
 				self.configure_endpoint(cs, index).unwrap();
 			}
-
-			usb.udint()
-				.clear_interrupts(|w| w.wakeupi().clear_bit().suspi().clear_bit());
-			usb.udien()
-				.modify(|_, w| w.wakeupe().clear_bit().suspe().set_bit());
 		})
 	}
 
 	/// Sets the device USB address to `addr`.
 	fn set_device_address(&self, addr: u8) {
 		interrupt::free(|cs| {
+			// From section 22.7 of the datasheet:
+			//
+			// > The USB device address is set up according to the USB protocol:
+			// > 1. the USB device, after power-up, responds at address 0
+			// > 2. the host sends a SETUP command (SET_ADDRESS(addr))
+			// > 3. the firmware handles this request, and records that address in UADD, but keep ADDEN cleared
+			// > 4. the USB device firmware sends an IN command of 0 bytes (IN 0 Zero Length Packet)
+			// > 5. then, the firmware can enable the USB device address by setting ADDEN. The only accepted address by the controller is the one stored in UADD.
 			let usb = self.usb.borrow(cs);
 			usb.udaddr().modify(|_, w| unsafe { w.uadd().bits(addr) });
 			// NB: ADDEN and UADD shall not be written at the same time.
@@ -726,6 +730,7 @@ impl UsbBus for UsbdBus {
 	/// * [`Unsupported`](crate::UsbError::Unsupported) - This UsbBus implementation doesn't support
 	///   simulating a disconnect or it has not been enabled at creation time.
 	fn force_reset(&self) -> Result<(), UsbError> {
+		// TODO: implement using udcon.detach
 		Err(UsbError::Unsupported)
 	}
 }
