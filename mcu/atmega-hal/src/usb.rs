@@ -31,6 +31,15 @@ const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64]
 // * Ah. I guess this has to do with double bank mode? i.e. the `EPBK` field.
 const _DPRAM_SIZE: u16 = 832;
 
+// TODO: make some sort of "FOOTNOTE-TIMERS", which can be linked to from the appropriate places?
+//
+// NOTE: We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by 
+// setting PLLTM to zero, which disconnects the timers from the PLL clock output. 
+//
+// UsbdBus modifies the clock speed of the PLL output. If we wanted to use hardware timers, we'd
+// have to update their configuration anytime UsbdBus is enabled/disabled. We don't yet have a 
+// good way to do that.
+
 /// Convert the EndpointType enum to the bits used by the eptype field in UECFG0X.
 ///
 /// Refer to section 22.18.2 of the datasheet.
@@ -96,15 +105,13 @@ pub struct UsbdBus {
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [EndpointTableEntry; MAX_ENDPOINTS],
 }
-
+use avr_device::atmega32u4::usb_device::uenum::UENUM_SPEC;
 impl UsbdBus {
 	/// Construct a bus using the `PLL` as the suspend notifier (common case).
 	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
-		// TODO: what does this do?
-		// https://github.com/agausmann/atmega-usbd/blob/master/examples/arduino_keyboard.rs#L62-L73
-
-		// TODO
-		//// The PLL input clock must be set to 8Mhz.
+		// Setup the PLL:
+		// 1. Configure the PLL input
+		// (TODO)
 		//if (crate::DefaultClock == avr_hal_generic::clock::MHz16) {
 		pll.pllcsr().write(|w| w.pindiv().set_bit());
 		//} else if (crate::DefaultClock == avr_hal_generic::clock::MHz8) {
@@ -113,8 +120,24 @@ impl UsbdBus {
 		//	panic!("USB requires an 8MHz or 16MHz clock");
 		//}
 
+		// 2. Configure the PLL output
 		pll.pllfrq()
-			.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
+			.write(|w| w
+				// Disconnect the timer modules from the PLL output clock
+				// Ref FOOTNOTE-TIMERS
+				.plltm().disconnected()
+
+				// The USB module requires a 48MHz clock. We have two options:
+				// * Set PLL output (PDIV) to 48MHz, with no postscaling to the USB module
+				// * Set PLL output to 96MHz, with /2 postscaling
+				//
+				// For simplicity, we use the first option.
+				//
+				// Refer to section 6.1.8 of the datasheet as well as 
+				// the documentation for the `pllfrq` register itself.
+				.pdiv().mhz48().pllusb().clear_bit());
+
+		// 3. Enable the PLL
 		pll.pllcsr().modify(|_, w| w.plle().set_bit());
 
 		Self {
@@ -144,15 +167,29 @@ impl UsbdBus {
 		if index >= MAX_ENDPOINTS {
 			return Err(UsbError::InvalidEndpoint);
 		}
+		let index = index as u8;
 		let usb = self.usb.borrow(cs);
 		if usb.usbcon().read().frzclk().bit_is_set() {
 			return Err(UsbError::InvalidState);
 		}
-		// TODO: why is this unsafe, when everything else isn't?
-		usb.uenum().write(|w| unsafe { w.bits(index as u8) });
-		if usb.uenum().read().bits() & 0b111 != (index as u8) {
+		// TODO: there's no reason why this needs to be unsafe?
+		// I think we could just update the patch file [1] to make `uenum` work like `PLLCSR`
+		//
+		// [1]: https://github.com/Rahix/avr-device/blob/main/patch/atmega32u4.yaml
+		usb.uenum().write(|w| unsafe {
+			let foo: &mut W<UENUM_SPEC> = w;
+			foo.bits(index) });
+		let read_back = usb.uenum().read().bits();
+
+		// The `atmeta-usbd` crate uses this bitmask [1]. According to the datasheet the other bits should always read as zero, but I'm leaving this check in just in case.
+		//
+		// [1] https://github.com/agausmann/atmega-usbd/blob/5fc68ca813ce0a37dab65dd4d66efe1ec125f2a8/src/lib.rs#L126
+		assert_eq!(read_back & 0b111, read_back);
+
+		if read_back != index) {
 			return Err(UsbError::InvalidState);
 		}
+		
 		Ok(())
 	}
 
