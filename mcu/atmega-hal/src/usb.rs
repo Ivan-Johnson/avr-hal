@@ -321,7 +321,7 @@ impl UsbBus for UsbdBus {
 				let index = addr.index();
 
 				if addr.direction() != ep_dir {
-					unreachable!("Requested endpoint address has mismatched direction. This is a bug in usb-device?");
+					unreachable!("Requested endpoint address has mismatched direction. This suggests a bug in usb-device?");
 				}
 
 				if index >= self.endpoints.len() {
