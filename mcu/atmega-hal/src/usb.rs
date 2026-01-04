@@ -307,7 +307,7 @@ impl UsbBus for UsbdBus {
 	///   but the endpoint in question has already been allocated.
 	fn alloc_ep(
 		&mut self,
-		ep_dir: UsbDirection,
+		direction: UsbDirection,
 		ep_addr: Option<EndpointAddress>,
 		ep_type: EndpointType,
 		max_packet_size: u16,
@@ -320,7 +320,7 @@ impl UsbBus for UsbdBus {
 			Some(addr) => {
 				let index = addr.index();
 
-				if addr.direction() != ep_dir {
+				if addr.direction() != direction {
 					unreachable!("Requested endpoint address has mismatched direction. This suggests a bug in usb-device?");
 				}
 
@@ -345,7 +345,7 @@ impl UsbBus for UsbdBus {
 					// `usb-device`'s docs say that we *should attempt* to use the specified address.
 					// Since the requested address is not availabe, falling back to automatic allocation 
 					// is acceptable.
-					return self.alloc_ep(ep_dir, None, ep_type, max_packet_size, interval);
+					return self.alloc_ep(direction, None, ep_type, max_packet_size, interval);
 				}
 
 				addr
@@ -365,13 +365,13 @@ impl UsbBus for UsbdBus {
 						}
 					})
 					.ok_or(UsbError::EndpointMemoryOverflow)?;
-				EndpointAddress::from_parts(index, ep_dir)
+				EndpointAddress::from_parts(index, direction)
 			}
 		};
 
 		self.endpoints[ep_addr.index()] = Some(EndpointTableEntry {
 			ep_type,
-			direction: ep_dir,
+			direction,
 			max_packet_size,
 		});
 		Ok(ep_addr)
