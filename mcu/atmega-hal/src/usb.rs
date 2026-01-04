@@ -21,8 +21,14 @@ const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64]
 
 // From datasheet section 21.1
 //
-// TODO: Why 832? 64*6 + 256 = 640
-const DPRAM_SIZE: u16 = 832;
+// TODO: 
+//
+// * Why 832? 64*6 + 256 = 640.
+//
+// * This UsbdBus implementation is based on the assumption that we're able to allocate
+//   all endpoints with their respective maximum sizes. If this is not the case, then 
+//   we will need to restore the old `dpram_usage` checks.
+const _DPRAM_SIZE: u16 = 832;
 
 /// Convert the EndpointType enum to the bits used by the eptype field in UECFG0X.
 ///
@@ -43,13 +49,19 @@ fn epdir_bit_from_direction(direction: UsbDirection) -> bool {
 	}
 }
 
-const EP_SIZE_8: u8 = 0b000;
-const EP_SIZE_16: u8 = 0b001;
-const EP_SIZE_32: u8 = 0b010;
-const EP_SIZE_64: u8 = 0b011;
-const EP_SIZE_128: u8 = 0b100;
-const EP_SIZE_256: u8 = 0b101;
-const EP_SIZE_512: u8 = 0b110;
+fn epsize_bits_from_max_packet_size(max_packet_size: u16) -> u8 {
+	let value = max(8, max_packet_size.next_power_of_two());
+	match value {
+		8 =>   0b000,
+		16 =>  0b001,
+		32 =>  0b010,
+		64 =>  0b011,
+		128 => 0b100,
+		256 => 0b101,
+		512 => 0b110,
+		_ => unreachable!(),
+	}
+}
 
 // TODO: section 21.9 of the datasheet says:
 //
@@ -62,7 +74,7 @@ struct EndpointTableEntry {
 	is_allocated: bool,
 	ep_type: EndpointType,
 	direction: UsbDirection,
-	epsize_bits: u8,
+	max_packet_size: u16,
 }
 
 impl Default for EndpointTableEntry {
@@ -72,22 +84,7 @@ impl Default for EndpointTableEntry {
 			is_allocated: false,
 			ep_type: EndpointType::Bulk,
 			direction: UsbDirection::Out,
-			epsize_bits: EP_SIZE_8,
-		}
-	}
-}
-
-impl EndpointTableEntry {
-	fn buffer_size(&self) -> usize {
-		match self.epsize_bits {
-			EP_SIZE_8 => 8,
-			EP_SIZE_16 => 16,
-			EP_SIZE_32 => 32,
-			EP_SIZE_64 => 64,
-			EP_SIZE_128 => 128,
-			EP_SIZE_256 => 256,
-			EP_SIZE_512 => 512,
-			_ => unreachable!(),
+			max_packet_size: 0,
 		}
 	}
 }
@@ -97,7 +94,6 @@ pub struct UsbdBus {
 	_pll: Mutex<PLL>,
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [EndpointTableEntry; MAX_ENDPOINTS],
-	dpram_usage: u16,
 }
 
 impl UsbdBus {
@@ -114,7 +110,6 @@ impl UsbdBus {
 			_pll: Mutex::new(pll),
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
-			dpram_usage: 0,
 		}
 	}
 }
@@ -185,7 +180,7 @@ the software.
 				.bits(eptype_bits_from_ep_type(endpoint.ep_type))
 		});
 		usb.uecfg1x()
-			.write(|w| unsafe { w.epbk().bits(0).epsize().bits(endpoint.epsize_bits) });
+			.write(|w| unsafe { w.epbk().bits(0).epsize().bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size)) });
 		usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
 
 		assert!(
@@ -262,28 +257,14 @@ impl UsbBus for UsbdBus {
 			}
 		};
 
-		let ep_size = max(8, max_packet_size.next_power_of_two());
-		if DPRAM_SIZE - self.dpram_usage < ep_size {
-			return Err(UsbError::EndpointMemoryOverflow);
-		}
-		let epsize_bits = match ep_size {
-			8 => EP_SIZE_8,
-			16 => EP_SIZE_16,
-			32 => EP_SIZE_32,
-			64 => EP_SIZE_64,
-			128 => EP_SIZE_128,
-			256 => EP_SIZE_256,
-			512 => EP_SIZE_512,
-			_ => return Err(UsbError::EndpointMemoryOverflow),
-		};
+		
 
 		self.endpoints[ep_addr.index()] = EndpointTableEntry {
 			is_allocated: true,
 			ep_type,
 			direction: ep_dir,
-			epsize_bits,
+			max_packet_size,
 		};
-		self.dpram_usage += ep_size;
 		Ok(ep_addr)
 	}
 
@@ -373,8 +354,7 @@ impl UsbBus for UsbdBus {
 					return Err(UsbError::WouldBlock);
 				}
 
-				let buffer_size = endpoint.buffer_size();
-				if buf.len() > buffer_size {
+				if buf.len() > endpoint.max_packet_size.into() {
 					return Err(UsbError::BufferOverflow);
 				}
 
