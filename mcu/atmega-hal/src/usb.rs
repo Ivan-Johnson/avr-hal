@@ -237,13 +237,15 @@ impl UsbBus for UsbdBus {
 		// Ignore duplicate ep0 allocation by usb_device.
 		// Endpoints can only be configured once, and
 		// control endpoint must be configured as "OUT".
-		if ep_addr == Some(EndpointAddress::from_parts(0, UsbDirection::In)) {
-			return Ok(ep_addr.unwrap());
-		}
+		// if ep_addr == Some(EndpointAddress::from_parts(0, UsbDirection::In)) {
+		//         return Ok(ep_addr.unwrap());
+		// }
 
 		let ep_addr = match ep_addr {
-			Some(addr) if !self.endpoints[addr.index()].is_allocated => addr,
-			_ => {
+			Some(addr) => {
+				if !self.endpoints[addr.index()].is_allocated => addr
+			},
+			None => {
 				// Find next free endpoint
 				let index = self
 					.endpoints
