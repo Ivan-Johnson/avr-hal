@@ -31,14 +31,21 @@ const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64]
 // * Ah. I guess this has to do with double bank mode? i.e. the `EPBK` field.
 const _DPRAM_SIZE: u16 = 832;
 
-// TODO: make some sort of "FOOTNOTE-TIMERS", which can be linked to from the appropriate places?
-//
-// NOTE: We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by 
+// TODO: cleanup these "footnotes". Make sure that they show up properly in the docs, and that I'm able to link to them as expected
+
+// FOOTNOTE-TIMERS: We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by 
 // setting PLLTM to zero, which disconnects the timers from the PLL clock output. 
 //
 // UsbdBus modifies the clock speed of the PLL output. If we wanted to use hardware timers, we'd
 // have to update their configuration anytime UsbdBus is enabled/disabled. We don't yet have a 
 // good way to do that.
+
+// FOOTNOTE-EP0: TODO verify
+//
+// As I understand it, a USB endpoint is *ALWAYS* either IN or OUT. In particular, there are actually
+// two endpoint zeros: one for IN, and one for OUT. However, the atmega registers treat these two 
+// EP0s as if they were a single endpoint. As a result, this introduces a bunch of edge cases where ep0 
+// needs to be treated specially.
 
 /// Convert the EndpointType enum to the bits used by the eptype field in UECFG0X.
 ///
@@ -81,29 +88,16 @@ fn epsize_bits_from_max_packet_size(max_packet_size: u16) -> u8 {
 // Do we respect this?
 
 struct EndpointTableEntry {
-	is_allocated: bool,
 	ep_type: EndpointType,
 	direction: UsbDirection,
 	max_packet_size: u16,
-}
-
-impl Default for EndpointTableEntry {
-	fn default() -> Self {
-		Self {
-			// None of the other fields matter as long as `is_allocated` is false
-			is_allocated: false,
-			ep_type: EndpointType::Bulk,
-			direction: UsbDirection::Out,
-			max_packet_size: 0,
-		}
-	}
 }
 
 pub struct UsbdBus {
 	usb: Mutex<USB_DEVICE>,
 	_pll: Mutex<PLL>,
 	pending_ins: Mutex<Cell<u8>>,
-	endpoints: [EndpointTableEntry; MAX_ENDPOINTS],
+	endpoints: [Option<EndpointTableEntry>; MAX_ENDPOINTS],
 }
 
 impl UsbdBus {
@@ -152,10 +146,11 @@ impl UsbdBus {
 		self.endpoints
 			.iter()
 			.enumerate()
-			.filter(|&(_, ep)| ep.is_allocated)
+			// TODO: combine
+			.filter(|&(_, ep)| ep.is_some())
+			.map(|(index, ep)| (index, ep.as_ref().unwrap()))
 	}
 
-	
 	/// Docs from the data sheet:
     /// 
 	/// > Prior to any operation performed by the CPU, the endpoint must first be selected. This
@@ -206,11 +201,32 @@ impl UsbdBus {
 		((usb.uebchx().read().bits() as u16) << 8) | (usb.uebclx().read().bits() as u16)
 	}
 
+	fn get_endpoint_table_entry(
+		&self,
+		_cs: CriticalSection,
+		index: usize,
+	) -> Result<&EndpointTableEntry, UsbError> {
+		// TODO: cleanup.
+		// Minimally combine the `if` and `match` into a single `match self.endpoints.get()`?
+		if index >= self.endpoints.len() {
+			return Err(UsbError::InvalidEndpoint);
+		}
+
+		match self.endpoints[index] {
+			None => {
+				Err(UsbError::InvalidEndpoint)
+			}
+			Some(ref endpoint) => {
+				Ok(endpoint)
+			}	
+		}
+	}
+
 	// TODO: resume documenting here
 	// sec 22.6
 	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		let usb = self.usb.borrow(cs);
-		let endpoint = &self.endpoints[index];
+		let endpoint = self.get_endpoint_table_entry(cs, index)?;
 
 		// Section 22.6, figure 22-2: Endpoint Activation Flow
 		// 1. Select the endpoint
@@ -294,23 +310,26 @@ impl UsbBus for UsbdBus {
 					// TODO: The fact that this is even possible makes me think I'm misunderstanding something
 					return Err(UsbError::ParseError);
 				}
-				if addr.index() >= MAX_ENDPOINTS {
+
+				if addr.index() >= self.endpoints.len() {
 					// This shouldn't ever happen, unless something's gone terribly wrong? As such, returning an error is probably smarter than falling back to automatic allocation.
 					return Err(UsbError::InvalidEndpoint);
 				}
 
 				// TODO: is this really necessary?
 				//
-				// (FWIW, section 22.18.2's docs for UECFG0X.EPDIR confirm that ep0 must be configured as "OUT")
-				//
 				// > Ignore duplicate ep0 allocation by usb_device.
 				// > Endpoints can only be configured once, and
 				// > control endpoint must be configured as "OUT".
+				//
+				// ref @FOOTNOTE-EP0
+				//
+				// (FWIW, section 22.18.2's docs for UECFG0X.EPDIR confirm that ep0 must be configured as "OUT")
 				if ep_addr == Some(EndpointAddress::from_parts(0, UsbDirection::In)) {
 				    return Ok(ep_addr.unwrap());
 				}
 
-				if self.endpoints[index].is_allocated || max_packet_size > ENDPOINT_MAX_BUFSIZE[index] {
+				if self.endpoints[index].is_some() || max_packet_size > ENDPOINT_MAX_BUFSIZE[index] {
 					return self.alloc_ep(ep_dir, None, ep_type, max_packet_size, interval);
 				}
 
@@ -324,7 +343,7 @@ impl UsbBus for UsbdBus {
 					.enumerate()
 					.skip(1)
 					.find_map(|(index, ep)| {
-						if !ep.is_allocated && max_packet_size <= ENDPOINT_MAX_BUFSIZE[index] {
+						if ep.is_none() && max_packet_size <= ENDPOINT_MAX_BUFSIZE[index] {
 							Some(index)
 						} else {
 							None
@@ -335,12 +354,11 @@ impl UsbBus for UsbdBus {
 			}
 		};
 
-		self.endpoints[ep_addr.index()] = EndpointTableEntry {
-			is_allocated: true,
+		self.endpoints[ep_addr.index()] = Some(EndpointTableEntry {
 			ep_type,
 			direction: ep_dir,
 			max_packet_size,
-		};
+		});
 		Ok(ep_addr)
 	}
 
@@ -421,9 +439,20 @@ impl UsbBus for UsbdBus {
 	/// Implementations may also return other errors if applicable.
 	fn write(&self, ep_addr: EndpointAddress, buf: &[u8]) -> Result<usize, UsbError> {
 		interrupt::free(|cs| {
+			let index = ep_addr.index();
+			let endpoint = self.get_endpoint_table_entry(cs, index)?;
+
+			// We should only be writing to endpoints that are "IN" towards the host.
+			assert_eq!(UsbDirection::In, ep_addr.direction());
+			if index != 0 {
+				// endpoint 0 is a special case; ref @FOOTNOTE-EP0
+				assert_eq!(UsbDirection::In, endpoint.direction);
+			}
+
 			let usb = self.usb.borrow(cs);
 			self.set_current_endpoint(cs, ep_addr.index())?;
-			let endpoint = &self.endpoints[ep_addr.index()];
+
+
 
 			if endpoint.ep_type == EndpointType::Control {
 				if usb.ueintx().read().txini().bit_is_clear() {
@@ -486,9 +515,18 @@ impl UsbBus for UsbdBus {
 	/// Implementations may also return other errors if applicable.
 	fn read(&self, ep_addr: EndpointAddress, buf: &mut [u8]) -> Result<usize, UsbError> {
 		interrupt::free(|cs| {
+			let index = ep_addr.index();
+			let endpoint = self.get_endpoint_table_entry(cs, index)?;
 			let usb = self.usb.borrow(cs);
-			self.set_current_endpoint(cs, ep_addr.index())?;
-			let endpoint = &self.endpoints[ep_addr.index()];
+
+			// We should only be reading if the data is flowing "OUT" from the host.
+			assert_eq!(UsbDirection::Out, ep_addr.direction());
+			if index != 0 {
+				// endpoint 0 is a special case; ref @FOOTNOTE-EP0
+				assert_eq!(UsbDirection::Out, endpoint.direction);
+			}
+
+			self.set_current_endpoint(cs, index)?;
 
 			if endpoint.ep_type == EndpointType::Control {
 				let ueintx = usb.ueintx().read();
