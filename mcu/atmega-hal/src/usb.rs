@@ -398,6 +398,8 @@ impl UsbBus for UsbdBus {
 	fn enable(&mut self) {
 		interrupt::free(|cs| {
 			// TODO: resume here, with section 21.12?
+			// TODO: resume here, with section 21.12?
+			// TODO: resume here, with section 21.12?
 
 			let usb = self.usb.borrow(cs);
 			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L683
@@ -417,8 +419,6 @@ impl UsbBus for UsbdBus {
 			}
 
 			usb.udcon().modify(|_, w| w.detach().clear_bit());
-			usb.udien()
-				.modify(|_, w| w.eorste().set_bit().sofe().set_bit());
 		});
 	}
 
@@ -657,8 +657,6 @@ impl UsbBus for UsbdBus {
 			let usb = self.usb.borrow(cs);
 			usb.udint()
 				.clear_interrupts(|w| w.suspi().clear_bit().wakeupi().clear_bit());
-			usb.udien()
-				.modify(|_, w| w.wakeupe().set_bit().suspe().clear_bit());
 			usb.usbcon().modify(|_, w| w.frzclk().set_bit());
 		});
 	}
@@ -671,8 +669,6 @@ impl UsbBus for UsbdBus {
 			usb.usbcon().modify(|_, w| w.frzclk().clear_bit());
 			usb.udint()
 				.clear_interrupts(|w| w.wakeupi().clear_bit().suspi().clear_bit());
-			usb.udien()
-				.modify(|_, w| w.wakeupe().clear_bit().suspe().set_bit());
 		});
 	}
 
@@ -684,7 +680,6 @@ impl UsbBus for UsbdBus {
 
 			let usbint = usb.usbint().read();
 			let udint = usb.udint().read();
-			let udien = usb.udien().read();
 			if usbint.vbusti().bit_is_set() {
 				usb.usbint().clear_interrupts(|w| w.vbusti().clear_bit());
 				if usb.usbsta().read().vbus().bit_is_set() {
@@ -693,10 +688,10 @@ impl UsbBus for UsbdBus {
 					return PollResult::Suspend;
 				}
 			}
-			if udint.suspi().bit_is_set() && udien.suspe().bit_is_set() {
+			if udint.suspi().bit_is_set() {
 				return PollResult::Suspend;
 			}
-			if udint.wakeupi().bit_is_set() && udien.wakeupe().bit_is_set() {
+			if udint.wakeupi().bit_is_set() {
 				return PollResult::Resume;
 			}
 			if udint.eorsti().bit_is_set() {

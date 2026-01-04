@@ -4,6 +4,8 @@
 
     `new` function
 
+[ ] Verify: is it okay that I've deleted ~all the interrupt code?
+
 # Final testing
 
 Before updating PR, verify:
