@@ -1,0 +1,141 @@
+* Glossary:
+
+  * UVCC
+
+    "USB Pads Internal Regulator Input supply voltage." ???
+
+  * AVCC: Doesn't matter for USB
+
+  * VCC:
+
+    "Digital supply voltage."
+
+  * UCAP
+
+    "USB Pads Internal Regulator Output supply voltage. Should be connected to an external capacitor (1μF)"
+
+  * VBUS
+
+    "USB VBUS monitor input."
+
+  * DPRAM: double port memory
+
+* Ch 21:
+
+  * 21.2:
+
+    To use USB in full speed mode:
+
+    set PLL to 48MHz
+
+    The 48MHz gets stepped down to 12MHz (uses "DPLL", not that it matters?)
+
+  * 21.3:
+
+    VCC must be at least 3.0V to use USB.
+
+    * 3V <---> 3.6V: Works without internal regulator
+
+    * 3.4V <---> 5.5V: Works with "internal regulator"
+
+    Does this matter? Do I need to manually enable/disable the regulator, or
+    does it work automatically?
+
+    Other than that, 21.3 is mostly about hardware design
+
+  * The follow sections can be ignored; they are about hardware design:
+
+    * 21.4: Crystal-less Operation
+
+    * 21.5: Design Guidelines
+
+  * 21.6: General Operating Modes
+
+    * 21.6.1: Introduction
+
+      boring. Just list of conditions that will reset the controller.
+
+    * 21.6.2: Power-on and Reset
+
+      Basically, just saying the USB controller enters low-power mode after a
+      hardware reset.
+
+      Useful tangent is mentioned: clearing the USBE (USB Enable) bit acts as a
+      hardware reset.
+
+    * 21.6.3: Interrupts
+
+      Two interrupt vectors:
+
+      * USB General Interrupt Vector:
+
+        * USB General Interrupt: Single interrupt. Fires when VBUS transitions
+          (both edges)
+
+          * Name: VBUSTI (USBINT.0)
+
+          * Enable: VBUSTE (USBCON.0)
+
+        * USB Device Interrupt: Interrupts that fire for a variety of
+          USB-related events (UDINT register). Such when "start of frame" is
+          detected (SOFI)
+
+      * USB Endpoint Interrupt Vector:
+
+        For each of the seven endpoints, there are eight interrupt sources.
+
+        doesn't go into much detail? (seems like more details are found in
+        22.17)
+
+    * 21.7: Power Modes
+
+      * Idle Mode
+
+      * Power Down
+
+      * Freeze Clock
+
+    * 21.8: Speed Control
+
+      When in device mode, the `UDCON.LSM` bit controls whether we use full
+      speed or low speed mode.
+
+    * 21.9: Memory Management
+
+      * endpoints SHOULD (~must) be allocated in order.
+
+        I *think* it's technically possible to allocate them out of order, but
+        things get really messy. Worst of all, when doing so it's possible for
+        the buffer for one endpoint to overlap with the buffer of a different
+        endpoint. This overlap is not detected by the hardware.
+
+    * 21.10: PAD Suspend
+
+      boring?
+
+    * 21.11: Plug-in Detection
+
+      There's an interrupt that fires when a device is plugged in
+
+      idk. idc?
+
+    * 21.12: USB Software Operating Modes
+
+      ## This section is super useful? ##
+
+      Provides (somewhat) detailed instructions about how to perform key USB
+      operations:
+
+      * Power On the USB interface
+
+      * Power Off the USB interface
+
+      * Suspending the USB interface
+
+      * Resuming the USB interface
+
+    * 21.13: Registers Description
+
+      TMI; no point in taking notes.
+
+  * Ch 22: USB Device Operating Modes
