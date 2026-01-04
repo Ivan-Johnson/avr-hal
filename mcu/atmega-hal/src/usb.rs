@@ -232,19 +232,42 @@ impl UsbBus for UsbdBus {
 		ep_addr: Option<EndpointAddress>,
 		ep_type: EndpointType,
 		max_packet_size: u16,
-		_interval: u8,
+		interval: u8,
 	) -> Result<EndpointAddress, UsbError> {
-		// Ignore duplicate ep0 allocation by usb_device.
-		// Endpoints can only be configured once, and
-		// control endpoint must be configured as "OUT".
-		// if ep_addr == Some(EndpointAddress::from_parts(0, UsbDirection::In)) {
-		//         return Ok(ep_addr.unwrap());
-		// }
-
 		let ep_addr = match ep_addr {
 			Some(addr) => {
-				if !self.endpoints[addr.index()].is_allocated => addr
-			},
+				// `usb-device`'s docs say that we *should attempt* to use the specified endpoint.
+				// If it is not available, we typically fallback to automatic allocation.
+
+				let index = addr.index();
+				let dir = addr.direction();
+
+				if dir != ep_dir {
+					// TODO: The fact that this is even possible makes me think I'm misunderstanding something
+					return Err(UsbError::ParseError);
+				}
+				if addr.index() >= MAX_ENDPOINTS {
+					// This shouldn't ever happen, unless something's gone terribly wrong? As such, returning an error is probably smarter than falling back to automatic allocation.
+					return Err(UsbError::InvalidEndpoint);
+				}
+
+				// TODO: is this really necessary?
+				//
+				// (FWIW, section 22.18.2's docs for UECFG0X.EPDIR confirm that ep0 must be configured as "OUT")
+				//
+				// > Ignore duplicate ep0 allocation by usb_device.
+				// > Endpoints can only be configured once, and
+				// > control endpoint must be configured as "OUT".
+				if ep_addr == Some(EndpointAddress::from_parts(0, UsbDirection::In)) {
+				    return Ok(ep_addr.unwrap());
+				}
+
+				if self.endpoints[index].is_allocated || max_packet_size > ENDPOINT_MAX_BUFSIZE[index] {
+					return self.alloc_ep(ep_dir, None, ep_type, max_packet_size, interval);
+				}
+
+				addr
+			}
 			None => {
 				// Find next free endpoint
 				let index = self
