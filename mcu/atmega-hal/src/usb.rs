@@ -32,6 +32,7 @@ const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64]
 const _DPRAM_SIZE: u16 = 832;
 
 // TODO: cleanup these "footnotes". Make sure that they show up properly in the docs, and that I'm able to link to them as expected
+// * https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html#footnotes
 
 // FOOTNOTE-TIMERS: We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by
 // setting PLLTM to zero, which disconnects the timers from the PLL clock output.
@@ -99,6 +100,21 @@ struct EndpointTableEntry {
 	max_packet_size: u16,
 }
 
+/// This module does X, Y, and Z.
+///
+/// Foo, bar, baz.
+///
+/// Goodbye, world.
+///
+/// # Limitations
+///
+/// ## Limit 1
+///
+/// fdsa
+///
+/// ## Limit 2
+///
+/// asdf
 pub struct UsbdBus {
 	usb: Mutex<USB_DEVICE>,
 	_pll: Mutex<PLL>,

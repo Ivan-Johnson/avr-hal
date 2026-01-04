@@ -52,7 +52,7 @@ fi
 echo "################################################################"
 echo "# atmega-hal"
 pushd mcu/atmega-hal &> /dev/null
-cargo doc --features atmega328p
+cargo doc --features atmega32u4
 popd &> /dev/null
 
 echo "################################################################"
@@ -64,5 +64,5 @@ popd &> /dev/null
 echo "################################################################"
 echo "# arduino-hal"
 pushd arduino-hal &> /dev/null
-cargo doc --features arduino-uno
+cargo doc --features arduino-micro
 popd &> /dev/null

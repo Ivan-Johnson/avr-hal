@@ -1,0 +1,9 @@
+Before updating PR, verify:
+
+* `micro-usb-serial.rs` actually works
+
+* Run `docs`, and read the docs:
+
+  file:///home/i/Workspaces/2/avr-hal/target/doc/atmega_hal/struct.UsbdBus.html#limit-1
+
+* publish the docs to my fork, and share a link so that Rahix can review
