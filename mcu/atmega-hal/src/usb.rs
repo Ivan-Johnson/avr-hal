@@ -281,30 +281,30 @@ impl UsbdBus {
 }
 
 impl UsbBus for UsbdBus {
-	/// PESONAL NOTE:
+	/// This function initializes a single element in `self.endpoints`
 	///
-	/// * This function initializes a single element in `self.endpoints`
+	/// Upstream docs:
 	///
-	/// Allocates an endpoint and specified endpoint parameters. This method is called by the device
-	/// and class implementations to allocate endpoints, and can only be called before
-	/// [`enable`](UsbBus::enable) is called.
-	///
-	/// # Arguments
-	///
-	/// * `ep_dir` - The endpoint direction.
-	/// * `ep_addr` - A static endpoint address to allocate. If Some, the implementation should
-	///   attempt to return an endpoint with the specified address. If None, the implementation
-	///   should return the next available one.
-	/// * `max_packet_size` - Maximum packet size in bytes.
-	/// * `interval` - Polling interval parameter for interrupt endpoints.
-	///
-	/// # Errors
-	///
-	/// * [`EndpointOverflow`](crate::UsbError::EndpointOverflow) - Available total number of
-	///   endpoints, endpoints of the specified type, or endpoind packet memory has been exhausted.
-	///   This is generally caused when a user tries to add too many classes to a composite device.
-	/// * [`InvalidEndpoint`](crate::UsbError::InvalidEndpoint) - A specific `ep_addr` was specified
-	///   but the endpoint in question has already been allocated.
+	/// > Allocates an endpoint and specified endpoint parameters. This method is called by the device
+	/// > and class implementations to allocate endpoints, and can only be called before
+	/// > [`enable`](UsbBus::enable) is called.
+	/// >
+	/// > # Arguments
+	/// >
+	/// > * `ep_dir` - The endpoint direction.
+	/// > * `ep_addr` - A static endpoint address to allocate. If Some, the implementation should
+	/// >   attempt to return an endpoint with the specified address. If None, the implementation
+	/// >   should return the next available one.
+	/// > * `max_packet_size` - Maximum packet size in bytes.
+	/// > * `interval` - Polling interval parameter for interrupt endpoints.
+	/// >
+	/// > # Errors
+	/// >
+	/// > * [`EndpointOverflow`](crate::UsbError::EndpointOverflow) - Available total number of
+	/// >   endpoints, endpoints of the specified type, or endpoind packet memory has been exhausted.
+	/// >   This is generally caused when a user tries to add too many classes to a composite device.
+	/// > * [`InvalidEndpoint`](crate::UsbError::InvalidEndpoint) - A specific `ep_addr` was specified
+	/// >   but the endpoint in question has already been allocated.
 	fn alloc_ep(
 		&mut self,
 		direction: UsbDirection,
@@ -343,7 +343,7 @@ impl UsbBus for UsbdBus {
 
 				if self.endpoints[index].is_some() || max_packet_size > ENDPOINT_MAX_BUFSIZE[index] {
 					// `usb-device`'s docs say that we *should attempt* to use the specified address.
-					// Since the requested address is not availabe, falling back to automatic allocation 
+					// Since the requested address is not availabe, falling back to automatic allocation
 					// is acceptable.
 					return self.alloc_ep(direction, None, ep_type, max_packet_size, interval);
 				}
