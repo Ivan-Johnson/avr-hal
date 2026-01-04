@@ -425,7 +425,9 @@ impl UsbBus for UsbdBus {
 	/// Sets the device USB address to `addr`.
 	fn set_device_address(&self, addr: u8) {
 		interrupt::free(|cs| {
-			// From section 22.7 of the datasheet:
+			let usb = self.usb.borrow(cs);
+
+			// Quoting from section 22.7 of the datasheet:
 			//
 			// > The USB device address is set up according to the USB protocol:
 			// > 1. the USB device, after power-up, responds at address 0
@@ -433,10 +435,16 @@ impl UsbBus for UsbdBus {
 			// > 3. the firmware handles this request, and records that address in UADD, but keep ADDEN cleared
 			// > 4. the USB device firmware sends an IN command of 0 bytes (IN 0 Zero Length Packet)
 			// > 5. then, the firmware can enable the USB device address by setting ADDEN. The only accepted address by the controller is the one stored in UADD.
-			let usb = self.usb.borrow(cs);
+			// >
+			// > ADDEN and UADD shall not be written at the same time.
+			//
+			// This here is step three: "records that address in UADD, *but keep ADDEN cleared*" (emphasis added).
 			usb.udaddr().modify(|_, w| unsafe { w.uadd().bits(addr) });
-			// NB: ADDEN and UADD shall not be written at the same time.
+
+			// We skip ahead to step five: "enable the USB device address by setting ADDEN"
 			usb.udaddr().modify(|_, w| w.adden().set_bit());
+
+			// TODO: I'm guessing that step four is handled by `usb-device` after we return? Is this correct?
 		});
 	}
 
