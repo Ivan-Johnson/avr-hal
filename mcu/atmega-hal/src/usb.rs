@@ -114,9 +114,7 @@ impl UsbdBus {
 			endpoints: Default::default(),
 		}
 	}
-}
-
-impl UsbdBus {
+	
 	fn active_endpoints(&self) -> impl Iterator<Item = (usize, &EndpointTableEntry)> {
 		self.endpoints
 			.iter()
