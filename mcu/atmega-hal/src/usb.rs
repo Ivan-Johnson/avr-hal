@@ -429,6 +429,7 @@ impl UsbBus for UsbdBus {
 	/// initialized as specified.
 	fn reset(&self) {
 		interrupt::free(|cs| {
+			// TODO: unused variable
 			let usb = self.usb.borrow(cs);
 
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory

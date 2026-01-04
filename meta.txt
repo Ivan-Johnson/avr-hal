@@ -1,3 +1,11 @@
+# TODO
+
+[ ] Make `UsbdBus` generic so it will work with 8MHz or 16MHz clock
+
+    `new` function
+
+# Final testing
+
 Before updating PR, verify:
 
 * `micro-usb-serial.rs` actually works
