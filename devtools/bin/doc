@@ -49,5 +49,20 @@ fi
 # MAIN LOGIC #
 ##############
 
-echo "TODO"
-exit 1
+echo "################################################################"
+echo "# atmega-hal"
+pushd mcu/atmega-hal &> /dev/null
+cargo doc --features atmega328p
+popd &> /dev/null
+
+echo "################################################################"
+echo "# mcu/attiny-hal"
+pushd mcu/attiny-hal &> /dev/null
+cargo doc --features attiny85
+popd &> /dev/null
+
+echo "################################################################"
+echo "# arduino-hal"
+pushd arduino-hal &> /dev/null
+cargo doc --features arduino-uno
+popd &> /dev/null
