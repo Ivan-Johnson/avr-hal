@@ -33,18 +33,18 @@ const _DPRAM_SIZE: u16 = 832;
 
 // TODO: cleanup these "footnotes". Make sure that they show up properly in the docs, and that I'm able to link to them as expected
 
-// FOOTNOTE-TIMERS: We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by 
-// setting PLLTM to zero, which disconnects the timers from the PLL clock output. 
+// FOOTNOTE-TIMERS: We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by
+// setting PLLTM to zero, which disconnects the timers from the PLL clock output.
 //
 // UsbdBus modifies the clock speed of the PLL output. If we wanted to use hardware timers, we'd
-// have to update their configuration anytime UsbdBus is enabled/disabled. We don't yet have a 
+// have to update their configuration anytime UsbdBus is enabled/disabled. We don't yet have a
 // good way to do that.
 
 // FOOTNOTE-EP0: TODO verify
 //
 // As I understand it, a USB endpoint is *ALWAYS* either IN or OUT. In particular, there are actually
-// two endpoint zeros: one for IN, and one for OUT. However, the atmega registers treat these two 
-// EP0s as if they were a single endpoint. As a result, this introduces a bunch of edge cases where ep0 
+// two endpoint zeros: one for IN, and one for OUT. However, the atmega registers treat these two
+// EP0s as if they were a single endpoint. As a result, this introduces a bunch of edge cases where ep0
 // needs to be treated specially.
 
 /// Convert the EndpointType enum to the bits used by the eptype field in UECFG0X.
@@ -115,21 +115,25 @@ impl UsbdBus {
 		//}
 
 		// 2. Configure the PLL output
-		pll.pllfrq()
-			.write(|w| w
+		pll.pllfrq().write(|w| {
+			w
 				// Disconnect the timer modules from the PLL output clock
 				// Ref FOOTNOTE-TIMERS
-				.plltm().disconnected()
-
+				.plltm()
+				.disconnected()
 				// The USB module requires a 48MHz clock. We have two options:
 				// * Set PLL output (PDIV) to 48MHz, with no postscaling to the USB module
 				// * Set PLL output to 96MHz, with /2 postscaling
 				//
 				// For simplicity, we use the first option.
 				//
-				// Refer to section 6.1.8 of the datasheet as well as 
+				// Refer to section 6.1.8 of the datasheet as well as
 				// the documentation for the `pllfrq` register itself.
-				.pdiv().mhz48().pllusb().clear_bit());
+				.pdiv()
+				.mhz48()
+				.pllusb()
+				.clear_bit()
+		});
 
 		// 3. Enable the PLL
 		pll.pllcsr().modify(|_, w| w.plle().set_bit());
@@ -152,7 +156,7 @@ impl UsbdBus {
 	}
 
 	/// Docs from the data sheet:
-    /// 
+	///
 	/// > Prior to any operation performed by the CPU, the endpoint must first be selected. This
 	/// > is done by setting the EPNUM2:0 bits (UENUM register) with the endpoint number which
 	/// > will be managed by the CPU.
@@ -182,11 +186,10 @@ impl UsbdBus {
 		if read_back != index {
 			return Err(UsbError::InvalidState);
 		}
-		
+
 		Ok(())
 	}
 
-	
 	///  This function returns the full eleven-bit value of the BYCT register.
 	///
 	///  The datasheet's docs for UEBCLX says:
@@ -213,12 +216,8 @@ impl UsbdBus {
 		}
 
 		match self.endpoints[index] {
-			None => {
-				Err(UsbError::InvalidEndpoint)
-			}
-			Some(ref endpoint) => {
-				Ok(endpoint)
-			}	
+			None => Err(UsbError::InvalidEndpoint),
+			Some(ref endpoint) => Ok(endpoint),
 		}
 	}
 
@@ -326,7 +325,7 @@ impl UsbBus for UsbdBus {
 				//
 				// (FWIW, section 22.18.2's docs for UECFG0X.EPDIR confirm that ep0 must be configured as "OUT")
 				if ep_addr == Some(EndpointAddress::from_parts(0, UsbDirection::In)) {
-				    return Ok(ep_addr.unwrap());
+					return Ok(ep_addr.unwrap());
 				}
 
 				if self.endpoints[index].is_some() || max_packet_size > ENDPOINT_MAX_BUFSIZE[index] {
@@ -451,8 +450,6 @@ impl UsbBus for UsbdBus {
 
 			let usb = self.usb.borrow(cs);
 			self.set_current_endpoint(cs, ep_addr.index())?;
-
-
 
 			if endpoint.ep_type == EndpointType::Control {
 				if usb.ueintx().read().txini().bit_is_clear() {
