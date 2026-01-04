@@ -36,9 +36,15 @@ const _DPRAM_SIZE: u16 = 832;
 // FOOTNOTE-TIMERS: We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by
 // setting PLLTM to zero, which disconnects the timers from the PLL clock output.
 //
-// UsbdBus modifies the clock speed of the PLL output. If we wanted to use hardware timers, we'd
-// have to update their configuration anytime UsbdBus is enabled/disabled. We don't yet have a
-// good way to do that.
+// It's absolutely possible to use both at the same time, we just haven't yet implemented a safe
+// wrapper to deal with these complexities:
+//
+// * We need some way to ensure that the PLL configuration is compatible with both the timer and
+//   the USB modules. Any time the PLL configuration changes, we similarly need to ensure that the
+//   USB and timer modules are updated appropriately.
+//
+// * When the USB module is suspended, the PLL output clock is stopped. We need to ensure that
+//   this doesn't break the user's timer code.
 
 // FOOTNOTE-EP0: TODO verify
 //
@@ -101,7 +107,6 @@ pub struct UsbdBus {
 }
 
 impl UsbdBus {
-	/// Construct a bus using the `PLL` as the suspend notifier (common case).
 	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
 		// Setup the PLL:
 		// 1. Configure the PLL input
@@ -456,6 +461,15 @@ impl UsbBus for UsbdBus {
 					return Err(UsbError::WouldBlock);
 				}
 
+				// Note: This check sometimes returns a buffer overflow error even when the
+				// buffer is large enough to fit the data. This is intentional.
+				//
+				// During setup the user requested that we allocate `max_packet_size` bytes, but
+				// the number of bytes that we actually allocated may be larger than that. The
+				// `UsbBus` trait doesn't provide a way for the user to query how much memory
+				// was actually allocated. As such, if they try to write more than `max_packet_size` bytes,
+				// then there's probably a bug in the users code, and we should return an error even if the
+				// buffer would not overflow.
 				if buf.len() > endpoint.max_packet_size.into() {
 					return Err(UsbError::BufferOverflow);
 				}
