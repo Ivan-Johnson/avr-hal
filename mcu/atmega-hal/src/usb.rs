@@ -212,8 +212,9 @@ impl UsbdBus {
 	// sec 22.6
 	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		let usb = self.usb.borrow(cs);
-		self.set_current_endpoint(cs, index)?;
 		let endpoint = &self.endpoints[index];
+		
+		self.set_current_endpoint(cs, index)?;
 		usb.ueconx().modify(|_, w| w.epen().set_bit());
 		usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
 
