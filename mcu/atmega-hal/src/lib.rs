@@ -171,21 +171,24 @@ mod usb;
 ///   >
 ///   >     * I've not spent much time investigating this, so this proposed solution might not work.
 ///
-/// * The current implementation does not attempt to minimize power usage. For details, see GitHub issue #TBD.
+/// * The current implementation does not attempt to minimize power usage. For details,
+///   see GitHub issue #TBD.
 ///
-/// TODO: make a github issue:
+///   TODO if Rahix agrees that this limitation isn't something we need to worry about
+///   as part of PR, then create a GitHub issue so that someone else can fix it later:
 ///
-/// * Add support for using interrupts, similar to `agausmann/atmega-usbd`
+///   * Add support for using interrupts, in addition to polling.
+///     Similar to `agausmann/atmega-usbd`.
 ///
-/// * Shutdown the PLL when the USB module is suspended
+///   * Shutdown the PLL when the USB module is suspended (TODO: do in this PR?)
 ///
-/// * ???
+///   * and more?
 #[cfg(feature = "atmega32u4")]
 pub fn default_usb_bus_with_pll(usb: avr_device::atmega32u4::USB_DEVICE, pll: avr_device::atmega32u4::PLL) -> impl usb_device::class_prelude::UsbBus {
 	return usb::UsbdBus::new(usb, pll);
 }
 
-/// This macro is exactly equivalent to `default_usb_bus_with_pll`.
+/// This macro is exactly equivalent to [default_usb_bus_with_pll](default_usb_bus_with_pll).
 #[cfg(feature = "atmega32u4")]
 #[macro_export]
 macro_rules! default_usb_bus_with_pll_macro {
