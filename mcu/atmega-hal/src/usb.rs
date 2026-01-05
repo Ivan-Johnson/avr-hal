@@ -154,51 +154,16 @@ struct EndpointTableEntry {
 /// * ???
 pub struct UsbdBus {
 	usb: Mutex<USB_DEVICE>,
-	_pll: Mutex<PLL>,
+	pll: Mutex<PLL>,
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [Option<EndpointTableEntry>; MAX_ENDPOINTS],
 }
 
 impl UsbdBus {
 	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
-		// Setup the PLL:
-		// 1. Configure the PLL input
-		// (TODO)
-		//if (crate::DefaultClock == avr_hal_generic::clock::MHz16) {
-		pll.pllcsr().write(|w| w.pindiv().set_bit());
-		//} else if (crate::DefaultClock == avr_hal_generic::clock::MHz8) {
-		//	pll.pllcsr().write(|w| w.pindiv().clear_bit());
-		//} else {
-		//	panic!("USB requires an 8MHz or 16MHz clock");
-		//}
-
-		// 2. Configure the PLL output
-		pll.pllfrq().write(|w| {
-			w
-				// Disconnect the timer modules from the PLL output clock
-				// Ref FOOTNOTE-TIMERS
-				.plltm()
-				.disconnected()
-				// The USB module requires a 48MHz clock. We have two options:
-				// * Set PLL output (PDIV) to 48MHz, with no postscaling to the USB module
-				// * Set PLL output to 96MHz, with /2 postscaling
-				//
-				// For simplicity, we use the first option.
-				//
-				// Refer to section 6.1.8 of the datasheet as well as
-				// the documentation for the `pllfrq` register itself.
-				.pdiv()
-				.mhz48()
-				.pllusb()
-				.clear_bit()
-		});
-
-		// 3. Enable the PLL
-		pll.pllcsr().modify(|_, w| w.plle().set_bit());
-
 		Self {
 			usb: Mutex::new(usb),
-			_pll: Mutex::new(pll),
+			pll: Mutex::new(pll),
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
 		}
@@ -432,11 +397,59 @@ impl UsbBus for UsbdBus {
 	/// there is no need to perform a USB reset in this method.
 	fn enable(&mut self) {
 		interrupt::free(|cs| {
-			// TODO: resume here, with section 21.12?
-
 			let usb = self.usb.borrow(cs);
-			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L683
+
+
+			// Quoting section "21.12: USB Software Operating Modes," 
+			// subheading "Power On the USB interface":
+			//
+			// > 1. Power-On USB pads regulator
+			//
+			// (https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L683)
 			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
+
+			// > 2. Configure PLL interface
+			
+			// 2A. Configure PLL input
+			
+			// TODO: actually implement support clock speeds
+			//if (crate::DefaultClock == avr_hal_generic::clock::MHz16) {
+			pll.pllcsr().write(|w| w.pindiv().set_bit());
+			//} else if (crate::DefaultClock == avr_hal_generic::clock::MHz8) {
+			//	pll.pllcsr().write(|w| w.pindiv().clear_bit());
+			//} else {
+			//	panic!("USB requires an 8MHz or 16MHz clock");
+			//}
+
+			// 2B. Configure PLL output
+			pll.pllfrq().write(|w| {
+				w
+					// Disconnect the timer modules from the PLL output clock
+					// Ref FOOTNOTE-TIMERS
+					.plltm()
+					.disconnected()
+					// The USB module requires a 48MHz clock. We have two options:
+					// * Set PLL output (PDIV) to 48MHz, with no postscaling to the USB module
+					// * Set PLL output to 96MHz, with /2 postscaling
+					//
+					// For simplicity, we use the first option.
+					//
+					// Refer to section 6.1.8 of the datasheet as well as
+					// the documentation for the `pllfrq` register itself.
+					.pdiv()
+					.mhz48()
+					.pllusb()
+					.clear_bit()
+			});
+
+			// > 3. Enable PLL
+			pll.pllcsr().modify(|_, w| w.plle().set_bit());
+			
+
+			// > 4. Check PLL lock
+			while self.pllcsr.read().plock().bit_is_clear() {}
+
+			// TODO resume here
 
 			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L685
 			usb.usbcon()
