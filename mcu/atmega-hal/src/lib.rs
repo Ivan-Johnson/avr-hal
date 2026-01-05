@@ -123,6 +123,7 @@ pub use avr_hal_generic::prelude;
 #[cfg(feature = "atmega32u4")]
 mod usb;
 
+// TODO: fix bad usb-device::UsbBus link
 /// This function provides a safe abstraction layer over the USB hardware, by way of the
 /// [UsbBus](usb-device::UsbBus) trait.
 ///
