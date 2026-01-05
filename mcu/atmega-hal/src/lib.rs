@@ -123,10 +123,70 @@ pub use avr_hal_generic::prelude;
 #[cfg(feature = "atmega32u4")]
 mod usb;
 
-/// TODO: documentation
-/// * basic documentation
-/// * limitations
-/// * why this is named the way it is, and the potential to create new better functions in the future
+/// This module does X, Y, and Z.
+///
+/// Foo, bar, baz.
+///
+/// Goodbye, world.
+///
+/// # Limitations
+///
+/// ## Limitation: Timers
+///
+/// We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by
+/// setting PLLTM to zero, which disconnects the timers from the PLL clock output.
+///
+/// It's absolutely possible to use both at the same time, we just haven't yet implemented a safe
+/// wrapper to deal with these complexities. For details, see GitHub issue #TBD.
+///
+/// TODO make a github issue:
+///
+/// * The coplexities involved are:
+///
+///   * We need some way to ensure that the PLL configuration is compatible with both the timer and
+///     the USB modules. Any time the PLL configuration changes, we similarly need to ensure that the
+///     USB and timer modules are updated appropriately.
+///
+///   * When the USB module is suspended, the PLL output clock is stopped. We need to ensure that
+///     this doesn't break the user's timer code.
+///
+///  * Possible solutions:
+///
+///    * For the first issue:
+///
+///      Create a `setup_pll(pll: &mut PLL)` function that configures the PLL.
+///
+///      Create a new constructor for `UsbdBus` that takes `&PLL` as input, instead of `PLL`.
+///
+///      Add a lifetime parameter to `UsbdBus`. This will prevent the user from modifying the PLL while `UsbdBus` exists.
+///
+///    * For the second issue:
+///
+///      We could do basically the exact same thing that `agausmann/atmega-usbd` does:
+///      https://github.com/agausmann/atmega-usbd/blob/master/src/lib.rs#L590-L618
+///
+///      This essentially just defines a `suspend` and `resume` callback functions,
+///      which the user can implement however they want.
+///
+///      The default implementation would do basically the exact same thing that we
+///      do today: take ownership of `PLL` and disable the hardware timers.
+///
+///    Note that the solution to the first issue requires a persistent immutable reference
+///    to PLL, while the solution to the second issue requires a persistent mutable
+///    reference to PLL. It is not yet certain whether or not they are using the same fields
+///    of PLL. If so, this will be a problem.
+///
+/// ## Limitation: Power Usage
+///
+/// The current implementation does not attempt to minimize power usage. For details, see GitHub issue #TBD.
+///
+/// TODO: make a github issue:
+///
+/// * Add support for using interrupts, similar to `agausmann/atmega-usbd`
+///
+/// * Shutdown the PLL when the USB module is suspended
+///
+/// * ???
 #[cfg(feature = "atmega32u4")]
 pub fn default_usb_bus_with_pll(usb: avr_device::atmega32u4::USB_DEVICE, pll: avr_device::atmega32u4::PLL) -> impl usb_device::class_prelude::UsbBus {
 	return usb::UsbdBus::new(usb, pll);
