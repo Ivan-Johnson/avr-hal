@@ -433,8 +433,6 @@ impl UsbBus for UsbdBus {
 	fn enable(&mut self) {
 		interrupt::free(|cs| {
 			// TODO: resume here, with section 21.12?
-			// TODO: resume here, with section 21.12?
-			// TODO: resume here, with section 21.12?
 
 			let usb = self.usb.borrow(cs);
 			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L683
