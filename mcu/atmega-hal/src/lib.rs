@@ -157,7 +157,7 @@ mod usb;
 ///   > **Comment**
 ///   >
 ///   > I think we *might* be able to solve this by splitting the constructor's
-///   > argument into two separate parts. Insted of passing ownership of the entire PLL
+///   > argument into two separate parts. Instead of passing ownership of the entire PLL
 ///   > configuration (`pll: avr_device::atmega32u4::PLL`), we'd have one argument for
 ///   > the registers that config the PLL clock speed (e.g. `pll_config: &PLLFRQ`) and one
 ///   > optional argument for the registers that we use to turn the PLL on and off
