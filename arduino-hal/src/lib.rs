@@ -114,9 +114,6 @@ pub use attiny_hal::pac;
 #[cfg(feature = "board-selected")]
 pub use hal::Peripherals;
 
-#[cfg(feature = "usb-support")]
-pub use atmega_hal::UsbdBus;
-
 #[cfg(feature = "board-selected")]
 pub mod clock;
 #[cfg(feature = "board-selected")]
@@ -193,6 +190,22 @@ pub mod eeprom {
 #[cfg(feature = "board-selected")]
 pub use eeprom::Eeprom;
 
+#[doc(no_inline)]
+#[cfg(any(
+    feature = "arduino-micro",
+    feature = "arduino-leonardo",
+    feature = "sparkfun-promicro"
+))]
+pub use atmega_hal::default_usb_bus_with_pll;
+
+#[doc(no_inline)]
+#[cfg(any(
+    feature = "arduino-micro",
+    feature = "arduino-leonardo",
+    feature = "sparkfun-promicro"
+))]
+pub use atmega_hal::default_usb_bus_with_pll_macro;
+
 #[cfg(feature = "board-selected")]
 pub mod simple_pwm {
     #[cfg(feature = "mcu-atmega")]
@@ -208,14 +221,14 @@ pub mod prelude {
 
     cfg_if::cfg_if! {
         if #[cfg(any(
-            feature = "arduino-diecimila",
-            feature = "arduino-mega2560",
-            feature = "arduino-mega1280",
-            feature = "arduino-uno"
+        feature = "arduino-diecimila",
+        feature = "arduino-mega2560",
+        feature = "arduino-mega1280",
+        feature = "arduino-uno"
         ))] {
-            pub use crate::hal::usart::BaudrateArduinoExt as _;
+        pub use crate::hal::usart::BaudrateArduinoExt as _;
         } else {
-            pub use crate::hal::usart::BaudrateExt as _;
+        pub use crate::hal::usart::BaudrateExt as _;
         }
     }
 }
@@ -253,21 +266,6 @@ macro_rules! default_serial {
             $pins.d1.into_output(),
             $crate::hal::usart::BaudrateExt::into_baudrate($baud),
         )
-    };
-}
-
-/// TODO add documentation
-///
-/// # Example
-/// ```no_run
-/// let dp = arduino_hal::Peripherals::take().unwrap();
-/// let usb_bus = arduino_hal::default_usb_bus!(ds);
-/// ```
-#[cfg(feature = "usb-support")]
-#[macro_export]
-macro_rules! default_usb_bus {
-    ($p:expr) => {
-        $crate::UsbdBus::new($p.USB_DEVICE, $p.PLL)
     };
 }
 

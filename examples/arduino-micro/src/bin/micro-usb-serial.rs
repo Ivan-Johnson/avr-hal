@@ -9,11 +9,15 @@ use usb_device::device::UsbVidPid;
 use usb_device::LangID;
 use usbd_serial::SerialPort;
 
+// TODO: Do I need to port the interrupt handlers? I don't *think* so?
+// https://github.com/agausmann/atmega-usbd/blob/master/examples/arduino_keyboard.rs#L105-L131
+// https://github.com/agausmann/atmega-usbd/blob/master/examples/arduino_keyboard.rs#L142-L179
+
 #[arduino_hal::entry]
 fn main() -> ! {
     let dp: Peripherals = arduino_hal::Peripherals::take().unwrap();
 
-    let usb_bus = arduino_hal::default_usb_bus!(dp);
+    let usb_bus = arduino_hal::default_usb_bus_with_pll_macro!(dp);
     let usb_bus_allocator = UsbBusAllocator::new(usb_bus);
     let mut serial = SerialPort::new(&usb_bus_allocator);
 
