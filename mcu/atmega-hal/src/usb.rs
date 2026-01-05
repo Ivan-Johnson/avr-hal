@@ -111,7 +111,7 @@ struct EndpointTableEntry {
 ///   * We need some way to ensure that the PLL configuration is compatible with both the timer and
 ///     the USB modules. Any time the PLL configuration changes, we similarly need to ensure that the
 ///     USB and timer modules are updated appropriately.
-///   
+///
 ///   * When the USB module is suspended, the PLL output clock is stopped. We need to ensure that
 ///     this doesn't break the user's timer code.
 ///
@@ -130,16 +130,16 @@ struct EndpointTableEntry {
 ///      We could do basically the exact same thing that `agausmann/atmega-usbd` does:
 ///      https://github.com/agausmann/atmega-usbd/blob/master/src/lib.rs#L590-L618
 ///
-///      This essentially just defines a `suspend` and `resume` callback functions, 
+///      This essentially just defines a `suspend` and `resume` callback functions,
 ///      which the user can implement however they want.
 ///
 ///      The default implementation would do basically the exact same thing that we
 ///      do today: take ownership of `PLL` and disable the hardware timers.
 ///
-///    Note that the solution to the first issue requires a persistent immutable reference 
-///    to PLL, while the solution to the second issue requires a persistent mutable 
+///    Note that the solution to the first issue requires a persistent immutable reference
+///    to PLL, while the solution to the second issue requires a persistent mutable
 ///    reference to PLL. It is not yet certain whether or not they are using the same fields
-///    of PLL. If so, this will be a problem. 
+///    of PLL. If so, this will be a problem.
 ///
 /// ## Limitation: Power Usage
 ///
@@ -398,9 +398,10 @@ impl UsbBus for UsbdBus {
 	fn enable(&mut self) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
+			let pll = self.pll.borrow(cs);
 
 
-			// Quoting section "21.12: USB Software Operating Modes," 
+			// Quoting section "21.12: USB Software Operating Modes,"
 			// subheading "Power On the USB interface":
 			//
 			// > 1. Power-On USB pads regulator
@@ -409,9 +410,9 @@ impl UsbBus for UsbdBus {
 			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
 
 			// > 2. Configure PLL interface
-			
+
 			// 2A. Configure PLL input
-			
+
 			// TODO: actually implement support clock speeds
 			//if (crate::DefaultClock == avr_hal_generic::clock::MHz16) {
 			pll.pllcsr().write(|w| w.pindiv().set_bit());
@@ -444,14 +445,14 @@ impl UsbBus for UsbdBus {
 
 			// > 3. Enable PLL
 			pll.pllcsr().modify(|_, w| w.plle().set_bit());
-			
+
 
 			// > 4. Check PLL lock
-			while self.pllcsr.read().plock().bit_is_clear() {}
+			// TODO resume here
+			// TODO resume here
+			// TODO resume here
+			// while pll.pllcsr.read().plock().bit_is_clear() {}
 
-			// TODO resume here
-			// TODO resume here
-			// TODO resume here
 
 			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L685
 			usb.usbcon()
@@ -478,7 +479,7 @@ impl UsbBus for UsbdBus {
 	fn reset(&self) {
 		interrupt::free(|cs| {
 			// TODO: unused variable
-			let usb = self.usb.borrow(cs);
+			let _usb = self.usb.borrow(cs);
 
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			for (index, _ep) in self.active_endpoints() {

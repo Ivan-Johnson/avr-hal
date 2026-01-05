@@ -120,10 +120,26 @@ pub use avr_hal_generic::clock;
 pub use avr_hal_generic::delay;
 pub use avr_hal_generic::prelude;
 
-#[cfg(feature = "usb-support")]
+#[cfg(feature = "atmega32u4")]
 mod usb;
-#[cfg(feature = "usb-support")]
-pub use usb::UsbdBus;
+
+/// TODO: documentation
+/// * basic documentation
+/// * limitations
+/// * why this is named the way it is, and the potential to create new better functions in the future
+#[cfg(feature = "atmega32u4")]
+pub fn default_usb_bus_with_pll(usb: avr_device::atmega32u4::USB_DEVICE, pll: avr_device::atmega32u4::PLL) -> impl usb_device::class_prelude::UsbBus {
+	return usb::UsbdBus::new(usb, pll);
+}
+
+/// This macro is exactly equivalent to `default_usb_bus_with_pll`.
+#[cfg(feature = "atmega32u4")]
+#[macro_export]
+macro_rules! default_usb_bus_with_pll_macro {
+       ($p:expr) => {
+               $crate::default_usb_bus_with_pll($p.USB_DEVICE, $p.PLL)
+       };
+}
 
 #[cfg(feature = "device-selected")]
 pub mod adc;

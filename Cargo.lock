@@ -39,7 +39,6 @@ dependencies = [
  "cfg-if",
  "embedded-hal 1.0.0",
  "ufmt",
- "usb-device",
 ]
 
 [[package]]
