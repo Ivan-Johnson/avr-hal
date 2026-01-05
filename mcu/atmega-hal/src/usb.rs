@@ -34,18 +34,6 @@ const _DPRAM_SIZE: u16 = 832;
 // TODO: cleanup these "footnotes". Make sure that they show up properly in the docs, and that I'm able to link to them as expected
 // * https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html#footnotes
 
-// FOOTNOTE-TIMERS: We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by
-// setting PLLTM to zero, which disconnects the timers from the PLL clock output.
-//
-// It's absolutely possible to use both at the same time, we just haven't yet implemented a safe
-// wrapper to deal with these complexities:
-//
-// * We need some way to ensure that the PLL configuration is compatible with both the timer and
-//   the USB modules. Any time the PLL configuration changes, we similarly need to ensure that the
-//   USB and timer modules are updated appropriately.
-//
-// * When the USB module is suspended, the PLL output clock is stopped. We need to ensure that
-//   this doesn't break the user's timer code.
 
 // FOOTNOTE-EP0: TODO verify
 //
@@ -108,13 +96,62 @@ struct EndpointTableEntry {
 ///
 /// # Limitations
 ///
-/// ## Limit 1
+/// ## Limitation: Timers
 ///
-/// fdsa
+/// We do not allow hardware timers to be used simultanously with UsbdBus. We enforce this by
+/// setting PLLTM to zero, which disconnects the timers from the PLL clock output.
 ///
-/// ## Limit 2
+/// It's absolutely possible to use both at the same time, we just haven't yet implemented a safe
+/// wrapper to deal with these complexities. For details, see GitHub issue #TBD.
 ///
-/// asdf
+/// TODO make a github issue:
+///
+/// * The coplexities involved are:
+///
+///   * We need some way to ensure that the PLL configuration is compatible with both the timer and
+///     the USB modules. Any time the PLL configuration changes, we similarly need to ensure that the
+///     USB and timer modules are updated appropriately.
+///   
+///   * When the USB module is suspended, the PLL output clock is stopped. We need to ensure that
+///     this doesn't break the user's timer code.
+///
+///  * Possible solutions:
+///
+///    * For the first issue:
+///
+///      Create a `setup_pll(pll: &mut PLL)` function that configures the PLL.
+///
+///      Create a new constructor for `UsbdBus` that takes `&PLL` as input, instead of `PLL`.
+///
+///      Add a lifetime parameter to `UsbdBus`. This will prevent the user from modifying the PLL while `UsbdBus` exists.
+///
+///    * For the second issue:
+///
+///      We could do basically the exact same thing that `agausmann/atmega-usbd` does:
+///      https://github.com/agausmann/atmega-usbd/blob/master/src/lib.rs#L590-L618
+///
+///      This essentially just defines a `suspend` and `resume` callback functions, 
+///      which the user can implement however they want.
+///
+///      The default implementation would do basically the exact same thing that we
+///      do today: take ownership of `PLL` and disable the hardware timers.
+///
+///    Note that the solution to the first issue requires a persistent immutable reference 
+///    to PLL, while the solution to the second issue requires a persistent mutable 
+///    reference to PLL. It is not yet certain whether or not they are using the same fields
+///    of PLL. If so, this will be a problem. 
+///
+/// ## Limitation: Power Usage
+///
+/// The current implementation does not attempt to minimize power usage. For details, see GitHub issue #TBD.
+///
+/// TODO: make a github issue:
+///
+/// * Add support for using interrupts, similar to `agausmann/atmega-usbd`
+///
+/// * Shutdown the PLL when the USB module is suspended
+///
+/// * ???
 pub struct UsbdBus {
 	usb: Mutex<USB_DEVICE>,
 	_pll: Mutex<PLL>,
@@ -289,7 +326,7 @@ impl UsbdBus {
 			"could not configure endpoint {}",
 			index
 		);
-		
+
 		Ok(())
 	}
 }
