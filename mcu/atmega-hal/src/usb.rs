@@ -450,6 +450,8 @@ impl UsbBus for UsbdBus {
 			while self.pllcsr.read().plock().bit_is_clear() {}
 
 			// TODO resume here
+			// TODO resume here
+			// TODO resume here
 
 			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L685
 			usb.usbcon()
