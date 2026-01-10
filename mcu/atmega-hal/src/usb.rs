@@ -167,15 +167,10 @@ impl UsbdBus {
 		_cs: CriticalSection,
 		index: usize,
 	) -> Result<&EndpointTableEntry, UsbError> {
-		// TODO: cleanup.
-		// Minimally combine the `if` and `match` into a single `match self.endpoints.get()`?
-		if index >= self.endpoints.len() {
-			return Err(UsbError::InvalidEndpoint);
-		}
-
-		match self.endpoints[index] {
+		match self.endpoints.get(index) {
 			None => Err(UsbError::InvalidEndpoint),
-			Some(ref endpoint) => Ok(endpoint),
+			Some(None) => Err(UsbError::InvalidEndpoint),
+			Some(Some(ref endpoint)) => Ok(endpoint),
 		}
 	}
 
