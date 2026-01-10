@@ -34,7 +34,6 @@ const _DPRAM_SIZE: u16 = 832;
 // TODO: cleanup these "footnotes". Make sure that they show up properly in the docs, and that I'm able to link to them as expected
 // * https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html#footnotes
 
-
 // FOOTNOTE-EP0: TODO verify
 //
 // As I understand it, a USB endpoint is *ALWAYS* either IN or OUT. In particular, there are actually
@@ -330,7 +329,6 @@ impl UsbBus for UsbdBus {
 			let usb = self.usb.borrow(cs);
 			let pll = self.pll.borrow(cs);
 
-
 			// Quoting section "21.12: USB Software Operating Modes,"
 			// subheading "Power On the USB interface":
 			//
@@ -363,7 +361,7 @@ impl UsbBus for UsbdBus {
 					// * Set PLL output (PDIV) to 48MHz, with no postscaling to the USB module
 					// * Set PLL output to 96MHz, with /2 postscaling
 					//
-					// For simplicity, we use the first option.
+					// We use the first option.
 					//
 					// Refer to section 6.1.8 of the datasheet as well as
 					// the documentation for the `pllfrq` register itself.
@@ -376,21 +374,22 @@ impl UsbBus for UsbdBus {
 			// > 3. Enable PLL
 			pll.pllcsr().modify(|_, w| w.plle().set_bit());
 
-
 			// > 4. Check PLL lock
 			// TODO resume here
 			// TODO resume here
 			// TODO resume here
-			// while pll.pllcsr.read().plock().bit_is_clear() {}
-
+			let mut bit_was_clear = false;
+			while pll.pllcsr().read().plock().bit_is_clear() {
+				bit_was_clear = true;
+			}
+			assert!(bit_was_clear);
 
 			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L685
 			usb.usbcon()
 				.modify(|_, w| w.usbe().set_bit().otgpade().set_bit());
 			// NB: FRZCLK cannot be set/cleared when USBE=0, and
 			// cannot be modified at the same time.
-			usb.usbcon()
-				.modify(|_, w| w.frzclk().clear_bit());
+			usb.usbcon().modify(|_, w| w.frzclk().clear_bit());
 
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			for (index, _ep) in self.active_endpoints() {

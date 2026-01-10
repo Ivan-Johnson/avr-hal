@@ -191,7 +191,10 @@ mod usb;
 ///   in order to make it easier to address the other issues without breaking backwards
 ///   compatibility.
 #[cfg(feature = "atmega32u4")]
-pub fn default_usb_bus_with_pll(usb: avr_device::atmega32u4::USB_DEVICE, pll: avr_device::atmega32u4::PLL) -> impl usb_device::class_prelude::UsbBus {
+pub fn default_usb_bus_with_pll(
+	usb: avr_device::atmega32u4::USB_DEVICE,
+	pll: avr_device::atmega32u4::PLL,
+) -> impl usb_device::class_prelude::UsbBus {
 	return usb::UsbdBus::new(usb, pll);
 }
 
@@ -199,9 +202,9 @@ pub fn default_usb_bus_with_pll(usb: avr_device::atmega32u4::USB_DEVICE, pll: av
 #[cfg(feature = "atmega32u4")]
 #[macro_export]
 macro_rules! default_usb_bus_with_pll_macro {
-       ($p:expr) => {
-               $crate::default_usb_bus_with_pll($p.USB_DEVICE, $p.PLL)
-       };
+	($p:expr) => {
+		$crate::default_usb_bus_with_pll($p.USB_DEVICE, $p.PLL)
+	};
 }
 
 #[cfg(feature = "device-selected")]

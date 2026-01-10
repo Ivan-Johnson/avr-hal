@@ -187,11 +187,19 @@ pub mod eeprom {
 pub use eeprom::Eeprom;
 
 #[doc(no_inline)]
-#[cfg(any(feature = "arduino-micro", feature = "arduino-leonardo", feature = "sparkfun-promicro"))]
+#[cfg(any(
+	feature = "arduino-micro",
+	feature = "arduino-leonardo",
+	feature = "sparkfun-promicro"
+))]
 pub use atmega_hal::default_usb_bus_with_pll;
 
 #[doc(no_inline)]
-#[cfg(any(feature = "arduino-micro", feature = "arduino-leonardo", feature = "sparkfun-promicro"))]
+#[cfg(any(
+	feature = "arduino-micro",
+	feature = "arduino-leonardo",
+	feature = "sparkfun-promicro"
+))]
 pub use atmega_hal::default_usb_bus_with_pll_macro;
 
 #[cfg(feature = "board-selected")]
