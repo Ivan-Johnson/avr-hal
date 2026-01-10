@@ -375,15 +375,13 @@ impl UsbBus for UsbdBus {
 			pll.pllcsr().modify(|_, w| w.plle().set_bit());
 
 			// > 4. Check PLL lock
-			// TODO resume here
-			// TODO resume here
-			// TODO resume here
 			let mut bit_was_clear = false;
 			while pll.pllcsr().read().plock().bit_is_clear() {
 				bit_was_clear = true;
 			}
 			assert!(bit_was_clear);
 
+			// > 5. Enable USB interface
 			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L685
 			usb.usbcon()
 				.modify(|_, w| w.usbe().set_bit().otgpade().set_bit());
@@ -391,11 +389,20 @@ impl UsbBus for UsbdBus {
 			// cannot be modified at the same time.
 			usb.usbcon().modify(|_, w| w.frzclk().clear_bit());
 
+			// TODO resume here
+			// > 6. Configure USB interface (USB speed, Endpoints configuration...)
+			// > 7. Wait for USB VBUS information connection
+
+
+
+
+
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			for (index, _ep) in self.active_endpoints() {
 				self.configure_endpoint(cs, index).unwrap();
 			}
 
+			// > 8. Attach USB device
 			usb.udcon().modify(|_, w| w.detach().clear_bit());
 		});
 	}
