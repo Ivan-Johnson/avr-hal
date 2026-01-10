@@ -329,6 +329,115 @@ impl UsbBus for UsbdBus {
 			let usb = self.usb.borrow(cs);
 			let pll = self.pll.borrow(cs);
 
+
+
+
+			// From `ArduinoCore-avr`:
+			// https://github.com/arduino/ArduinoCore-avr/blob/7c38f34da561266e1e5cf7769f0e61b0aa5dda39/cores/arduino/USBCore.cpp#L680-L754
+			//
+			// //  Copyright (c) 2010, Peter Barrett
+			// //  Sleep/Wakeup support added by Michael Dreher
+			// //
+			// //  Permission to use, copy, modify, and/or distribute this software for
+			// //  any purpose with or without fee is hereby granted, provided that the
+			// //  above copyright notice and this permission notice appear in all copies.
+			// //
+			// //  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+			// //  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+			// //  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR
+			// //  BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES
+			// //  OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+			// //  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+			// //  ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+			// //  SOFTWARE.
+			//
+			// static inline void USB_ClockEnable()
+			// {
+			// #if defined(UHWCON)
+			//      UHWCON |= (1<<UVREGE);                  // power internal reg
+			// #endif
+			//      USBCON = (1<<USBE) | (1<<FRZCLK);       // clock frozen, usb enabled
+			//
+			// // ATmega32U4
+			// #if defined(PINDIV)
+			// #if F_CPU == 16000000UL
+			//      PLLCSR |= (1<<PINDIV);                   // Need 16 MHz xtal
+			// #elif F_CPU == 8000000UL
+			//      PLLCSR &= ~(1<<PINDIV);                  // Need  8 MHz xtal
+			// #else
+			// #error "Clock rate of F_CPU not supported"
+			// #endif
+			//
+			// #elif defined(__AVR_AT90USB82__) || defined(__AVR_AT90USB162__) || defined(__AVR_ATmega32U2__) || defined(__AVR_ATmega16U2__) || defined(__AVR_ATmega8U2__)
+			//      // for the u2 Series the datasheet is confusing. On page 40 its called PINDIV and on page 290 its called PLLP0
+			// #if F_CPU == 16000000UL
+			//      // Need 16 MHz xtal
+			//      PLLCSR |= (1 << PLLP0);
+			// #elif F_CPU == 8000000UL
+			//      // Need 8 MHz xtal
+			//      PLLCSR &= ~(1 << PLLP0);
+			// #endif
+			//
+			// // AT90USB646, AT90USB647, AT90USB1286, AT90USB1287
+			// #elif defined(PLLP2)
+			// #if F_CPU == 16000000UL
+			// #if defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB1287__)
+			//      // For Atmel AT90USB128x only. Do not use with Atmel AT90USB64x.
+			//      PLLCSR = (PLLCSR & ~(1<<PLLP1)) | ((1<<PLLP2) | (1<<PLLP0)); // Need 16 MHz xtal
+			// #elif defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB647__)
+			//      // For AT90USB64x only. Do not use with AT90USB128x.
+			//      PLLCSR = (PLLCSR & ~(1<<PLLP0)) | ((1<<PLLP2) | (1<<PLLP1)); // Need 16 MHz xtal
+			// #else
+			// #error "USB Chip not supported, please defined method of USB PLL initialization"
+			// #endif
+			// #elif F_CPU == 8000000UL
+			//      // for Atmel AT90USB128x and AT90USB64x
+			//      PLLCSR = (PLLCSR & ~(1<<PLLP2)) | ((1<<PLLP1) | (1<<PLLP0)); // Need 8 MHz xtal
+			// #else
+			// #error "Clock rate of F_CPU not supported"
+			// #endif
+			// #else
+			// #error "USB Chip not supported, please defined method of USB PLL initialization"
+			// #endif
+			//
+			//      PLLCSR |= (1<<PLLE);
+			//      while (!(PLLCSR & (1<<PLOCK)))          // wait for lock pll
+			//      {
+			//      }
+			//
+			//      // Some tests on specific versions of macosx (10.7.3), reported some
+			//      // strange behaviors when the board is reset using the serial
+			//      // port touch at 1200 bps. This delay fixes this behavior.
+			//      delay(1);
+			// #if defined(OTGPADE)
+			//      USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
+			// #else
+			//      USBCON &= ~(1 << FRZCLK);       // start USB clock
+			// #endif
+			//
+			// #if defined(RSTCPU)
+			// #if defined(LSM)
+			//      UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
+			// #else // u2 Series
+			//      UDCON &= ~((1 << RSTCPU) | (1 << RMWKUP) | (1 << DETACH));      // enable attach resistor, set full speed mode
+			// #endif
+			// #else
+			//      // AT90USB64x and AT90USB128x don't have RSTCPU
+			//      UDCON &= ~((1<<LSM) | (1<<RMWKUP) | (1<<DETACH));       // enable attach resistor, set full speed mode
+			// #endif
+			// }
+
+
+
+
+
+
+
+
+
+
+
+
 			// Quoting section "21.12: USB Software Operating Modes,"
 			// subheading "Power On the USB interface":
 			//
