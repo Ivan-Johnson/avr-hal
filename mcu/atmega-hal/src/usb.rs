@@ -167,10 +167,10 @@ impl UsbdBus {
 		_cs: CriticalSection,
 		index: usize,
 	) -> Result<&EndpointTableEntry, UsbError> {
-		match self.endpoints.get(index) {
-			None => Err(UsbError::InvalidEndpoint),
-			Some(None) => Err(UsbError::InvalidEndpoint),
-			Some(Some(ref endpoint)) => Ok(endpoint),
+		if let Some(Some(ref endpoint)) = self.endpoints.get(index) {
+			Ok(endpoint)
+		} else {
+			Err(UsbError::InvalidEndpoint)
 		}
 	}
 
