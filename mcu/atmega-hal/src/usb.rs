@@ -109,7 +109,6 @@ impl UsbdBus {
 		self.endpoints
 			.iter()
 			.enumerate()
-			// TODO: combine
 			.filter(|&(_, ep)| ep.is_some())
 			.map(|(index, ep)| (index, ep.as_ref().unwrap()))
 	}
