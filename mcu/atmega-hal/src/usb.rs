@@ -329,8 +329,6 @@ impl UsbBus for UsbdBus {
 			let usb = self.usb.borrow(cs);
 			let pll = self.pll.borrow(cs);
 
-
-
 			// The Datasheet is quite vague; the best I can find is section 21.12, which states:
 			//
 			// > ## Power On the USB interface
@@ -395,12 +393,9 @@ impl UsbBus for UsbdBus {
 			// > }
 			// >
 
-
-
 			//
 			// (https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L683)
 			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
-
 
 			// 2A. Configure PLL input
 
@@ -450,10 +445,6 @@ impl UsbBus for UsbdBus {
 			usb.usbcon().modify(|_, w| w.frzclk().clear_bit());
 
 			// TODO resume here
-
-
-
-
 
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			for (index, _ep) in self.active_endpoints() {
