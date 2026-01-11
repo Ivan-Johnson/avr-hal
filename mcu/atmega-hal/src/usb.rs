@@ -365,9 +365,17 @@ impl UsbBus for UsbdBus {
 			// >
 			// > static inline void USB_ClockEnable()
 			// > {
+
+
 			// >         UHWCON |= (1<<UVREGE);                  // power internal reg
+			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
+
+
 			// >         USBCON = (1<<USBE) | (1<<FRZCLK);       // clock frozen, usb enabled
-			// >
+			usb.usbcon().modify(|_, w| w.usbe().set_bit().frzclk().set_bit());
+
+
+
 			// >         // ATmega32U4
 			// >         #if F_CPU == 16000000UL
 			// >                 PLLCSR |= (1<<PINDIV);                   // Need 16 MHz xtal
@@ -376,24 +384,72 @@ impl UsbBus for UsbdBus {
 			// >         #else
 			// >                 #error "Clock rate of F_CPU not supported"
 			// >         #endif
-			// >
+			//
+			// TODO: implement the rest of this condition
+			//
+			//if (crate::DefaultClock == avr_hal_generic::clock::MHz16) {
+			pll.pllcsr().write(|w| w.pindiv().set_bit());
+			//} else if (crate::DefaultClock == avr_hal_generic::clock::MHz8) {
+			//	pll.pllcsr().write(|w| w.pindiv().clear_bit());
+			//} else {
+			//	panic!("USB requires an 8MHz or 16MHz clock");
+			//}
+
+
+
+			// This step arguably isn't necessary: the value we're writing to `pllfrq`
+			// is, in fact, the default value for the register. Presumably that's why
+			// the C++ code doesn't bother doing this.
+			pll.pllfrq().write(|w| {
+				w
+					// Disconnect the timer modules from the PLL output clock
+					// Ref FOOTNOTE-TIMERS
+					.plltm()
+					.disconnected()
+					// The USB module requires a 48MHz clock. We have two options:
+					// * Set PLL output (PDIV) to 48MHz, with no postscaling to the USB module
+					// * Set PLL output to 96MHz, with /2 postscaling
+					//
+					// We use the first option.
+					//
+					// Refer to section 6.1.8 of the datasheet as well as
+					// the documentation for the `pllfrq` register itself.
+					.pdiv()
+					.mhz48()
+					.pllusb()
+					.clear_bit()
+			});
+
+
+
+
+
 			// >         PLLCSR |= (1<<PLLE);
 			// >         while (!(PLLCSR & (1<<PLOCK)))          // wait for lock pll
 			// >         {
 			// >         }
-			// >
+			pll.pllcsr().modify(|_, w| w.plle().set_bit());
+			while pll.pllcsr().read().plock().bit_is_clear() {
+			}
+
+
+
+
 			// >         // Some tests on specific versions of macosx (10.7.3), reported some
 			// >         // strange behaviors when the board is reset using the serial
 			// >         // port touch at 1200 bps. This delay fixes this behavior.
 			// >         delay(1);
-			// >
-			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
-			// >
-			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
-			// > }
-			// >
+			// TODO: add delay
 
-			todo!();
+
+
+			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
+			usb.usbcon().modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
+
+
+
+			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
+			usb.udcon().modify(|_, w| w.rstcpu().clear_bit().lsm().clear_bit().rmwkup().clear_bit().detach().clear_bit());
 		});
 	}
 
