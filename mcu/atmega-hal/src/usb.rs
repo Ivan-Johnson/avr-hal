@@ -396,32 +396,11 @@ impl UsbBus for UsbdBus {
 			//}
 
 
-
-			// This step arguably isn't necessary: the value we're writing to `pllfrq`
-			// is, in fact, the default value for the register. Presumably that's why
-			// the C++ code doesn't bother doing this.
-			pll.pllfrq().write(|w| {
-				w
-					// Disconnect the timer modules from the PLL output clock
-					// Ref FOOTNOTE-TIMERS
-					.plltm()
-					.disconnected()
-					// The USB module requires a 48MHz clock. We have two options:
-					// * Set PLL output (PDIV) to 48MHz, with no postscaling to the USB module
-					// * Set PLL output to 96MHz, with /2 postscaling
-					//
-					// We use the first option.
-					//
-					// Refer to section 6.1.8 of the datasheet as well as
-					// the documentation for the `pllfrq` register itself.
-					.pdiv()
-					.mhz48()
-					.pllusb()
-					.clear_bit()
-			});
-
-
-
+			// For added safety, verify that the `pllfrq` register still has its default
+			// value. In particular:
+			// 1. The PLL is configured to output 48MHz to the USB controller
+			// 2. The hardware timer input is disconnected from the PLL output
+			assert_eq!(pll.pllfrq().read().bits(), 0b00000100);
 
 
 			// >         PLLCSR |= (1<<PLLE);
