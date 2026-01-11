@@ -366,15 +366,12 @@ impl UsbBus for UsbdBus {
 			// > static inline void USB_ClockEnable()
 			// > {
 
-
 			// >         UHWCON |= (1<<UVREGE);                  // power internal reg
 			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
 
-
 			// >         USBCON = (1<<USBE) | (1<<FRZCLK);       // clock frozen, usb enabled
-			usb.usbcon().modify(|_, w| w.usbe().set_bit().frzclk().set_bit());
-
-
+			usb.usbcon()
+				.modify(|_, w| w.usbe().set_bit().frzclk().set_bit());
 
 			// >         // ATmega32U4
 			// >         #if F_CPU == 16000000UL
@@ -395,24 +392,18 @@ impl UsbBus for UsbdBus {
 			//	panic!("USB requires an 8MHz or 16MHz clock");
 			//}
 
-
 			// For added safety, verify that the `pllfrq` register still has its default
 			// value. In particular:
 			// 1. The PLL is configured to output 48MHz to the USB controller
 			// 2. The hardware timer input is disconnected from the PLL output
 			assert_eq!(pll.pllfrq().read().bits(), 0b00000100);
 
-
 			// >         PLLCSR |= (1<<PLLE);
 			// >         while (!(PLLCSR & (1<<PLOCK)))          // wait for lock pll
 			// >         {
 			// >         }
 			pll.pllcsr().modify(|_, w| w.plle().set_bit());
-			while pll.pllcsr().read().plock().bit_is_clear() {
-			}
-
-
-
+			while pll.pllcsr().read().plock().bit_is_clear() {}
 
 			// >         // Some tests on specific versions of macosx (10.7.3), reported some
 			// >         // strange behaviors when the board is reset using the serial
@@ -420,15 +411,21 @@ impl UsbBus for UsbdBus {
 			// >         delay(1);
 			// TODO: add delay
 
-
-
 			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
-			usb.usbcon().modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
-
-
+			usb.usbcon()
+				.modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
 
 			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
-			usb.udcon().modify(|_, w| w.rstcpu().clear_bit().lsm().clear_bit().rmwkup().clear_bit().detach().clear_bit());
+			usb.udcon().modify(|_, w| {
+				w.rstcpu()
+					.clear_bit()
+					.lsm()
+					.clear_bit()
+					.rmwkup()
+					.clear_bit()
+					.detach()
+					.clear_bit()
+			});
 		});
 	}
 
