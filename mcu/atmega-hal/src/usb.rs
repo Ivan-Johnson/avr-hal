@@ -393,66 +393,7 @@ impl UsbBus for UsbdBus {
 			// > }
 			// >
 
-			//
-			// (https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L683)
-			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
-
-			// 2A. Configure PLL input
-
-			// TODO: actually implement support clock speeds
-			//if (crate::DefaultClock == avr_hal_generic::clock::MHz16) {
-			pll.pllcsr().write(|w| w.pindiv().set_bit());
-			//} else if (crate::DefaultClock == avr_hal_generic::clock::MHz8) {
-			//	pll.pllcsr().write(|w| w.pindiv().clear_bit());
-			//} else {
-			//	panic!("USB requires an 8MHz or 16MHz clock");
-			//}
-
-			// 2B. Configure PLL output
-			pll.pllfrq().write(|w| {
-				w
-					// Disconnect the timer modules from the PLL output clock
-					// Ref FOOTNOTE-TIMERS
-					.plltm()
-					.disconnected()
-					// The USB module requires a 48MHz clock. We have two options:
-					// * Set PLL output (PDIV) to 48MHz, with no postscaling to the USB module
-					// * Set PLL output to 96MHz, with /2 postscaling
-					//
-					// We use the first option.
-					//
-					// Refer to section 6.1.8 of the datasheet as well as
-					// the documentation for the `pllfrq` register itself.
-					.pdiv()
-					.mhz48()
-					.pllusb()
-					.clear_bit()
-			});
-
-			pll.pllcsr().modify(|_, w| w.plle().set_bit());
-
-			let mut bit_was_clear = false;
-			while pll.pllcsr().read().plock().bit_is_clear() {
-				bit_was_clear = true;
-			}
-			assert!(bit_was_clear);
-
-			// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/USBCore.cpp#L685
-			usb.usbcon()
-				.modify(|_, w| w.usbe().set_bit().otgpade().set_bit());
-			// NB: FRZCLK cannot be set/cleared when USBE=0, and
-			// cannot be modified at the same time.
-			usb.usbcon().modify(|_, w| w.frzclk().clear_bit());
-
-			// TODO resume here
-
-			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
-			for (index, _ep) in self.active_endpoints() {
-				self.configure_endpoint(cs, index).unwrap();
-			}
-
-			// > 8. Attach USB device
-			usb.udcon().modify(|_, w| w.detach().clear_bit());
+			todo!();
 		});
 	}
 
