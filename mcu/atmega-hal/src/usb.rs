@@ -362,7 +362,9 @@ impl UsbBus for UsbdBus {
 			// > ** ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 			// > ** SOFTWARE.
 			// > */
+			// >
 			// > ...
+			// >
 			// > static inline void USB_ClockEnable()
 			// > {
 			// > #if defined(UHWCON)
