@@ -385,6 +385,8 @@ impl UsbBus for UsbdBus {
 	/// initialized as specified.
 	fn reset(&self) {
 		interrupt::free(|cs| {
+			let usb = self.usb.borrow(cs);
+
 			// Refer to the `InitEndpoints` function from:
                         // https://github.com/arduino/ArduinoCore-avr/blob/7c38f34da561266e1e5cf7769f0e61b0aa5dda39/cores/arduino/USBCore.cpp#L364-L382
 
@@ -409,11 +411,10 @@ impl UsbBus for UsbdBus {
 			// > for (u8 i = 1; i < sizeof(_initEndpoints) && _initEndpoints[i] != 0; i++)
 			// > {
 			for (index, _ep) in self.active_endpoints() {
-				let usb = self.usb.borrow(cs);
-				let endpoint = self.get_endpoint_table_entry(cs, index)?;
+				let endpoint = self.get_endpoint_table_entry(cs, index).unwrap();
 
 				// > UENUM = i;
-				self.set_current_endpoint(cs, index)?;
+				self.set_current_endpoint(cs, index).unwrap();
 
 				// > UECONX = (1<<EPEN);
 				usb.ueconx().modify(|_, w| w.epen().set_bit());
@@ -442,45 +443,49 @@ impl UsbBus for UsbdBus {
 				});
 
 				// > #if USB_EP_SIZE == 16
-				// > UECFG1X = EP_SINGLE_16;
+				// > ...
 				// > #elif USB_EP_SIZE == 64
 				// > UECFG1X = EP_DOUBLE_64;
 				// > #else
-				// > #error Unsupported value for USB_EP_SIZE
+				// > ...
 				// > #endif
-
-
-
-
-
-				// 4A. Configure the endpoint size and number of banks
+                                //
+                                // EP_DOUBLE_64 is defined as 0x36 == 0b0011_0110. This corresponds to:
+                                // * epsize: 0b011 (64 bits)
+                                // * epbk: 0b01 (double bank mode)
+                                // * alloc: 0b1 (allocate)
 				usb.uecfg1x().write(|w| unsafe {
-					w.epbk().bits(0)
+					w.epbk().bits(0b01) // TODO: patch the PAC to give human-readable name
 						.epsize()
 						.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
+                                                .alloc().set_bit()
 				});
 
-				// 4B. Allocate the endpoint buffer memory
-				//
-				//     TODO: does this actually need to be a separate write?
-				//     * `agausmann/atmega-usbd` suggests so
-				//     * Figure 22-2 suggests not
-				//     * TODO check the Arduino C++ implementation? Or just test it and see?
-				usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
-
-				// 5. Check CFGOK (config okay)
+				// Check CFGOK (config okay) to make sure that everything works
+                                //
+                                // The C++ code doesn't bother with this for some reason.
 				assert!(
 					usb.uesta0x().read().cfgok().bit_is_set(),
 					"could not configure endpoint {}",
 					index
 				);
-
-				Ok(())
-			}
 			// > }
+			}
 
 			// > UERST = 0x7E;        // And reset them
 			// > UERST = 0;
+                        //
+                        // For additional context, UERST contains seven one-bit fields. The docs for those fields says:
+                        //
+                        //     > Set to reset the selected endpoint FIFO prior to any other operation, upon hardware reset
+                        //     > or when an USB bus reset has been received. See “Endpoint Reset” on page 270 for more
+                        //     > information
+                        //     >
+                        //     > Then, clear by software to complete the reset operation and start using the endpoint.
+                        //
+                        // TODO: once again, patch PAC to avoid this unnecessary unsafe.
+                        usb.uerst().write(|w| unsafe {w.bits(0x7E)});
+                        usb.uerst().write(|w| unsafe{w.bits(0)});
 		})
 	}
 
