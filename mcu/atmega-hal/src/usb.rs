@@ -388,7 +388,7 @@ impl UsbBus for UsbdBus {
 			let usb = self.usb.borrow(cs);
 
 			// Refer to the `InitEndpoints` function from:
-                        // https://github.com/arduino/ArduinoCore-avr/blob/7c38f34da561266e1e5cf7769f0e61b0aa5dda39/cores/arduino/USBCore.cpp#L364-L382
+			// https://github.com/arduino/ArduinoCore-avr/blob/7c38f34da561266e1e5cf7769f0e61b0aa5dda39/cores/arduino/USBCore.cpp#L364-L382
 
 			// > /* Copyright (c) 2010, Peter Barrett
 			// > ** Sleep/Wakeup support added by Michael Dreher
@@ -406,7 +406,6 @@ impl UsbBus for UsbdBus {
 			// > ** ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 			// > ** SOFTWARE.
 			// > */
-
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			// > for (u8 i = 1; i < sizeof(_initEndpoints) && _initEndpoints[i] != 0; i++)
 			// > {
@@ -419,14 +418,12 @@ impl UsbBus for UsbdBus {
 				// > UECONX = (1<<EPEN);
 				usb.ueconx().modify(|_, w| w.epen().set_bit());
 
-
 				// Nobody else does this (TODO!?), but if the `alloc` bit is already
 				// set then it's a good idea to toggle it off first.
 				//
 				// This ensures that there isn't any wasted memory in between `index`'s buffer and
 				// `index - 1`'s buffer (refer to section 21.9: Memory Management).
 				usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
-
 
 				// > UECFG0X = _initEndpoints[i];
 				//
@@ -449,43 +446,44 @@ impl UsbBus for UsbdBus {
 				// > #else
 				// > ...
 				// > #endif
-                                //
-                                // EP_DOUBLE_64 is defined as 0x36 == 0b0011_0110. This corresponds to:
-                                // * epsize: 0b011 (64 bits)
-                                // * epbk: 0b01 (double bank mode)
-                                // * alloc: 0b1 (allocate)
+				//
+				// EP_DOUBLE_64 is defined as 0x36 == 0b0011_0110. This corresponds to:
+				// * epsize: 0b011 (64 bits)
+				// * epbk: 0b01 (double bank mode)
+				// * alloc: 0b1 (allocate)
 				usb.uecfg1x().write(|w| unsafe {
 					w.epbk().bits(0b01) // TODO: patch the PAC to give human-readable name
 						.epsize()
 						.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
-                                                .alloc().set_bit()
+						.alloc()
+						.set_bit()
 				});
 
 				// Check CFGOK (config okay) to make sure that everything works
-                                //
-                                // The C++ code doesn't bother with this for some reason.
+				//
+				// The C++ code doesn't bother with this for some reason.
 				assert!(
 					usb.uesta0x().read().cfgok().bit_is_set(),
 					"could not configure endpoint {}",
 					index
 				);
-			// > }
 			}
+			// > }
 
 			// > UERST = 0x7E;        // And reset them
 			// > UERST = 0;
-                        //
-                        // For additional context, UERST contains seven one-bit fields. The docs for those fields says:
-                        //
-                        //     > Set to reset the selected endpoint FIFO prior to any other operation, upon hardware reset
-                        //     > or when an USB bus reset has been received. See “Endpoint Reset” on page 270 for more
-                        //     > information
-                        //     >
-                        //     > Then, clear by software to complete the reset operation and start using the endpoint.
-                        //
-                        // TODO: once again, patch PAC to avoid this unnecessary unsafe.
-                        usb.uerst().write(|w| unsafe {w.bits(0x7E)});
-                        usb.uerst().write(|w| unsafe{w.bits(0)});
+			//
+			// For additional context, UERST contains seven one-bit fields. The docs for those fields says:
+			//
+			//     > Set to reset the selected endpoint FIFO prior to any other operation, upon hardware reset
+			//     > or when an USB bus reset has been received. See “Endpoint Reset” on page 270 for more
+			//     > information
+			//     >
+			//     > Then, clear by software to complete the reset operation and start using the endpoint.
+			//
+			// TODO: once again, patch PAC to avoid this unnecessary unsafe.
+			usb.uerst().write(|w| unsafe { w.bits(0x7E) });
+			usb.uerst().write(|w| unsafe { w.bits(0) });
 		})
 	}
 
