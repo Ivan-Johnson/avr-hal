@@ -473,7 +473,9 @@ impl UsbBus for UsbdBus {
 			// > UERST = 0x7E;        // And reset them
 			// > UERST = 0;
 			//
-			// For additional context, UERST contains seven one-bit fields. The docs for those fields says:
+			// For additional context, UERST contains seven one-bit fields.
+                        // We set all of them, then clear all of them. The docs for
+                        // those fields says:
 			//
 			//     > Set to reset the selected endpoint FIFO prior to any other operation, upon hardware reset
 			//     > or when an USB bus reset has been received. See “Endpoint Reset” on page 270 for more
