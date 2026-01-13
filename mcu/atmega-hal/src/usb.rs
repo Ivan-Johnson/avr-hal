@@ -172,57 +172,6 @@ impl UsbdBus {
 			Err(UsbError::InvalidEndpoint)
 		}
 	}
-
-	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
-		let usb = self.usb.borrow(cs);
-		let endpoint = self.get_endpoint_table_entry(cs, index)?;
-
-		// Section 22.6, figure 22-2: Endpoint Activation Flow
-		// 1. Select the endpoint
-		self.set_current_endpoint(cs, index)?;
-
-		// 2. Activate the endpoint
-		usb.ueconx().modify(|_, w| w.epen().set_bit());
-
-		// X. It isn't actually mentioned in section 22.6, but if the `alloc` bit is already
-		//    set then it's a good idea to toggle it off first.
-		//
-		//    This ensures that there isn't any wasted memory in between `index`'s buffer and
-		//    `index - 1`'s buffer (refer to section 21.9: Memory Management).
-		usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
-
-		// 3. Configure the endpoint direction and type
-		usb.uecfg0x().write(|w| unsafe {
-			w.epdir()
-				.bit(epdir_bit_from_direction(endpoint.direction))
-				.eptype()
-				.bits(eptype_bits_from_ep_type(endpoint.ep_type))
-		});
-
-		// 4A. Configure the endpoint size and number of banks
-		usb.uecfg1x().write(|w| unsafe {
-			w.epbk().bits(0)
-				.epsize()
-				.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
-		});
-
-		// 4B. Allocate the endpoint buffer memory
-		//
-		//     TODO: does this actually need to be a separate write?
-		//     * `agausmann/atmega-usbd` suggests so
-		//     * Figure 22-2 suggests not
-		//     * TODO check the Arduino C++ implementation? Or just test it and see?
-		usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
-
-		// 5. Check CFGOK (config okay)
-		assert!(
-			usb.uesta0x().read().cfgok().bit_is_set(),
-			"could not configure endpoint {}",
-			index
-		);
-
-		Ok(())
-	}
 }
 
 impl UsbBus for UsbdBus {
@@ -436,13 +385,102 @@ impl UsbBus for UsbdBus {
 	/// initialized as specified.
 	fn reset(&self) {
 		interrupt::free(|cs| {
-			// TODO: unused variable
-			let _usb = self.usb.borrow(cs);
+			// Refer to the `InitEndpoints` function from:
+                        // https://github.com/arduino/ArduinoCore-avr/blob/7c38f34da561266e1e5cf7769f0e61b0aa5dda39/cores/arduino/USBCore.cpp#L364-L382
+
+			// > /* Copyright (c) 2010, Peter Barrett
+			// > ** Sleep/Wakeup support added by Michael Dreher
+			// > **
+			// > ** Permission to use, copy, modify, and/or distribute this software for
+			// > ** any purpose with or without fee is hereby granted, provided that the
+			// > ** above copyright notice and this permission notice appear in all copies.
+			// > **
+			// > ** THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+			// > ** WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+			// > ** WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR
+			// > ** BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES
+			// > ** OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+			// > ** WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+			// > ** ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+			// > ** SOFTWARE.
+			// > */
 
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
+			// > for (u8 i = 1; i < sizeof(_initEndpoints) && _initEndpoints[i] != 0; i++)
+			// > {
 			for (index, _ep) in self.active_endpoints() {
-				self.configure_endpoint(cs, index).unwrap();
+				let usb = self.usb.borrow(cs);
+				let endpoint = self.get_endpoint_table_entry(cs, index)?;
+
+				// > UENUM = i;
+				self.set_current_endpoint(cs, index)?;
+
+				// > UECONX = (1<<EPEN);
+				usb.ueconx().modify(|_, w| w.epen().set_bit());
+
+
+				// Nobody else does this (TODO!?), but if the `alloc` bit is already
+				// set then it's a good idea to toggle it off first.
+				//
+				// This ensures that there isn't any wasted memory in between `index`'s buffer and
+				// `index - 1`'s buffer (refer to section 21.9: Memory Management).
+				usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
+
+
+				// > UECFG0X = _initEndpoints[i];
+				//
+				// `_initEndpoints` is initialized with these values: https://github.com/arduino/ArduinoCore-avr/blob/7c38f34da561266e1e5cf7769f0e61b0aa5dda39/cores/arduino/USBAPI.h#L51-L53
+				//
+				//     > #define EP_TYPE_BULK_IN      ((1<<EPTYPE1) | (1<<EPDIR))
+				//     > #define EP_TYPE_BULK_OUT      (1<<EPTYPE1)
+				//     > #define EP_TYPE_INTERRUPT_IN ((1<<EPTYPE1) | (1<<EPTYPE0) | (1<<EPDIR))
+				usb.uecfg0x().write(|w| unsafe {
+					w.epdir()
+						.bit(epdir_bit_from_direction(endpoint.direction))
+						.eptype()
+						.bits(eptype_bits_from_ep_type(endpoint.ep_type))
+				});
+
+				// > #if USB_EP_SIZE == 16
+				// > UECFG1X = EP_SINGLE_16;
+				// > #elif USB_EP_SIZE == 64
+				// > UECFG1X = EP_DOUBLE_64;
+				// > #else
+				// > #error Unsupported value for USB_EP_SIZE
+				// > #endif
+
+
+
+
+
+				// 4A. Configure the endpoint size and number of banks
+				usb.uecfg1x().write(|w| unsafe {
+					w.epbk().bits(0)
+						.epsize()
+						.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
+				});
+
+				// 4B. Allocate the endpoint buffer memory
+				//
+				//     TODO: does this actually need to be a separate write?
+				//     * `agausmann/atmega-usbd` suggests so
+				//     * Figure 22-2 suggests not
+				//     * TODO check the Arduino C++ implementation? Or just test it and see?
+				usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
+
+				// 5. Check CFGOK (config okay)
+				assert!(
+					usb.uesta0x().read().cfgok().bit_is_set(),
+					"could not configure endpoint {}",
+					index
+				);
+
+				Ok(())
 			}
+			// > }
+
+			// > UERST = 0x7E;        // And reset them
+			// > UERST = 0;
 		})
 	}
 
