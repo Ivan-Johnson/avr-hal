@@ -7,21 +7,20 @@ use avr_device::interrupt;
 use avr_device::interrupt::CriticalSection;
 use avr_device::interrupt::Mutex;
 use avr_hal_generic::clock::Clock;
+use avr_hal_generic::clock::MHz16;
+use avr_hal_generic::clock::MHz8;
+use core::marker::PhantomData;
 use usb_device::bus::PollResult;
 use usb_device::bus::UsbBus;
 use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
 use usb_device::UsbError;
-use avr_hal_generic::clock::MHz16;
-use avr_hal_generic::clock::MHz8;
-use core::marker::PhantomData;
 
 const MAX_ENDPOINTS: usize = 7;
 
 // From datasheet section 22.1
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];
-
 
 // TODO: do the links work?
 /// The USB controller can only be used when the MCU is running at certain
@@ -38,13 +37,13 @@ pub trait ClockUSB: Clock + Sync {
 impl ClockUSB for MHz16 {
 	fn setup_pllcsr_pindiv() {
 		todo!();
-       }
+	}
 }
 
 impl ClockUSB for MHz8 {
-       fn setup_pllcsr_pindiv() {
+	fn setup_pllcsr_pindiv() {
 		todo!();
-       }
+	}
 }
 
 // From datasheet section 21.1
@@ -506,8 +505,8 @@ impl<CLOCKUSB: ClockUSB> UsbBus for UsbdBus<CLOCKUSB> {
 			// > UERST = 0;
 			//
 			// For additional context, UERST contains seven one-bit fields.
-                        // We set all of them, then clear all of them. The docs for
-                        // those fields says:
+			// We set all of them, then clear all of them. The docs for
+			// those fields says:
 			//
 			//     > Set to reset the selected endpoint FIFO prior to any other operation, upon hardware reset
 			//     > or when an USB bus reset has been received. See “Endpoint Reset” on page 270 for more
