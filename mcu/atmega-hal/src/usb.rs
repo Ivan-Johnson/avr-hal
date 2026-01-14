@@ -377,7 +377,7 @@ where
 			//
 			// Using an `if` would arguably be the cleaner solution. However if we wanted to
 			// do that while still enforcing the 8MHz/16MHz requirement at compile time, then
-			// we would have to move this code from `mcu/atmega-hal` to `arduino-hal` (which
+			// we would have to move `usb.rs` from `mcu/atmega-hal` to `arduino-hal` (which
 			// contains the definition of `DefaultClock`).
 			pll.pllcsr().modify(|_, w| CLOCKUSB::setup_pllcsr_pindiv(w));
 
