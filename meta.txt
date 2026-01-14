@@ -1,13 +1,5 @@
 # TODO
 
-[ ] Make `UsbdBus` private. Only expose:
-
-    A default_usb_bus function that returns `impl UsbBus`
-
-    A helper macro for calling that function
-
-    This makes for better forward compatibility. In particular: when addressing the USB/timers/PLL issue, we might decide to add lifetimes to UsbdBus.
-
 [ ] Verify: is it okay that I've deleted ~all the interrupt code?
 
 # Final testing
