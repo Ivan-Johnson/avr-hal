@@ -36,14 +36,14 @@ pub trait ClockUSB: Clock + Sync {
 }
 
 impl ClockUSB for MHz16 {
-       fn setup_pllcsr_pindiv() {
-               todo!();
+	fn setup_pllcsr_pindiv() {
+		todo!();
        }
 }
 
 impl ClockUSB for MHz8 {
        fn setup_pllcsr_pindiv() {
-               todo!();
+		todo!();
        }
 }
 
@@ -365,7 +365,8 @@ impl<CLOCKUSB: ClockUSB> UsbBus for UsbdBus<CLOCKUSB> {
 			// TODO: implement the rest of this condition
 			//
 			//if (crate::DefaultClock == avr_hal_generic::clock::MHz16) {
-			pll.pllcsr().write(|w| w.pindiv().set_bit());
+			pll.pllcsr().write(|w| CLOCKUSB::setup_pllscr_pindiv(w));
+			//
 			//} else if (crate::DefaultClock == avr_hal_generic::clock::MHz8) {
 			//	pll.pllcsr().write(|w| w.pindiv().clear_bit());
 			//} else {
