@@ -1,6 +1,7 @@
 use core::cell::Cell;
 use core::cmp::max;
 
+use avr_hal_generic::delay::Delay;
 use avr_device::atmega32u4::PLL;
 use avr_device::atmega32u4::USB_DEVICE;
 use avr_device::interrupt;
@@ -15,6 +16,7 @@ use usb_device::bus::UsbBus;
 use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
+use embedded_hal::delay::DelayNs;
 use usb_device::UsbError;
 use crate::pac::pll::pllcsr::W as pllcsr_writer;
 const MAX_ENDPOINTS: usize = 7;
@@ -115,7 +117,10 @@ struct EndpointTableEntry {
 	max_packet_size: u16,
 }
 
-pub struct UsbdBus<CLOCKUSB: ClockUSB> {
+pub struct UsbdBus<CLOCKUSB: ClockUSB>
+where
+	Delay<CLOCKUSB>: DelayNs,
+{
 	usb: Mutex<USB_DEVICE>,
 	pll: Mutex<PLL>,
 	pending_ins: Mutex<Cell<u8>>,
@@ -123,7 +128,10 @@ pub struct UsbdBus<CLOCKUSB: ClockUSB> {
 	phantom: PhantomData<CLOCKUSB>,
 }
 
-impl<CLOCKUSB: ClockUSB> UsbdBus<CLOCKUSB> {
+impl<CLOCKUSB: ClockUSB> UsbdBus<CLOCKUSB>
+where
+	Delay<CLOCKUSB>: DelayNs,
+{
 	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
 		Self {
 			usb: Mutex::new(usb),
@@ -204,7 +212,10 @@ impl<CLOCKUSB: ClockUSB> UsbdBus<CLOCKUSB> {
 	}
 }
 
-impl<CLOCKUSB: ClockUSB> UsbBus for UsbdBus<CLOCKUSB> {
+impl<CLOCKUSB: ClockUSB> UsbBus for UsbdBus<CLOCKUSB>
+where
+	Delay<CLOCKUSB>: DelayNs,
+{
 	/// This function initializes a single element in `self.endpoints`
 	///
 	/// Upstream docs:
@@ -390,6 +401,8 @@ impl<CLOCKUSB: ClockUSB> UsbBus for UsbdBus<CLOCKUSB> {
 			// >         // port touch at 1200 bps. This delay fixes this behavior.
 			// >         delay(1);
 			// TODO: add delay
+			let mut delay = Delay::<CLOCKUSB>::new();
+			delay.delay_ms(1);
 
 			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
 			usb.usbcon()

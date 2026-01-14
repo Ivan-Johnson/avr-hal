@@ -194,7 +194,10 @@ mod usb;
 pub fn default_usb_bus_with_pll<CLOCKUSB: ClockUSB>(
 	usb: avr_device::atmega32u4::USB_DEVICE,
 	pll: avr_device::atmega32u4::PLL,
-) -> impl usb_device::class_prelude::UsbBus {
+) -> impl usb_device::class_prelude::UsbBus
+where
+	avr_hal_generic::delay::Delay<CLOCKUSB>: embedded_hal::delay::DelayNs,
+{
 	return usb::UsbdBus::<CLOCKUSB>::new(usb, pll);
 }
 
