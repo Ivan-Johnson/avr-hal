@@ -398,7 +398,6 @@ where
 			// >         // strange behaviors when the board is reset using the serial
 			// >         // port touch at 1200 bps. This delay fixes this behavior.
 			// >         delay(1);
-			// TODO: add delay
 			let mut delay = Delay::<CLOCKUSB>::new();
 			delay.delay_ms(1);
 
