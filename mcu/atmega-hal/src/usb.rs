@@ -16,7 +16,7 @@ use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
 use usb_device::UsbError;
-
+use crate::pac::pll::pllcsr::W as pllcsr_writer;
 const MAX_ENDPOINTS: usize = 7;
 
 // From datasheet section 22.1
@@ -31,18 +31,18 @@ const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64]
 /// users to ever implement this trait.
 pub trait ClockUSB: Clock + Sync {
 	/// Configure the PLLCSR.pindiv for this clock speed
-	fn setup_pllcsr_pindiv();
+	fn setup_pllcsr_pindiv(writer: &mut pllcsr_writer) -> &mut pllcsr_writer;
 }
 
 impl ClockUSB for MHz16 {
-	fn setup_pllcsr_pindiv() {
-		todo!();
+	fn setup_pllcsr_pindiv(writer: &mut pllcsr_writer) -> &mut pllcsr_writer {
+		writer.pindiv().set_bit()
 	}
 }
 
 impl ClockUSB for MHz8 {
-	fn setup_pllcsr_pindiv() {
-		todo!();
+	fn setup_pllcsr_pindiv(writer: &mut pllcsr_writer) -> &mut pllcsr_writer {
+		writer.pindiv().clear_bit()
 	}
 }
 
