@@ -372,16 +372,14 @@ where
 			// >                 #error "Clock rate of F_CPU not supported"
 			// >         #endif
 			//
-			// TODO: implement the rest of this condition
+			// The C++ code raises an error at build time if the clock speed isn't
+			// 16MHz or 8MHz. We do the same thing in Rust using the ClockUSB trait.
 			//
-			//if (crate::DefaultClock == avr_hal_generic::clock::MHz16) {
-			pll.pllcsr().write(|w| CLOCKUSB::setup_pllcsr_pindiv(w));
-			//
-			//} else if (crate::DefaultClock == avr_hal_generic::clock::MHz8) {
-			//	pll.pllcsr().write(|w| w.pindiv().clear_bit());
-			//} else {
-			//	panic!("USB requires an 8MHz or 16MHz clock");
-			//}
+			// Using an `if` would arguably be the cleaner solution. However if we wanted to
+			// do that while still enforcing the 8MHz/16MHz requirement at compile time, then
+			// we would have to move this code from `mcu/atmega-hal` to `arduino-hal` (which
+			// contains the definition of `DefaultClock`).
+			pll.pllcsr().modify(|_, w| CLOCKUSB::setup_pllcsr_pindiv(w));
 
 			// For added safety, verify that the `pllfrq` register still has its default
 			// value. In particular:
