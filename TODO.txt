@@ -1,3 +1,0 @@
-* Read through existing `UsbBus` implementations:
-
-  * https://github.com/decaday/musb/blob/a9b9c5487127d03408d479aeda6f6027e801f9a5/src/usb_device_impl/mod.rs#L68

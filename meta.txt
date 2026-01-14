@@ -1,9 +1,5 @@
 # TODO
 
-[ ] Make `UsbdBus` generic so it will work with 8MHz or 16MHz clock
-
-    `new` function
-
 [ ] Make `UsbdBus` private. Only expose:
 
     A default_usb_bus function that returns `impl UsbBus`
