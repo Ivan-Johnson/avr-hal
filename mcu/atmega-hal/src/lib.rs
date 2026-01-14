@@ -191,20 +191,11 @@ mod usb;
 ///   in order to make it easier to address the other issues without breaking backwards
 ///   compatibility.
 #[cfg(feature = "atmega32u4")]
-pub fn default_usb_bus_with_pll(
+pub fn default_usb_bus_with_pll<CLOCKUSB: ClockUSB>(
 	usb: avr_device::atmega32u4::USB_DEVICE,
 	pll: avr_device::atmega32u4::PLL,
 ) -> impl usb_device::class_prelude::UsbBus {
-	return usb::UsbdBus::new(usb, pll);
-}
-
-/// This macro is exactly equivalent to [default_usb_bus_with_pll](default_usb_bus_with_pll).
-#[cfg(feature = "atmega32u4")]
-#[macro_export]
-macro_rules! default_usb_bus_with_pll_macro {
-	($p:expr) => {
-		$crate::default_usb_bus_with_pll($p.USB_DEVICE, $p.PLL)
-	};
+	return usb::UsbdBus::<CLOCKUSB>::new(usb, pll);
 }
 
 #[cfg(feature = "device-selected")]
@@ -237,6 +228,8 @@ pub use usart::Usart;
 
 #[cfg(feature = "device-selected")]
 pub mod wdt;
+#[cfg(feature = "atmega32u4")]
+use usb::ClockUSB;
 #[cfg(feature = "device-selected")]
 pub use wdt::Wdt;
 

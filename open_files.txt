@@ -12,7 +12,7 @@ mcu/atmega-hal/Cargo.toml
 mcu/atmega-hal/src/lib.rs
 mcu/atmega-hal/src/usb.rs
 meta.txt
-meta.txt
+avr-hal-generic/src/clock.rs
 Notes/usb.txt
 open_files.txt
 TODO.txt

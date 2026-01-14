@@ -6,17 +6,46 @@ use avr_device::atmega32u4::USB_DEVICE;
 use avr_device::interrupt;
 use avr_device::interrupt::CriticalSection;
 use avr_device::interrupt::Mutex;
+use avr_hal_generic::clock::Clock;
 use usb_device::bus::PollResult;
 use usb_device::bus::UsbBus;
 use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
 use usb_device::UsbError;
+use avr_hal_generic::clock::MHz16;
+use avr_hal_generic::clock::MHz8;
+use core::marker::PhantomData;
 
 const MAX_ENDPOINTS: usize = 7;
 
 // From datasheet section 22.1
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];
+
+
+// TODO: do the links work?
+/// The USB controller can only be used when the MCU is running at certain
+/// specific clock speends. This trait represents those clock speeds.
+///
+/// There are only two such clock speeds (ref [PLLCSR](PLLCSR)): 16MHz and 8MHz.
+/// This trait is already implemented for those speeds, so there is no need for
+/// users to ever implement this trait.
+pub trait ClockUSB: Clock + Sync {
+	/// Configure the PLLCSR.pindiv for this clock speed
+	fn setup_pllcsr_pindiv();
+}
+
+impl ClockUSB for MHz16 {
+       fn setup_pllcsr_pindiv() {
+               todo!();
+       }
+}
+
+impl ClockUSB for MHz8 {
+       fn setup_pllcsr_pindiv() {
+               todo!();
+       }
+}
 
 // From datasheet section 21.1
 //
@@ -87,20 +116,22 @@ struct EndpointTableEntry {
 	max_packet_size: u16,
 }
 
-pub struct UsbdBus {
+pub struct UsbdBus<CLOCKUSB: ClockUSB> {
 	usb: Mutex<USB_DEVICE>,
 	pll: Mutex<PLL>,
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [Option<EndpointTableEntry>; MAX_ENDPOINTS],
+	phantom: PhantomData<CLOCKUSB>,
 }
 
-impl UsbdBus {
+impl<CLOCKUSB: ClockUSB> UsbdBus<CLOCKUSB> {
 	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
 		Self {
 			usb: Mutex::new(usb),
 			pll: Mutex::new(pll),
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
+			phantom: PhantomData,
 		}
 	}
 
@@ -174,7 +205,7 @@ impl UsbdBus {
 	}
 }
 
-impl UsbBus for UsbdBus {
+impl<CLOCKUSB: ClockUSB> UsbBus for UsbdBus<CLOCKUSB> {
 	/// This function initializes a single element in `self.endpoints`
 	///
 	/// Upstream docs:
