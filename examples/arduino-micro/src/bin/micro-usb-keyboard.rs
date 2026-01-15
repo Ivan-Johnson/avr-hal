@@ -34,7 +34,7 @@ use arduino_hal::{
 	},
 	Peripherals,
 };
-use atmega_usbd::{SuspendNotifier, UsbBus};
+use arduino_hal::tmp_usb::{SuspendNotifier, UsbBus};
 use avr_device::{asm::sleep, interrupt};
 use usb_device::{
 	class_prelude::UsbBusAllocator,
