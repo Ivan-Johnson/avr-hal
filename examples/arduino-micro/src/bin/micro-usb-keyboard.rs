@@ -24,6 +24,8 @@
 #![feature(abi_avr_interrupt)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
+use usb_device::prelude::StringDescriptors;
+use usb_device::LangID;
 use arduino_hal::{
 	entry,
 	pac::PLL,
@@ -76,9 +78,17 @@ fn main() -> ! {
 	};
 
 	let hid_class = HIDClass::new(usb_bus, KeyboardReport::desc(), 1);
+
+	let string_descriptors = StringDescriptors::new(LangID::EN_US)
+		.manufacturer("test manufacturer")
+		.product("test product")
+		.serial_number("test serial number");
+
+
+
 	let usb_device = UsbDeviceBuilder::new(usb_bus, UsbVidPid(0x1209, 0x0001))
-		.manufacturer("Foo")
-		.product("Bar")
+		.strings(&[string_descriptors])
+		.unwrap()
 		.build();
 
 	unsafe {
