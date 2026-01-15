@@ -249,6 +249,9 @@ macro_rules! default_serial {
 	};
 }
 
+#[cfg(feature = "arduino-micro")]
+pub mod tmp_usb;
+
 /// Convenience macro to instantiate the [`Usart`] driver for this board.
 ///
 /// # Example
