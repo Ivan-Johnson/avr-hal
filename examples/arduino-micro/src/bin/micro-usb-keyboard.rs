@@ -13,7 +13,7 @@
 //!   ```
 //!   cargo run --release --example arduino_keyboard
 //!   ```
-//!   
+//!
 //! 4. Open Notepad (or whatever editor or text input of your choosing). Press
 //! the button (or if you are not using one, short D2 to GND with a jumper). You
 //! should see it type "Hello World"
@@ -23,8 +23,6 @@
 #![feature(lang_items)]
 #![feature(abi_avr_interrupt)]
 #![deny(unsafe_op_in_unsafe_fn)]
-
-mod std_stub;
 
 use arduino_hal::{
 	entry,
