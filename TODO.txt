@@ -1,0 +1,29 @@
+* Buy:
+
+  * USB breakout board
+
+  * arduino leonardo
+
+  * sparkfun promicro
+
+* Get my logic analyzer working
+
+* Merge `usb` & `usb2`
+
+  * Move the files to the correct location
+
+  * setup all the features and such correctly
+
+  * delete all of the interrupt code
+
+    (and don't break anything in the process, lol)
+
+  * convert example code from keyboard to serial
+
+  * move as much code as possible from micro-usb-keyboard.rs to library
+
+  * final cleanup of micro-usb-keyboard.rs
+
+  * cleanup usb.rs
+
+  * ???
