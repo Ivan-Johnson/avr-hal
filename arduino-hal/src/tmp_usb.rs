@@ -297,7 +297,7 @@ impl<S: SuspendNotifier> usb_device::bus::UsbBus for UsbBus<S> {
 				}
 
 				for &byte in buf {
-					usb.uedatx().write(|w| w.bits(byte))
+					usb.uedatx().write(|w| w.bits(byte));
 				}
 
 				usb.ueintx().clear_interrupts(|w| w.txini().clear_bit());
@@ -553,7 +553,7 @@ impl ClearInterrupts for UDINT {
 		for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer,
 	{
 		// Bits 1,7 reserved as do not set. Setting all other bits has no effect
-		self.write(|w| f(unsafe { w.bits(0x7d) }))
+		self.write(|w| f(unsafe { w.bits(0x7d) }));
 	}
 }
 
@@ -566,7 +566,7 @@ impl ClearInterrupts for UEINTX {
 	{
 		// Bit 5 read-only. Setting all other bits has no effect, EXCEPT:
 		//  - RXOUTI/KILLBK should not be set for "IN" endpoints (XXX end-user beware)
-		self.write(|w| f(unsafe { w.bits(0xdf) }))
+		self.write(|w| f(unsafe { w.bits(0xdf) }));
 	}
 }
 
