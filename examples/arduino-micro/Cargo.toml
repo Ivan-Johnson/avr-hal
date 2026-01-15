@@ -8,10 +8,8 @@ publish = false
 panic-halt = "1.0.0"
 ufmt = "0.2.0"
 nb = "1.1.0"
+avr-device = "0.8"
 
 [dependencies.arduino-hal]
 path = "../../arduino-hal/"
 features = ["arduino-micro"]
-
-[dependencies.avr-device]
-version = "0.8"
