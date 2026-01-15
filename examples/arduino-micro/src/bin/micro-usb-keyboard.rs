@@ -24,8 +24,7 @@
 #![feature(abi_avr_interrupt)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
-use usb_device::prelude::StringDescriptors;
-use usb_device::LangID;
+use arduino_hal::tmp_usb::{SuspendNotifier, UsbBus};
 use arduino_hal::{
 	entry,
 	pac::PLL,
@@ -36,8 +35,10 @@ use arduino_hal::{
 	},
 	Peripherals,
 };
-use arduino_hal::tmp_usb::{SuspendNotifier, UsbBus};
 use avr_device::{asm::sleep, interrupt};
+use panic_halt as _;
+use usb_device::prelude::StringDescriptors;
+use usb_device::LangID;
 use usb_device::{
 	class_prelude::UsbBusAllocator,
 	device::{UsbDevice, UsbDeviceBuilder, UsbVidPid},
@@ -46,7 +47,6 @@ use usbd_hid::{
 	descriptor::{KeyboardReport, SerializedDescriptor},
 	hid_class::HIDClass,
 };
-use panic_halt as _;
 
 const PAYLOAD: &[u8] = b"Hello World";
 
@@ -84,8 +84,6 @@ fn main() -> ! {
 		.manufacturer("test manufacturer")
 		.product("test product")
 		.serial_number("test serial number");
-
-
 
 	let usb_device = UsbDeviceBuilder::new(usb_bus, UsbVidPid(0x1209, 0x0001))
 		.strings(&[string_descriptors])
