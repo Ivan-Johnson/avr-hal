@@ -105,5 +105,5 @@ fi
 for example in "${examples[@]}"; do
 	cd "$REPO_ROOT/examples/$example"
 	echo "Building $example"
-	cargo build
+	cargo build --color=always
 done
