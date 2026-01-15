@@ -578,7 +578,7 @@ impl ClearInterrupts for USBINT {
 		for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer,
 	{
 		// Bits 7:1 are reserved as do not set.
-		self.write(|w| f(unsafe { w.bits(0x01) }))
+		self.write(|w| f(unsafe { w.bits(0x01) }));
 	}
 }
 
@@ -601,14 +601,14 @@ impl SuspendNotifier for () {}
 
 impl SuspendNotifier for PLL {
 	fn suspend(&self) {
-		self.pllcsr.modify(|_, w| w.plle().clear_bit());
+		self.pllcsr().modify(|_, w| w.plle().clear_bit());
 	}
 
 	fn resume(&self) {
-		self.pllcsr
+		self.pllcsr()
 			.modify(|_, w| w.pindiv().set_bit().plle().set_bit());
 
-		while self.pllcsr.read().plock().bit_is_clear() {}
+		while self.pllcsr().read().plock().bit_is_clear() {}
 	}
 }
 
