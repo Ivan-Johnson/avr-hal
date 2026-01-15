@@ -46,6 +46,7 @@ use usbd_hid::{
 	descriptor::{KeyboardReport, SerializedDescriptor},
 	hid_class::HIDClass,
 };
+use panic_halt as _;
 
 const PAYLOAD: &[u8] = b"Hello World";
 
