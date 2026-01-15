@@ -1,6 +1,8 @@
 * Buy:
 
-  * USB breakout board
+  * USB interposer
+
+    https://www.winford.com/products/btsubfaf.php
 
   * arduino leonardo
 
