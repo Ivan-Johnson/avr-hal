@@ -59,16 +59,16 @@ fn main() -> ! {
 
 	// Configure PLL interface
 	// prescale 16MHz crystal -> 8MHz
-	pll.pllcsr.write(|w| w.pindiv().set_bit());
+	pll.pllcsr().write(|w| w.pindiv().set_bit());
 	// 96MHz PLL output; /1.5 for 64MHz timers, /2 for 48MHz USB
-	pll.pllfrq
+	pll.pllfrq()
 		.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
 
 	// Enable PLL
-	pll.pllcsr.modify(|_, w| w.plle().set_bit());
+	pll.pllcsr().modify(|_, w| w.plle().set_bit());
 
 	// Check PLL lock
-	while pll.pllcsr.read().plock().bit_is_clear() {}
+	while pll.pllcsr().read().plock().bit_is_clear() {}
 
 	let usb_bus = unsafe {
 		static mut USB_BUS: Option<UsbBusAllocator<UsbBus<PLL>>> = None;
