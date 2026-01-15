@@ -119,7 +119,7 @@ impl<S: SuspendNotifier> UsbBus<S> {
 		if usb.usbcon().read().frzclk().bit_is_set() {
 			return Err(UsbError::InvalidState);
 		}
-		usb.uenum().write(|w| w.bits(index as u8));
+		usb.uenum().write(|w| unsafe {w.bits(index as u8)});
 		if usb.uenum().read().bits() & 0b111 != (index as u8) {
 			return Err(UsbError::InvalidState);
 		}
@@ -147,7 +147,7 @@ impl<S: SuspendNotifier> UsbBus<S> {
 				.bits(endpoint.eptype_bits)
 		});
 		usb.uecfg1x()
-			.write(|w| w.epbk().bits(0).epsize().bits(endpoint.epsize_bits));
+			.write(|w| unsafe {w.epbk().bits(0).epsize().bits(endpoint.epsize_bits)});
 		usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
 
 		assert!(
@@ -270,7 +270,7 @@ impl<S: SuspendNotifier> usb_device::bus::UsbBus for UsbBus<S> {
 	fn set_device_address(&self, addr: u8) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
-			usb.udaddr().modify(|_, w| w.uadd().bits(addr));
+			usb.udaddr().modify(|_, w| unsafe {w.uadd().bits(addr)});
 			// NB: ADDEN and UADD shall not be written at the same time.
 			usb.udaddr().modify(|_, w| w.adden().set_bit());
 		});
