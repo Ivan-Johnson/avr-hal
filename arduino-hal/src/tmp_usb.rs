@@ -1,6 +1,3 @@
-#![no_std]
-#![feature(asm_experimental_arch)]
-
 use core::{arch::asm, cell::Cell, cmp::max};
 
 use avr_device::atmega32u4::{
