@@ -140,7 +140,7 @@ impl<S: SuspendNotifier> UsbBus<S> {
 		usb.ueconx().modify(|_, w| w.epen().set_bit());
 		usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
 
-		usb.uecfg0x().write(|w| {
+		usb.uecfg0x().write(|w| unsafe {
 			w.epdir()
 				.bit(endpoint.epdir_bit)
 				.eptype()
