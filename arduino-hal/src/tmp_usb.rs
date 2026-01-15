@@ -297,7 +297,7 @@ impl<S: SuspendNotifier> usb_device::bus::UsbBus for UsbBus<S> {
 				}
 
 				for &byte in buf {
-					usb.uedatx().write(|w| w.bits(byte));
+					usb.uedatx().write(|w| unsafe {w.bits(byte)});
 				}
 
 				usb.ueintx().clear_interrupts(|w| w.txini().clear_bit());
@@ -313,7 +313,7 @@ impl<S: SuspendNotifier> usb_device::bus::UsbBus for UsbBus<S> {
 					if usb.ueintx().read().rwal().bit_is_clear() {
 						return Err(UsbError::BufferOverflow);
 					}
-					usb.uedatx().write(|w| w.bits(byte));
+					usb.uedatx().write(|w| unsafe {w.bits(byte)});
 				}
 
 				//NB: RXOUTI serves as KILLBK for IN endpoints and needs to stay zero:
@@ -616,6 +616,7 @@ impl SuspendNotifier for PLL {
 ///
 /// https://github.com/Rahix/avr-device/pull/127
 #[inline(always)]
+#[allow(unused)]
 fn delay_cycles(cycles: u32) {
 	let mut cycles_bytes = cycles.to_le_bytes();
 	// Each loop iteration takes 6 cycles when the branch is taken,
