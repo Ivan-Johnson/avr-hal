@@ -8,8 +8,6 @@
 
 * Merge `usb` & `usb2`
 
-  * Move the files to the correct location
-
   * setup all the features and such correctly
 
   * delete all of the interrupt code
