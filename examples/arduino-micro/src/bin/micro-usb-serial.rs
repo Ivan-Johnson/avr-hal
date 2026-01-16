@@ -24,7 +24,7 @@
 #![feature(abi_avr_interrupt)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
-use arduino_hal::tmp_usb::{SuspendNotifier, UsbBus};
+use arduino_hal::usb::{SuspendNotifier, UsbBus};
 use arduino_hal::{
 	entry,
 	pac::PLL,

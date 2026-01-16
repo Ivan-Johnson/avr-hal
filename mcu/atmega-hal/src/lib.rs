@@ -1,4 +1,5 @@
 #![no_std]
+#![feature(asm_experimental_arch)]
 
 //! `atmega-hal`
 //! =============
@@ -120,7 +121,7 @@ pub use avr_hal_generic::delay;
 pub use avr_hal_generic::prelude;
 
 #[cfg(feature = "atmega32u4")]
-mod usb;
+pub mod usb;
 
 #[cfg(feature = "device-selected")]
 pub mod adc;

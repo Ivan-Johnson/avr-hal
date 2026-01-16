@@ -154,6 +154,8 @@ version = "0.1.0"
 dependencies = [
  "avr-device",
  "avr-hal-generic",
+ "embedded-hal 1.0.0",
+ "usb-device",
 ]
 
 [[package]]

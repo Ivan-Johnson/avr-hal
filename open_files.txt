@@ -1,4 +1,5 @@
 TODO.txt
+mcu/atmega-hal/src/usb.rs
 open_files.txt
-examples/arduino-micro/src/bin/micro-usb-keyboard.rs
+examples/arduino-micro/src/bin/micro-usb-serial.rs
 arduino-hal/src/tmp_usb.rs

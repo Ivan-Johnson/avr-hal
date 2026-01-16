@@ -250,6 +250,10 @@ macro_rules! default_serial {
 	};
 }
 
+#[cfg(any(feature = "arduino-leonardo", feature = "arduino-micro"))]
+pub use atmega_hal::usb;
+
+
 /// Convenience macro to instantiate the [`Usart`] driver for this board.
 ///
 /// # Example
