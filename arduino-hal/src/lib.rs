@@ -1,6 +1,5 @@
 #![no_std]
 #![feature(doc_cfg)]
-#![feature(asm_experimental_arch)]
 
 //! `arduino-hal`
 //! =============
