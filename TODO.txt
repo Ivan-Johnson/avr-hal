@@ -12,7 +12,15 @@
 
   * delete all of the interrupt code
 
-    (and don't break anything in the process, lol)
+    [X] Delete ~all interrupt code from micro-usb-serial.rs
+
+    [ ] verify everything still works
+
+    [ ] Delete code for configuring interrupt-related registers (usb.rs)
+
+    [ ] verify everything still works
+
+    [ ] final interrupt cleanup
 
   * convert example code from keyboard to serial
 

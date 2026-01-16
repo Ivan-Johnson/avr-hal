@@ -34,7 +34,6 @@ use arduino_hal::{
 	},
 	Peripherals,
 };
-use avr_device::{asm::sleep, interrupt};
 use panic_halt as _;
 use usb_device::prelude::StringDescriptors;
 use usb_device::LangID;
@@ -100,41 +99,15 @@ fn main() -> ! {
 		});
 	}
 
-	unsafe { interrupt::enable() };
+	// unsafe { interrupt::enable() };
 	loop {
-		sleep();
+		// sleep();
+		let ctx = unsafe { USB_CTX.as_mut().unwrap() };
+		ctx.poll();
 	}
 }
 
 static mut USB_CTX: Option<UsbContext<PLL>> = None;
-
-#[interrupt(atmega32u4)]
-fn USB_GEN() {
-	unsafe { poll_usb() };
-}
-
-#[interrupt(atmega32u4)]
-fn USB_COM() {
-	unsafe { poll_usb() };
-}
-
-/// # Safety
-///
-/// This function assumes that it is being called within an
-/// interrupt context.
-unsafe fn poll_usb() {
-	// Safety: There must be no other overlapping borrows of USB_CTX.
-	// - By the safety contract of this function, we are in an interrupt
-	//   context.
-	// - The main thread is not borrowing USB_CTX. The only access is the
-	//   assignment during initialization. It cannot overlap because it is
-	//   before the call to `interrupt::enable()`.
-	// - No other interrupts are accessing USB_CTX, because no other interrupts
-	//   are in the middle of execution. GIE is automatically cleared for the
-	//   duration of the interrupt, and is not re-enabled within any ISRs.
-	let ctx = unsafe { USB_CTX.as_mut().unwrap() };
-	ctx.poll();
-}
 
 struct UsbContext<S: SuspendNotifier> {
 	usb_device: UsbDevice<'static, UsbBus<S>>,
