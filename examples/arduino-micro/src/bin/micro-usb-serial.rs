@@ -20,7 +20,6 @@
 
 #![no_std]
 #![cfg_attr(not(test), no_main)]
-#![feature(lang_items)]
 #![feature(abi_avr_interrupt)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
