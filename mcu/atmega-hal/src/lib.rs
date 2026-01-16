@@ -119,6 +119,9 @@ pub use avr_hal_generic::clock;
 pub use avr_hal_generic::delay;
 pub use avr_hal_generic::prelude;
 
+#[cfg(feature = "atmega32u4")]
+mod usb;
+
 #[cfg(feature = "device-selected")]
 pub mod adc;
 #[cfg(feature = "device-selected")]
