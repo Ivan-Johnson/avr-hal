@@ -1,9 +1,5 @@
 * Buy:
 
-  * USB interposer
-
-    https://www.winford.com/products/btsubfaf.php
-
   * arduino leonardo
 
   * sparkfun promicro
