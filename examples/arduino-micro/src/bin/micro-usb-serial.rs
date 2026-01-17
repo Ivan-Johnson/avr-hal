@@ -54,8 +54,8 @@ fn main() -> ! {
 	let pins = pins!(dp);
 	let pll = dp.PLL;
 	let usb = dp.USB_DEVICE;
-	let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
-	ufmt::uwriteln!(&mut serial, "Hello from Arduino!\r").unwrap_infallible();
+	let mut serial_hw = arduino_hal::default_serial!(dp, pins, 57600);
+	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!\r").unwrap_infallible();
 
 	let status = pins.d13.into_output();
 	let trigger = pins.d2.into_pull_up_input();
@@ -67,7 +67,6 @@ fn main() -> ! {
 	pll.pllfrq()
 		.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
 
-	ufmt::uwriteln!(&mut serial, "foo").unwrap_infallible();
 	// Enable PLL
 	pll.pllcsr().modify(|_, w| w.plle().set_bit());
 
@@ -79,8 +78,9 @@ fn main() -> ! {
 		&*USB_BUS.insert(UsbBus::with_suspend_notifier(usb, pll))
 	};
 
-	let mut serial = SerialPort::new(&usb_bus);
+	let mut serial_usb = SerialPort::new(&usb_bus);
 
+	ufmt::uwriteln!(&mut serial_hw, "foo").unwrap_infallible();
 	let string_descriptors = StringDescriptors::new(LangID::EN_US)
 		.manufacturer("test manufacturer")
 		.product("test product")
@@ -94,7 +94,7 @@ fn main() -> ! {
 	unsafe {
 		USB_CTX = Some(UsbContext {
 			usb_device,
-			serial,
+			serial_usb,
 			current_index: 0,
 			pressed: false,
 			trigger: trigger.downgrade(),
@@ -116,7 +116,7 @@ static mut USB_CTX: Option<UsbContext<PLL>> = None;
 
 struct UsbContext<S: SuspendNotifier> {
 	usb_device: UsbDevice<'static, UsbBus<S>>,
-	serial: SerialPort<'static, UsbBus<S>>,
+	serial_usb: SerialPort<'static, UsbBus<S>>,
 	current_index: usize,
 	pressed: bool,
 	trigger: Pin<Input<PullUp>>,
@@ -128,9 +128,9 @@ impl<S: SuspendNotifier> UsbContext<S> {
 		self.counter+=1;
 		if self.counter % 10_000 == 0 {
 			let write_buf = [b'?'];
-			self.serial.write(&write_buf).unwrap();
+			self.serial_usb.write(&write_buf).unwrap();
 		}
 
-		self.usb_device.poll(&mut [&mut self.serial]);
+		self.usb_device.poll(&mut [&mut self.serial_usb]);
 	}
 }
