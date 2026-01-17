@@ -24,10 +24,6 @@
 
     [ ] final interrupt cleanup
 
-  * move as much code as possible from micro-usb-keyboard.rs to library
-
-  * final cleanup of micro-usb-keyboard.rs
-
   * cleanup usb.rs
 
   * ???
