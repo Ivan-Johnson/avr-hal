@@ -56,7 +56,6 @@ fn main() -> ! {
 	let usb = dp.USB_DEVICE;
 	let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
 	ufmt::uwriteln!(&mut serial, "Hello from Arduino!\r").unwrap_infallible();
-	ufmt::uwriteln!(&mut serial, "foo").unwrap_infallible();
 
 	let status = pins.d13.into_output();
 	let trigger = pins.d2.into_pull_up_input();
@@ -68,6 +67,7 @@ fn main() -> ! {
 	pll.pllfrq()
 		.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
 
+	ufmt::uwriteln!(&mut serial, "foo").unwrap_infallible();
 	// Enable PLL
 	pll.pllcsr().modify(|_, w| w.plle().set_bit());
 
