@@ -4,9 +4,9 @@ use arduino_hal::prelude::*;
 use arduino_hal::Peripherals;
 use panic_halt as _;
 use usb_device::bus::UsbBusAllocator;
+use usb_device::device::StringDescriptors;
 use usb_device::device::UsbDeviceBuilder;
 use usb_device::device::UsbVidPid;
-use usb_device::prelude::StringDescriptors;
 use usb_device::LangID;
 use usbd_serial::SerialPort;
 
