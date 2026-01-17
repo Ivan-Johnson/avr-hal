@@ -29,7 +29,7 @@ use arduino_hal::{
 	pac::PLL,
 	pins,
 	port::{
-		mode::{Input, Output, PullUp},
+		mode::{Input, PullUp},
 		Pin,
 	},
 	Peripherals,
@@ -91,7 +91,6 @@ fn main() -> ! {
 			serial,
 			current_index: 0,
 			pressed: false,
-			indicator: status.downgrade(),
 			trigger: trigger.downgrade(),
 		});
 	}
@@ -111,7 +110,6 @@ struct UsbContext<S: SuspendNotifier> {
 	serial: SerialPort<'static>,
 	current_index: usize,
 	pressed: bool,
-	indicator: Pin<Output>,
 	trigger: Pin<Input<PullUp>>,
 }
 
@@ -120,16 +118,10 @@ impl<S: SuspendNotifier> UsbContext<S> {
 		let write_buf = [b'?'; 20];
 		self.serial.write(&write_buf).unwrap();
 
-		if self.usb_device.poll(&mut [&mut self.hid_class]) {
+		if self.usb_device.poll(&mut [&mut self.serial]) {
 			let mut report_buf = [0u8; 1];
 
-			if self.hid_class.pull_raw_output(&mut report_buf).is_ok() {
-				if report_buf[0] & 2 != 0 {
-					self.indicator.set_high();
-				} else {
-					self.indicator.set_low();
-				}
-			}
+			self.serial.pull_raw_output(&mut report_buf);
 		}
 	}
 }
