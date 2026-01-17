@@ -34,7 +34,7 @@ fn main() -> ! {
 	// Check PLL lock
 	while pll.pllcsr().read().plock().bit_is_clear() {}
 
-	let usb_bus = UsbBus::with_suspend_notifier(usb, pll);
+	let usb_bus = UsbBus::new(usb);
 
 	let mut serial_usb = SerialPort::new(&usb_bus);
 
