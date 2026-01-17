@@ -42,6 +42,7 @@ use usb_device::{
 	device::{UsbDevice, UsbDeviceBuilder, UsbVidPid},
 };
 use usbd_serial::SerialPort;
+use arduino_hal::prelude::*;
 
 const PAYLOAD: &[u8] = b"Hello World";
 
@@ -53,7 +54,7 @@ fn main() -> ! {
 	let pins = pins!(dp);
 	let pll = dp.PLL;
 	let usb = dp.USB_DEVICE;
-	let serial = arduino_hal::default_serial!(dp, pins, 57600);
+	let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
 	ufmt::uwriteln!(&mut serial, "Hello from Arduino!\r").unwrap_infallible();
 
 	let status = pins.d13.into_output();
