@@ -20,8 +20,6 @@
 
 #![no_std]
 #![cfg_attr(not(test), no_main)]
-#![feature(abi_avr_interrupt)]
-#![deny(unsafe_op_in_unsafe_fn)]
 
 use arduino_hal::entry;
 use arduino_hal::pins;
