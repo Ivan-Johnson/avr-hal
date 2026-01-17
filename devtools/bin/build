@@ -25,7 +25,7 @@ basename="$(basename "$0")"
 
 if [ "$#" -ge 1 ] && ( [ "$1" = "-h" ] || [ "$1" = "--help" ] ); then
 	cat <<-EOF
-		This script is use to foo.
+		This script is used to foo.
 
 		You need bar before you can use this script. Then baz, abc, and xyz.
 	EOF
