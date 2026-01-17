@@ -15,7 +15,7 @@ use usbd_serial::SerialPort;
 
 #[arduino_hal::entry]
 fn main() -> ! {
-	let dp: Peripherals = arduino_hal::Peripherals::take().unwrap();
+	let dp: Peripherals = Peripherals::take().unwrap();
 
 	let usb_bus = arduino_hal::default_usb_bus_with_pll_macro!(dp);
 	let usb_bus_allocator = UsbBusAllocator::new(usb_bus);
