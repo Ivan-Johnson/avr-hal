@@ -31,9 +31,9 @@ fn main() -> ! {
 	let mut usb_device = UsbDeviceBuilder::new(&usb_bus, rand_ids)
 		.strings(&[string_descriptors])
 		.unwrap()
-               .max_packet_size_0(64)
-               .unwrap()
-               .device_class(usbd_serial::USB_CLASS_CDC)
+		.max_packet_size_0(64)
+		.unwrap()
+		.device_class(usbd_serial::USB_CLASS_CDC)
 		.build();
 
 	loop {
