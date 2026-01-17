@@ -24,13 +24,11 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
 use arduino_hal::entry;
-use arduino_hal::pac::PLL;
 use arduino_hal::pins;
 use arduino_hal::prelude::*;
 use arduino_hal::usb::UsbBus;
 use arduino_hal::Peripherals;
 use panic_halt as _;
-use usb_device::class_prelude::UsbBusAllocator;
 use usb_device::device::UsbDeviceBuilder;
 use usb_device::device::UsbVidPid;
 use usb_device::prelude::StringDescriptors;
@@ -59,10 +57,7 @@ fn main() -> ! {
 	// Check PLL lock
 	while pll.pllcsr().read().plock().bit_is_clear() {}
 
-	let usb_bus = unsafe {
-		static mut USB_BUS: Option<UsbBusAllocator<UsbBus<PLL>>> = None;
-		&*USB_BUS.insert(UsbBus::with_suspend_notifier(usb, pll))
-	};
+	let usb_bus = UsbBus::with_suspend_notifier(usb, pll);
 
 	let mut serial_usb = SerialPort::new(&usb_bus);
 
@@ -71,7 +66,7 @@ fn main() -> ! {
 		.product("test product")
 		.serial_number("test serial number");
 
-	let mut usb_device = UsbDeviceBuilder::new(usb_bus, UsbVidPid(0x1209, 0x0001))
+	let mut usb_device = UsbDeviceBuilder::new(&usb_bus, UsbVidPid(0x1209, 0x0001))
 		.strings(&[string_descriptors])
 		.unwrap()
 		.build();
