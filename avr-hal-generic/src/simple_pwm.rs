@@ -2,7 +2,9 @@
 
 use core::marker::PhantomData;
 use embedded_hal::pwm;
-use embedded_hal::pwm::{ErrorKind, ErrorType, SetDutyCycle};
+use embedded_hal::pwm::ErrorKind;
+use embedded_hal::pwm::ErrorType;
+use embedded_hal::pwm::SetDutyCycle;
 
 use crate::port::mode;
 use crate::port::Pin;
