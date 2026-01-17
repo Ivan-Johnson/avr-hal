@@ -1,6 +1,7 @@
 use core::arch::asm;
 use core::cell::Cell;
 use core::cmp::max;
+use core::marker::PhantomData;
 
 use avr_device::atmega32u4::usb_device::udint;
 use avr_device::atmega32u4::usb_device::ueintx;
@@ -13,7 +14,6 @@ use avr_device::interrupt::CriticalSection;
 use avr_device::interrupt::Mutex;
 use avr_device::interrupt::{self};
 use usb_device::bus::PollResult;
-use usb_device::class_prelude::UsbBusAllocator;
 use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
@@ -22,6 +22,8 @@ use avr_hal_generic::clock::Clock;
 use avr_hal_generic::clock::MHz16;
 use avr_hal_generic::clock::MHz8;
 use crate::pac::pll::pllcsr::W as pllcsr_writer;
+use avr_hal_generic::delay::Delay;
+use embedded_hal::delay::DelayNs;
 
 const MAX_ENDPOINTS: usize = 7;
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];
@@ -90,25 +92,31 @@ impl EndpointTableEntry {
 	}
 }
 
-pub struct UsbdBus {
+pub struct UsbdBus<CLOCKUSB: ClockUSB>
+where
+       Delay<CLOCKUSB>: DelayNs,
+{
 	usb: Mutex<USB_DEVICE>,
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [EndpointTableEntry; MAX_ENDPOINTS],
 	dpram_usage: u16,
+	phantom: PhantomData<CLOCKUSB>,
 }
 
-impl UsbdBus {
-	pub fn new(usb: USB_DEVICE) -> UsbBusAllocator<Self> {
-		UsbBusAllocator::new(Self {
+impl<CLOCKUSB: ClockUSB> UsbdBus<CLOCKUSB>
+where
+	Delay<CLOCKUSB>: DelayNs,
+{
+	pub fn new(usb: USB_DEVICE, _pll: avr_device::atmega32u4::PLL) -> Self {
+		Self {
 			usb: Mutex::new(usb),
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
 			dpram_usage: 0,
-		})
+			phantom: PhantomData{},
+		}
 	}
-}
 
-impl UsbdBus {
 	fn active_endpoints(&self) -> impl Iterator<Item = (usize, &EndpointTableEntry)> {
 		self.endpoints
 			.iter()
@@ -167,7 +175,10 @@ impl UsbdBus {
 	}
 }
 
-impl usb_device::bus::UsbBus for UsbdBus {
+impl<CLOCKUSB: ClockUSB> usb_device::bus::UsbBus for UsbdBus<CLOCKUSB>
+where
+	Delay<CLOCKUSB>: DelayNs,
+{
 	fn alloc_ep(
 		&mut self,
 		ep_dir: UsbDirection,

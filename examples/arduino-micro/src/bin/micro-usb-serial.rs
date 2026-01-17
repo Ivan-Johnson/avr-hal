@@ -1,9 +1,8 @@
 #![no_std]
 #![no_main]
-
+use usb_device::bus::UsbBusAllocator;
 use arduino_hal::pins;
 use arduino_hal::prelude::*;
-use arduino_hal::usb::UsbBus;
 use arduino_hal::Peripherals;
 use panic_halt as _;
 use usb_device::device::UsbDeviceBuilder;
@@ -14,10 +13,9 @@ use usbd_serial::SerialPort;
 
 #[arduino_hal::entry]
 fn main() -> ! {
-	let dp: Peripherals = Peripherals::take().unwrap();
+	let mut dp: Peripherals = Peripherals::take().unwrap();
 	let pins = pins!(dp);
 	let pll = dp.PLL;
-	let usb = dp.USB_DEVICE;
 	let mut serial_hw = arduino_hal::default_serial!(dp, pins, 57600);
 	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!").unwrap_infallible();
 
@@ -34,7 +32,9 @@ fn main() -> ! {
 	// Check PLL lock
 	while pll.pllcsr().read().plock().bit_is_clear() {}
 
-	let usb_bus = UsbBus::new(usb);
+	dp.PLL = pll;
+	let usb_bus = UsbBusAllocator::new(arduino_hal::default_usb_bus_with_pll_macro!(dp));
+
 
 	let mut serial_usb = SerialPort::new(&usb_bus);
 
