@@ -56,6 +56,7 @@ fn main() -> ! {
 	let usb = dp.USB_DEVICE;
 	let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
 	ufmt::uwriteln!(&mut serial, "Hello from Arduino!\r").unwrap_infallible();
+	ufmt::uwriteln!(&mut serial, "foo").unwrap_infallible();
 
 	let status = pins.d13.into_output();
 	let trigger = pins.d2.into_pull_up_input();
@@ -100,6 +101,8 @@ fn main() -> ! {
 			counter: 0,
 		});
 	}
+
+	//ufmt::uwriteln!(&mut serial, "pre-loop").unwrap_infallible();
 
 	// unsafe { interrupt::enable() };
 	loop {
