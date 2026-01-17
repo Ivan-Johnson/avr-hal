@@ -26,23 +26,16 @@
 use arduino_hal::entry;
 use arduino_hal::pac::PLL;
 use arduino_hal::pins;
-use arduino_hal::port::mode::Input;
-use arduino_hal::port::mode::PullUp;
-use arduino_hal::port::Pin;
 use arduino_hal::prelude::*;
-use arduino_hal::usb::SuspendNotifier;
 use arduino_hal::usb::UsbBus;
 use arduino_hal::Peripherals;
 use panic_halt as _;
 use usb_device::class_prelude::UsbBusAllocator;
-use usb_device::device::UsbDevice;
 use usb_device::device::UsbDeviceBuilder;
 use usb_device::device::UsbVidPid;
 use usb_device::prelude::StringDescriptors;
 use usb_device::LangID;
 use usbd_serial::SerialPort;
-
-const PAYLOAD: &[u8] = b"Hello World";
 
 #[entry]
 fn main() -> ! {
@@ -52,9 +45,6 @@ fn main() -> ! {
 	let usb = dp.USB_DEVICE;
 	let mut serial_hw = arduino_hal::default_serial!(dp, pins, 57600);
 	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!\r").unwrap_infallible();
-
-	let status = pins.d13.into_output();
-	let trigger = pins.d2.into_pull_up_input();
 
 	// Configure PLL interface
 	// prescale 16MHz crystal -> 8MHz
