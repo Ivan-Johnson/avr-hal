@@ -14,7 +14,7 @@
 
     [X] Delete ~all interrupt code from micro-usb-serial.rs
 
-    [ ] verify everything still works
+    [X] verify everything still works
 
     [ ] Delete code for configuring interrupt-related registers (usb.rs)
 
