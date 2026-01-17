@@ -28,7 +28,7 @@ fn main() -> ! {
 
 	let rand_ids = UsbVidPid(0x1ea7, 0x4a09);
 
-	let mut usb_device = UsbDeviceBuilder::new(&usb_bus, rand_ids)
+	let mut usb_dev = UsbDeviceBuilder::new(&usb_bus, rand_ids)
 		.strings(&[string_descriptors])
 		.unwrap()
 		.max_packet_size_0(64)
@@ -38,7 +38,7 @@ fn main() -> ! {
 
 	loop {
 		// Wait until we have data
-		if !usb_device.poll(&mut [&mut serial_usb]) {
+		if !usb_dev.poll(&mut [&mut serial_usb]) {
 			continue;
 		}
 
