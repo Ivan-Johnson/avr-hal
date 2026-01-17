@@ -79,7 +79,6 @@ name = "arduino-micro-examples"
 version = "0.0.0"
 dependencies = [
  "arduino-hal",
- "avr-device",
  "nb 1.1.0",
  "panic-halt",
  "ufmt",
