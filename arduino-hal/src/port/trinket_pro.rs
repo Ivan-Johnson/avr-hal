@@ -1,4 +1,7 @@
-pub use atmega_hal::port::{mode, Pin, PinMode, PinOps};
+pub use atmega_hal::port::mode;
+pub use atmega_hal::port::Pin;
+pub use atmega_hal::port::PinMode;
+pub use atmega_hal::port::PinOps;
 
 avr_hal_generic::renamed_pins! {
     /// Pins of the **Trinket Pro**.

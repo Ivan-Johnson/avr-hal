@@ -1,7 +1,7 @@
 use core::cell::Cell;
 use core::cmp::max;
 
-use avr_hal_generic::delay::Delay;
+use crate::pac::pll::pllcsr::W as pllcsr_writer;
 use avr_device::atmega32u4::PLL;
 use avr_device::atmega32u4::USB_DEVICE;
 use avr_device::interrupt;
@@ -10,15 +10,15 @@ use avr_device::interrupt::Mutex;
 use avr_hal_generic::clock::Clock;
 use avr_hal_generic::clock::MHz16;
 use avr_hal_generic::clock::MHz8;
+use avr_hal_generic::delay::Delay;
 use core::marker::PhantomData;
+use embedded_hal::delay::DelayNs;
 use usb_device::bus::PollResult;
 use usb_device::bus::UsbBus;
 use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
-use embedded_hal::delay::DelayNs;
 use usb_device::UsbError;
-use crate::pac::pll::pllcsr::W as pllcsr_writer;
 const MAX_ENDPOINTS: usize = 7;
 
 // From datasheet section 22.1
@@ -855,7 +855,12 @@ trait ClearInterrupts {
 		for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer;
 }
 
-use avr_device::atmega32u4::usb_device::{udint, ueintx, usbint, UDINT, UEINTX, USBINT};
+use avr_device::atmega32u4::usb_device::udint;
+use avr_device::atmega32u4::usb_device::ueintx;
+use avr_device::atmega32u4::usb_device::usbint;
+use avr_device::atmega32u4::usb_device::UDINT;
+use avr_device::atmega32u4::usb_device::UEINTX;
+use avr_device::atmega32u4::usb_device::USBINT;
 
 impl ClearInterrupts for UDINT {
 	type Writer = udint::W;

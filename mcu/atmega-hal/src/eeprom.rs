@@ -18,7 +18,8 @@
 //! ufmt::uwriteln!(&mut serial, "Boot count: {}", boot_count).unwrap();
 //! ```
 
-pub use avr_hal_generic::eeprom::{EepromOps, OutOfBoundsError};
+pub use avr_hal_generic::eeprom::EepromOps;
+pub use avr_hal_generic::eeprom::OutOfBoundsError;
 
 pub type Eeprom = avr_hal_generic::eeprom::Eeprom<crate::Atmega, crate::pac::EEPROM>;
 

@@ -11,7 +11,8 @@
 
 use panic_halt as _;
 
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::AtomicBool;
+use core::sync::atomic::Ordering;
 
 static PIN_CHANGED: AtomicBool = AtomicBool::new(false);
 

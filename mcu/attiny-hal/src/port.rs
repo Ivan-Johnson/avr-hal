@@ -17,7 +17,9 @@
 //! }
 //! ```
 
-pub use avr_hal_generic::port::{mode, PinMode, PinOps};
+pub use avr_hal_generic::port::mode;
+pub use avr_hal_generic::port::PinMode;
+pub use avr_hal_generic::port::PinOps;
 
 #[cfg(feature = "attiny2313")]
 avr_hal_generic::impl_port_traditional! {
