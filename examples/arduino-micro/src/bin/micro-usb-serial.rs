@@ -19,7 +19,7 @@ fn main() -> ! {
 	let pll = dp.PLL;
 	let usb = dp.USB_DEVICE;
 	let mut serial_hw = arduino_hal::default_serial!(dp, pins, 57600);
-	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!\r").unwrap_infallible();
+	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!").unwrap_infallible();
 
 	// Configure PLL interface
 	// prescale 16MHz crystal -> 8MHz
@@ -48,7 +48,7 @@ fn main() -> ! {
 		.unwrap()
 		.build();
 
-	ufmt::uwriteln!(&mut serial_hw, "pre-loop").unwrap_infallible();
+	ufmt::uwriteln!(&mut serial_hw, "Starting loop").unwrap_infallible();
 
 	let mut counter = 0;
 	loop {
