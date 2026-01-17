@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+use arduino_hal::prelude::*;
 use arduino_hal::Peripherals;
 use panic_halt as _;
 use usb_device::bus::UsbBusAllocator;
@@ -12,10 +13,14 @@ use usbd_serial::SerialPort;
 #[arduino_hal::entry]
 fn main() -> ! {
 	let dp: Peripherals = Peripherals::take().unwrap();
+	let pins = arduino_hal::pins!(dp);
+	let mut serial_hw = arduino_hal::default_serial!(dp, pins, 57600);
+	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!").unwrap_infallible();
 
 	let usb_bus = arduino_hal::default_usb_bus_with_pll_macro!(dp);
 	let usb_bus_allocator = UsbBusAllocator::new(usb_bus);
-	let mut serial = SerialPort::new(&usb_bus_allocator);
+
+	let mut serial_usb = SerialPort::new(&usb_bus_allocator);
 
 	let string_descriptors = StringDescriptors::new(LangID::EN_US)
 		.manufacturer("test manufacturer")
@@ -34,13 +39,13 @@ fn main() -> ! {
 
 	loop {
 		// Wait until we have data
-		if !usb_dev.poll(&mut [&mut serial]) {
+		if !usb_dev.poll(&mut [&mut serial_usb]) {
 			continue;
 		}
 
 		// Read the data into this buffer
 		let mut read_buf = [0u8; 10];
-		let Ok(read_count) = serial.read(&mut read_buf) else {
+		let Ok(read_count) = serial_usb.read(&mut read_buf) else {
 			continue;
 		};
 		if read_count == 0 {
@@ -56,14 +61,12 @@ fn main() -> ! {
 		//
 		// TODO: Figure out how to get the above code to compile. It seems like
 		// I might need to manually implement the uDebug trait? That doesn't seem
-		// right... In the meantime, simply return a string of question marks.
-		let write_buf = [b'?'; 20];
-		let write_count = read_count;
+		// right... In the meantime, simply echo the string back
 
 		// TODO: is this `.expect()` safe?
-		let len = serial
-			.write(&write_buf[0..write_count])
+		let len = serial_usb
+			.write(&read_buf[0..read_count])
 			.expect("The host should be reading data faster than the arduino can write it");
-		assert_eq!(len, write_count);
+		assert_eq!(len, read_count);
 	}
 }
