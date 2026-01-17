@@ -22,8 +22,6 @@
 
     [ ] final interrupt cleanup
 
-  * convert example code from keyboard to serial
-
   * move as much code as possible from micro-usb-keyboard.rs to library
 
   * final cleanup of micro-usb-keyboard.rs

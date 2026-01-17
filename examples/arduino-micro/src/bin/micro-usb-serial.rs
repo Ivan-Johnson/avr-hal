@@ -29,7 +29,7 @@ use arduino_hal::{
 	pac::PLL,
 	pins,
 	port::{
-		mode::{Input, Output, PullUp},
+		mode::{Input, PullUp},
 		Pin,
 	},
 	Peripherals,
@@ -41,12 +41,12 @@ use usb_device::{
 	class_prelude::UsbBusAllocator,
 	device::{UsbDevice, UsbDeviceBuilder, UsbVidPid},
 };
-use usbd_hid::{
-	descriptor::{KeyboardReport, SerializedDescriptor},
-	hid_class::HIDClass,
-};
+use usbd_serial::SerialPort;
+use arduino_hal::prelude::*;
 
 const PAYLOAD: &[u8] = b"Hello World";
+
+
 
 #[entry]
 fn main() -> ! {
@@ -54,6 +54,8 @@ fn main() -> ! {
 	let pins = pins!(dp);
 	let pll = dp.PLL;
 	let usb = dp.USB_DEVICE;
+	let mut serial_hw = arduino_hal::default_serial!(dp, pins, 57600);
+	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!\r").unwrap_infallible();
 
 	let status = pins.d13.into_output();
 	let trigger = pins.d2.into_pull_up_input();
@@ -76,107 +78,29 @@ fn main() -> ! {
 		&*USB_BUS.insert(UsbBus::with_suspend_notifier(usb, pll))
 	};
 
-	let hid_class = HIDClass::new(usb_bus, KeyboardReport::desc(), 1);
+	let mut serial_usb = SerialPort::new(&usb_bus);
 
 	let string_descriptors = StringDescriptors::new(LangID::EN_US)
 		.manufacturer("test manufacturer")
 		.product("test product")
 		.serial_number("test serial number");
 
-	let usb_device = UsbDeviceBuilder::new(usb_bus, UsbVidPid(0x1209, 0x0001))
+	let mut usb_device = UsbDeviceBuilder::new(usb_bus, UsbVidPid(0x1209, 0x0001))
 		.strings(&[string_descriptors])
 		.unwrap()
 		.build();
 
-	unsafe {
-		USB_CTX = Some(UsbContext {
-			usb_device,
-			hid_class,
-			current_index: 0,
-			pressed: false,
-			indicator: status.downgrade(),
-			trigger: trigger.downgrade(),
-		});
-	}
+	ufmt::uwriteln!(&mut serial_hw, "pre-loop").unwrap_infallible();
 
-	// unsafe { interrupt::enable() };
+	let mut counter = 0;
 	loop {
-		// sleep();
-		let ctx = unsafe { USB_CTX.as_mut().unwrap() };
-		ctx.poll();
-	}
-}
-
-static mut USB_CTX: Option<UsbContext<PLL>> = None;
-
-struct UsbContext<S: SuspendNotifier> {
-	usb_device: UsbDevice<'static, UsbBus<S>>,
-	hid_class: HIDClass<'static, UsbBus<S>>,
-	current_index: usize,
-	pressed: bool,
-	indicator: Pin<Output>,
-	trigger: Pin<Input<PullUp>>,
-}
-
-impl<S: SuspendNotifier> UsbContext<S> {
-	fn poll(&mut self) {
-		if self.trigger.is_low() {
-			let next_report = if self.pressed {
-				BLANK_REPORT
-			} else {
-				PAYLOAD.get(self.current_index)
-					.copied()
-					.and_then(ascii_to_report)
-					.unwrap_or(BLANK_REPORT)
-			};
-
-			if self.hid_class.push_input(&next_report).is_ok() {
-				if self.pressed && self.current_index < PAYLOAD.len() {
-					self.current_index += 1;
-				}
-				self.pressed = !self.pressed;
-			}
-		} else {
-			self.current_index = 0;
-			self.pressed = false;
-			self.hid_class.push_input(&BLANK_REPORT).ok();
+		counter+=1;
+		ufmt::uwriteln!(&mut serial_hw, "Loop {}", counter).unwrap_infallible();
+		if counter % 1_000 == 0 {
+			let write_buf = [b'?'];
+			serial_usb.write(&write_buf).unwrap();
 		}
 
-		if self.usb_device.poll(&mut [&mut self.hid_class]) {
-			let mut report_buf = [0u8; 1];
-
-			if self.hid_class.pull_raw_output(&mut report_buf).is_ok() {
-				if report_buf[0] & 2 != 0 {
-					self.indicator.set_high();
-				} else {
-					self.indicator.set_low();
-				}
-			}
-		}
+		usb_device.poll(&mut [&mut serial_usb]);
 	}
-}
-
-const BLANK_REPORT: KeyboardReport = KeyboardReport {
-	modifier: 0,
-	reserved: 0,
-	leds: 0,
-	keycodes: [0; 6],
-};
-
-fn ascii_to_report(c: u8) -> Option<KeyboardReport> {
-	let (keycode, shift) = if c.is_ascii_alphabetic() {
-		(c.to_ascii_lowercase() - b'a' + 0x04, c.is_ascii_uppercase())
-	} else {
-		match c {
-			b' ' => (0x2c, false),
-			_ => return None,
-		}
-	};
-
-	let mut report = BLANK_REPORT;
-	if shift {
-		report.modifier |= 0x2;
-	}
-	report.keycodes[0] = keycode;
-	Some(report)
 }
