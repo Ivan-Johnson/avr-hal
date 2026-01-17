@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-use arduino_hal::entry;
 use arduino_hal::pins;
 use arduino_hal::prelude::*;
 use arduino_hal::usb::UsbBus;
@@ -13,9 +12,9 @@ use usb_device::prelude::StringDescriptors;
 use usb_device::LangID;
 use usbd_serial::SerialPort;
 
-#[entry]
+#[arduino_hal::entry]
 fn main() -> ! {
-	let dp = Peripherals::take().unwrap();
+	let dp: Peripherals = Peripherals::take().unwrap();
 	let pins = pins!(dp);
 	let pll = dp.PLL;
 	let usb = dp.USB_DEVICE;
