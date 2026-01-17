@@ -48,8 +48,6 @@ fn main() -> ! {
 		.unwrap()
 		.build();
 
-
-
 	let mut counter = 0;
 	loop {
 		counter += 1;
@@ -78,7 +76,6 @@ fn main() -> ! {
 			ufmt::uwrite!(&mut serial_hw, "{}, ", byte).unwrap_infallible();
 		}
 		ufmt::uwriteln!(&mut serial_hw, "").unwrap_infallible();
-
 
 		// Ideally we want to do something like this:
 		//

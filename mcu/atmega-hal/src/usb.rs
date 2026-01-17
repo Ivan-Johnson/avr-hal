@@ -18,6 +18,10 @@ use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
 use usb_device::UsbError;
+use avr_hal_generic::clock::Clock;
+use avr_hal_generic::clock::MHz16;
+use avr_hal_generic::clock::MHz8;
+use crate::pac::pll::pllcsr::W as pllcsr_writer;
 
 const MAX_ENDPOINTS: usize = 7;
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];
@@ -38,6 +42,30 @@ const EP_SIZE_64: u8 = 0b011;
 const EP_SIZE_128: u8 = 0b100;
 const EP_SIZE_256: u8 = 0b101;
 const EP_SIZE_512: u8 = 0b110;
+
+// TODO: do the links work?
+/// The USB controller can only be used when the MCU is running at certain
+/// specific clock speends. This trait represents those clock speeds.
+///
+/// There are only two such clock speeds (ref [PLLCSR](PLLCSR)): 16MHz and 8MHz.
+/// This trait is already implemented for those speeds, so there is no need for
+/// users to ever implement this trait.
+pub trait ClockUSB: Clock + Sync {
+	/// Configure the PLLCSR.pindiv for this clock speed
+	fn setup_pllcsr_pindiv(writer: &mut pllcsr_writer) -> &mut pllcsr_writer;
+}
+
+impl ClockUSB for MHz16 {
+	fn setup_pllcsr_pindiv(writer: &mut pllcsr_writer) -> &mut pllcsr_writer {
+		writer.pindiv().set_bit()
+	}
+}
+
+impl ClockUSB for MHz8 {
+	fn setup_pllcsr_pindiv(writer: &mut pllcsr_writer) -> &mut pllcsr_writer {
+		writer.pindiv().clear_bit()
+	}
+}
 
 #[derive(Default)]
 struct EndpointTableEntry {
@@ -62,14 +90,14 @@ impl EndpointTableEntry {
 	}
 }
 
-pub struct UsbBus {
+pub struct UsbdBus {
 	usb: Mutex<USB_DEVICE>,
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [EndpointTableEntry; MAX_ENDPOINTS],
 	dpram_usage: u16,
 }
 
-impl UsbBus {
+impl UsbdBus {
 	pub fn new(usb: USB_DEVICE) -> UsbBusAllocator<Self> {
 		UsbBusAllocator::new(Self {
 			usb: Mutex::new(usb),
@@ -80,7 +108,7 @@ impl UsbBus {
 	}
 }
 
-impl UsbBus {
+impl UsbdBus {
 	fn active_endpoints(&self) -> impl Iterator<Item = (usize, &EndpointTableEntry)> {
 		self.endpoints
 			.iter()
@@ -139,7 +167,7 @@ impl UsbBus {
 	}
 }
 
-impl usb_device::bus::UsbBus for UsbBus {
+impl usb_device::bus::UsbBus for UsbdBus {
 	fn alloc_ep(
 		&mut self,
 		ep_dir: UsbDirection,
@@ -554,7 +582,6 @@ impl ClearInterrupts for USBINT {
 		self.write(|w| f(unsafe { w.bits(0x01) }));
 	}
 }
-
 
 /// Placeholder for `avr_device::asm::delay_cycles`
 ///
