@@ -17,9 +17,10 @@ fn main() -> ! {
 	let mut serial_hw = arduino_hal::default_serial!(dp, pins, 57600);
 	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!").unwrap_infallible();
 
-	let usb_bus = UsbBusAllocator::new(arduino_hal::default_usb_bus_with_pll_macro!(dp));
+	let usb_bus = arduino_hal::default_usb_bus_with_pll_macro!(dp);
+	let usb_bus_allocator = UsbBusAllocator::new(usb_bus);
 
-	let mut serial_usb = SerialPort::new(&usb_bus);
+	let mut serial_usb = SerialPort::new(&usb_bus_allocator);
 
 	let string_descriptors = StringDescriptors::new(LangID::EN_US)
 		.manufacturer("test manufacturer")
@@ -28,7 +29,7 @@ fn main() -> ! {
 
 	let rand_ids = UsbVidPid(0x1ea7, 0x4a09);
 
-	let mut usb_dev = UsbDeviceBuilder::new(&usb_bus, rand_ids)
+	let mut usb_dev = UsbDeviceBuilder::new(&usb_bus_allocator, rand_ids)
 		.strings(&[string_descriptors])
 		.unwrap()
 		.max_packet_size_0(64)
