@@ -31,34 +31,20 @@ fn main() -> ! {
 		.unwrap()
 		.build();
 
-	let mut counter = 0;
 	loop {
-		counter += 1;
-		if counter % 50_000 == 0 {
-			ufmt::uwriteln!(&mut serial_hw, "{} loops with nothing to do", counter).unwrap_infallible();
-		}
-
 		// Wait until we have data
 		if !usb_device.poll(&mut [&mut serial_usb]) {
 			continue;
 		}
-		counter = 0;
 
 		// Read the data into this buffer
 		let mut read_buf = [0u8; 10];
 		let Ok(read_count) = serial_usb.read(&mut read_buf) else {
-			ufmt::uwriteln!(&mut serial_hw, "serial read failed??").unwrap_infallible();
 			continue;
 		};
 		if read_count == 0 {
-			ufmt::uwriteln!(&mut serial_hw, "serial read returned no data").unwrap_infallible();
 			continue;
 		}
-		ufmt::uwriteln!(&mut serial_hw, "serial read returned:").unwrap_infallible();
-		for byte in read_buf {
-			ufmt::uwrite!(&mut serial_hw, "{}, ", byte).unwrap_infallible();
-		}
-		ufmt::uwriteln!(&mut serial_hw, "").unwrap_infallible();
 
 		// Ideally we want to do something like this:
 		//
