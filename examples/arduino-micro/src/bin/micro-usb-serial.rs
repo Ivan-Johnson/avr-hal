@@ -45,12 +45,16 @@ use usbd_serial::SerialPort;
 
 const PAYLOAD: &[u8] = b"Hello World";
 
+
+
 #[entry]
 fn main() -> ! {
 	let dp = Peripherals::take().unwrap();
 	let pins = pins!(dp);
 	let pll = dp.PLL;
 	let usb = dp.USB_DEVICE;
+	let serial = arduino_hal::default_serial!(dp, pins, 57600);
+	ufmt::uwriteln!(&mut serial, "Hello from Arduino!\r").unwrap_infallible();
 
 	let status = pins.d13.into_output();
 	let trigger = pins.d2.into_pull_up_input();
@@ -92,6 +96,7 @@ fn main() -> ! {
 			current_index: 0,
 			pressed: false,
 			trigger: trigger.downgrade(),
+			counter: 0,
 		});
 	}
 
@@ -107,21 +112,21 @@ static mut USB_CTX: Option<UsbContext<PLL>> = None;
 
 struct UsbContext<S: SuspendNotifier> {
 	usb_device: UsbDevice<'static, UsbBus<S>>,
-	serial: SerialPort<'static>,
+	serial: SerialPort<'static, UsbBus<S>>,
 	current_index: usize,
 	pressed: bool,
 	trigger: Pin<Input<PullUp>>,
+	counter: u32,
 }
 
 impl<S: SuspendNotifier> UsbContext<S> {
 	fn poll(&mut self) {
-		let write_buf = [b'?'; 20];
-		self.serial.write(&write_buf).unwrap();
-
-		if self.usb_device.poll(&mut [&mut self.serial]) {
-			let mut report_buf = [0u8; 1];
-
-			self.serial.pull_raw_output(&mut report_buf);
+		self.counter+=1;
+		if self.counter % 10_000 == 0 {
+			let write_buf = [b'?'];
+			self.serial.write(&write_buf).unwrap();
 		}
+
+		self.usb_device.poll(&mut [&mut self.serial]);
 	}
 }
