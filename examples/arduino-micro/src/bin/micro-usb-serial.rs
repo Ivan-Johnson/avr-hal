@@ -23,30 +23,26 @@
 #![feature(abi_avr_interrupt)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
-use arduino_hal::usb::{SuspendNotifier, UsbBus};
-use arduino_hal::{
-	entry,
-	pac::PLL,
-	pins,
-	port::{
-		mode::{Input, PullUp},
-		Pin,
-	},
-	Peripherals,
-};
+use arduino_hal::entry;
+use arduino_hal::pac::PLL;
+use arduino_hal::pins;
+use arduino_hal::port::mode::Input;
+use arduino_hal::port::mode::PullUp;
+use arduino_hal::port::Pin;
+use arduino_hal::prelude::*;
+use arduino_hal::usb::SuspendNotifier;
+use arduino_hal::usb::UsbBus;
+use arduino_hal::Peripherals;
 use panic_halt as _;
+use usb_device::class_prelude::UsbBusAllocator;
+use usb_device::device::UsbDevice;
+use usb_device::device::UsbDeviceBuilder;
+use usb_device::device::UsbVidPid;
 use usb_device::prelude::StringDescriptors;
 use usb_device::LangID;
-use usb_device::{
-	class_prelude::UsbBusAllocator,
-	device::{UsbDevice, UsbDeviceBuilder, UsbVidPid},
-};
 use usbd_serial::SerialPort;
-use arduino_hal::prelude::*;
 
 const PAYLOAD: &[u8] = b"Hello World";
-
-
 
 #[entry]
 fn main() -> ! {
@@ -94,7 +90,7 @@ fn main() -> ! {
 
 	let mut counter = 0;
 	loop {
-		counter+=1;
+		counter += 1;
 		ufmt::uwriteln!(&mut serial_hw, "Loop {}", counter).unwrap_infallible();
 		if counter % 1_000 == 0 {
 			let write_buf = [b'?'];

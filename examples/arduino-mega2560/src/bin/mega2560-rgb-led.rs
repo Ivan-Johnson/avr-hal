@@ -14,7 +14,8 @@
 
 use arduino_hal::simple_pwm::IntoPwmPin;
 use arduino_hal::simple_pwm::Prescaler;
-use arduino_hal::simple_pwm::{Timer3Pwm, Timer4Pwm};
+use arduino_hal::simple_pwm::Timer3Pwm;
+use arduino_hal::simple_pwm::Timer4Pwm;
 use panic_halt as _;
 
 #[arduino_hal::entry]

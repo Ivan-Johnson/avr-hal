@@ -26,7 +26,9 @@
 //! ```
 
 use crate::port;
-pub use avr_hal_generic::adc::{AdcChannel, AdcOps, ClockDivider};
+pub use avr_hal_generic::adc::AdcChannel;
+pub use avr_hal_generic::adc::AdcOps;
+pub use avr_hal_generic::adc::ClockDivider;
 
 /// Select the voltage reference for the ADC peripheral
 ///

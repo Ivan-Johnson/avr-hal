@@ -1,16 +1,24 @@
-use core::{arch::asm, cell::Cell, cmp::max};
+use core::arch::asm;
+use core::cell::Cell;
+use core::cmp::max;
 
-use avr_device::atmega32u4::{
-	usb_device::{udint, ueintx, usbint, UDINT, UEINTX, USBINT},
-	PLL, USB_DEVICE,
-};
-use avr_device::interrupt::{self, CriticalSection, Mutex};
-use usb_device::{
-	bus::PollResult,
-	class_prelude::UsbBusAllocator,
-	endpoint::{EndpointAddress, EndpointType},
-	UsbDirection, UsbError,
-};
+use avr_device::atmega32u4::usb_device::udint;
+use avr_device::atmega32u4::usb_device::ueintx;
+use avr_device::atmega32u4::usb_device::usbint;
+use avr_device::atmega32u4::usb_device::UDINT;
+use avr_device::atmega32u4::usb_device::UEINTX;
+use avr_device::atmega32u4::usb_device::USBINT;
+use avr_device::atmega32u4::PLL;
+use avr_device::atmega32u4::USB_DEVICE;
+use avr_device::interrupt::CriticalSection;
+use avr_device::interrupt::Mutex;
+use avr_device::interrupt::{self};
+use usb_device::bus::PollResult;
+use usb_device::class_prelude::UsbBusAllocator;
+use usb_device::endpoint::EndpointAddress;
+use usb_device::endpoint::EndpointType;
+use usb_device::UsbDirection;
+use usb_device::UsbError;
 
 const MAX_ENDPOINTS: usize = 7;
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];

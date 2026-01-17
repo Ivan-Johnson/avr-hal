@@ -1,7 +1,8 @@
 //! SPI Implementation
 use crate::port;
 use core::marker::PhantomData;
-use embedded_hal::spi::{self, SpiBus};
+use embedded_hal::spi::SpiBus;
+use embedded_hal::spi::{self};
 
 /// Oscillator Clock Frequency division options.
 ///
