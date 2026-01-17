@@ -80,7 +80,6 @@ fn main() -> ! {
 
 	let mut serial_usb = SerialPort::new(&usb_bus);
 
-	ufmt::uwriteln!(&mut serial_hw, "foo").unwrap_infallible();
 	let string_descriptors = StringDescriptors::new(LangID::EN_US)
 		.manufacturer("test manufacturer")
 		.product("test product")
@@ -102,7 +101,7 @@ fn main() -> ! {
 		});
 	}
 
-	//ufmt::uwriteln!(&mut serial, "pre-loop").unwrap_infallible();
+	ufmt::uwriteln!(&mut serial_hw, "pre-loop").unwrap_infallible();
 
 	// unsafe { interrupt::enable() };
 	loop {
