@@ -96,7 +96,7 @@ fn main() -> ! {
 	loop {
 		counter+=1;
 		ufmt::uwriteln!(&mut serial_hw, "Loop {}", counter).unwrap_infallible();
-		if counter % 10_000 == 0 {
+		if counter % 1_000 == 0 {
 			let write_buf = [b'?'];
 			serial_usb.write(&write_buf).unwrap();
 		}
