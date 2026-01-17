@@ -24,10 +24,10 @@ use_field_init_shorthand = false
 force_explicit_abi = true
 disable_all_formatting = false
 # In order to have each import on a separate line, I want to use this:
-# https://rust-lang.github.io/rustfmt/?version=v1.6.0&search=#imports_granularitya
+# https://rust-lang.github.io/rustfmt/?version=v1.6.0&search=#imports_granularity
 #
 # ```
-# imports_granularity = "Item"
+imports_granularity = "Item"
 # ```
 #
 # Unfortunately, this option is not stable yet:
