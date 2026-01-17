@@ -26,9 +26,14 @@ fn main() -> ! {
 		.product("test product")
 		.serial_number("test serial number");
 
-	let mut usb_device = UsbDeviceBuilder::new(&usb_bus, UsbVidPid(0x1209, 0x0001))
+	let rand_ids = UsbVidPid(0x1ea7, 0x4a09);
+
+	let mut usb_device = UsbDeviceBuilder::new(&usb_bus, rand_ids)
 		.strings(&[string_descriptors])
 		.unwrap()
+               .max_packet_size_0(64)
+               .unwrap()
+               .device_class(usbd_serial::USB_CLASS_CDC)
 		.build();
 
 	loop {
