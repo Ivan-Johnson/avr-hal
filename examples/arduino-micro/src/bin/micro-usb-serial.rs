@@ -12,26 +12,12 @@ use usbd_serial::SerialPort;
 
 #[arduino_hal::entry]
 fn main() -> ! {
-	let mut dp: Peripherals = Peripherals::take().unwrap();
+	let dp: Peripherals = Peripherals::take().unwrap();
 	let pins = arduino_hal::pins!(dp);
-	let pll = dp.PLL;
 	let mut serial_hw = arduino_hal::default_serial!(dp, pins, 57600);
 	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!").unwrap_infallible();
 
-	// Configure PLL interface
-	// prescale 16MHz crystal -> 8MHz
-	pll.pllcsr().write(|w| w.pindiv().set_bit());
-	// 96MHz PLL output; /1.5 for 64MHz timers, /2 for 48MHz USB
-	pll.pllfrq()
-		.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
 
-	// Enable PLL
-	pll.pllcsr().modify(|_, w| w.plle().set_bit());
-
-	// Check PLL lock
-	while pll.pllcsr().read().plock().bit_is_clear() {}
-
-	dp.PLL = pll;
 	let usb_bus = UsbBusAllocator::new(arduino_hal::default_usb_bus_with_pll_macro!(dp));
 
 

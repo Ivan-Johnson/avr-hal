@@ -107,7 +107,20 @@ impl<CLOCKUSB: ClockUSB> UsbdBus<CLOCKUSB>
 where
 	Delay<CLOCKUSB>: DelayNs,
 {
-	pub fn new(usb: USB_DEVICE, _pll: avr_device::atmega32u4::PLL) -> Self {
+	pub fn new(usb: USB_DEVICE, pll: avr_device::atmega32u4::PLL) -> Self {
+	// Configure PLL interface
+	// prescale 16MHz crystal -> 8MHz
+	pll.pllcsr().write(|w| w.pindiv().set_bit());
+	// 96MHz PLL output; /1.5 for 64MHz timers, /2 for 48MHz USB
+	pll.pllfrq()
+		.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
+
+	// Enable PLL
+	pll.pllcsr().modify(|_, w| w.plle().set_bit());
+
+	// Check PLL lock
+		while pll.pllcsr().read().plock().bit_is_clear() {}
+
 		Self {
 			usb: Mutex::new(usb),
 			pending_ins: Mutex::new(Cell::new(0)),
