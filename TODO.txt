@@ -16,6 +16,8 @@
 
     [X] verify everything still works
 
+    [ ] cleanup imports
+
     [ ] Delete code for configuring interrupt-related registers (usb.rs)
 
     [ ] verify everything still works
