@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 use usb_device::bus::UsbBusAllocator;
-use arduino_hal::pins;
 use arduino_hal::prelude::*;
 use arduino_hal::Peripherals;
 use panic_halt as _;
@@ -14,7 +13,7 @@ use usbd_serial::SerialPort;
 #[arduino_hal::entry]
 fn main() -> ! {
 	let mut dp: Peripherals = Peripherals::take().unwrap();
-	let pins = pins!(dp);
+	let pins = arduino_hal::pins!(dp);
 	let pll = dp.PLL;
 	let mut serial_hw = arduino_hal::default_serial!(dp, pins, 57600);
 	ufmt::uwriteln!(&mut serial_hw, "Hello from Arduino!").unwrap_infallible();
