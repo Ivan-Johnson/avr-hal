@@ -48,17 +48,53 @@ fn main() -> ! {
 		.unwrap()
 		.build();
 
-	ufmt::uwriteln!(&mut serial_hw, "Starting loop").unwrap_infallible();
+
 
 	let mut counter = 0;
 	loop {
 		counter += 1;
-		ufmt::uwriteln!(&mut serial_hw, "Loop {}", counter).unwrap_infallible();
-		if counter % 1_000 == 0 {
-			let write_buf = [b'?'];
-			serial_usb.write(&write_buf).unwrap();
+		if counter % 50_000 == 0 {
+			ufmt::uwriteln!(&mut serial_hw, "{} loops with nothing to do", counter).unwrap_infallible();
 		}
 
-		usb_device.poll(&mut [&mut serial_usb]);
+		// Wait until we have data
+		if !usb_device.poll(&mut [&mut serial_usb]) {
+			continue;
+		}
+		counter = 0;
+
+		// Read the data into this buffer
+		let mut read_buf = [0u8; 10];
+		let Ok(read_count) = serial_usb.read(&mut read_buf) else {
+			ufmt::uwriteln!(&mut serial_hw, "serial read failed??").unwrap_infallible();
+			continue;
+		};
+		if read_count == 0 {
+			ufmt::uwriteln!(&mut serial_hw, "serial read returned no data").unwrap_infallible();
+			continue;
+		}
+		ufmt::uwriteln!(&mut serial_hw, "serial read returned:").unwrap_infallible();
+		for byte in read_buf {
+			ufmt::uwrite!(&mut serial_hw, "{}, ", byte).unwrap_infallible();
+		}
+		ufmt::uwriteln!(&mut serial_hw, "").unwrap_infallible();
+
+
+		// Ideally we want to do something like this:
+		//
+		// ```
+		// let mut write_buf = [0u8; 20];
+		// let write_count = ufmt::uwriteln!(&mut write_buf, "Got: {}", &write_buf);
+		// ```
+		//
+		// TODO: Figure out how to get the above code to compile. It seems like
+		// I might need to manually implement the uDebug trait? That doesn't seem
+		// right... In the meantime, simply echo the string back
+
+		// TODO: is this `.expect()` safe?
+		let len = serial_usb
+			.write(&read_buf[0..read_count])
+			.expect("The host should be reading data faster than the arduino can write it");
+		assert_eq!(len, read_count);
 	}
 }
