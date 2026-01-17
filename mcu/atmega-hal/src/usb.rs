@@ -3,6 +3,7 @@ use core::cell::Cell;
 use core::cmp::max;
 use core::marker::PhantomData;
 
+use crate::pac::pll::pllcsr::W as pllcsr_writer;
 use avr_device::atmega32u4::usb_device::udint;
 use avr_device::atmega32u4::usb_device::ueintx;
 use avr_device::atmega32u4::usb_device::usbint;
@@ -13,17 +14,16 @@ use avr_device::atmega32u4::USB_DEVICE;
 use avr_device::interrupt::CriticalSection;
 use avr_device::interrupt::Mutex;
 use avr_device::interrupt::{self};
+use avr_hal_generic::clock::Clock;
+use avr_hal_generic::clock::MHz16;
+use avr_hal_generic::clock::MHz8;
+use avr_hal_generic::delay::Delay;
+use embedded_hal::delay::DelayNs;
 use usb_device::bus::PollResult;
 use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
 use usb_device::UsbError;
-use avr_hal_generic::clock::Clock;
-use avr_hal_generic::clock::MHz16;
-use avr_hal_generic::clock::MHz8;
-use crate::pac::pll::pllcsr::W as pllcsr_writer;
-use avr_hal_generic::delay::Delay;
-use embedded_hal::delay::DelayNs;
 
 const MAX_ENDPOINTS: usize = 7;
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];
@@ -94,7 +94,7 @@ impl EndpointTableEntry {
 
 pub struct UsbdBus<CLOCKUSB: ClockUSB>
 where
-       Delay<CLOCKUSB>: DelayNs,
+	Delay<CLOCKUSB>: DelayNs,
 {
 	usb: Mutex<USB_DEVICE>,
 	pending_ins: Mutex<Cell<u8>>,
@@ -108,17 +108,17 @@ where
 	Delay<CLOCKUSB>: DelayNs,
 {
 	pub fn new(usb: USB_DEVICE, pll: avr_device::atmega32u4::PLL) -> Self {
-	// Configure PLL interface
-	// prescale 16MHz crystal -> 8MHz
-	pll.pllcsr().write(|w| w.pindiv().set_bit());
-	// 96MHz PLL output; /1.5 for 64MHz timers, /2 for 48MHz USB
-	pll.pllfrq()
-		.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
+		// Configure PLL interface
+		// prescale 16MHz crystal -> 8MHz
+		pll.pllcsr().write(|w| w.pindiv().set_bit());
+		// 96MHz PLL output; /1.5 for 64MHz timers, /2 for 48MHz USB
+		pll.pllfrq()
+			.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
 
-	// Enable PLL
-	pll.pllcsr().modify(|_, w| w.plle().set_bit());
+		// Enable PLL
+		pll.pllcsr().modify(|_, w| w.plle().set_bit());
 
-	// Check PLL lock
+		// Check PLL lock
 		while pll.pllcsr().read().plock().bit_is_clear() {}
 
 		Self {
@@ -126,7 +126,7 @@ where
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
 			dpram_usage: 0,
-			phantom: PhantomData{},
+			phantom: PhantomData {},
 		}
 	}
 
