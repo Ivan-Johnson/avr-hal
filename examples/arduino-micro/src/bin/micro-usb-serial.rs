@@ -41,10 +41,7 @@ use usb_device::{
 	class_prelude::UsbBusAllocator,
 	device::{UsbDevice, UsbDeviceBuilder, UsbVidPid},
 };
-use usbd_hid::{
-	descriptor::{KeyboardReport, SerializedDescriptor},
-	hid_class::HIDClass,
-};
+use usbd_serial::SerialPort;
 
 const PAYLOAD: &[u8] = b"Hello World";
 
@@ -76,7 +73,7 @@ fn main() -> ! {
 		&*USB_BUS.insert(UsbBus::with_suspend_notifier(usb, pll))
 	};
 
-	let hid_class = HIDClass::new(usb_bus, KeyboardReport::desc(), 1);
+	let mut serial = SerialPort::new(&usb_bus);
 
 	let string_descriptors = StringDescriptors::new(LangID::EN_US)
 		.manufacturer("test manufacturer")
@@ -91,7 +88,7 @@ fn main() -> ! {
 	unsafe {
 		USB_CTX = Some(UsbContext {
 			usb_device,
-			hid_class,
+			serial,
 			current_index: 0,
 			pressed: false,
 			indicator: status.downgrade(),
@@ -111,7 +108,7 @@ static mut USB_CTX: Option<UsbContext<PLL>> = None;
 
 struct UsbContext<S: SuspendNotifier> {
 	usb_device: UsbDevice<'static, UsbBus<S>>,
-	hid_class: HIDClass<'static, UsbBus<S>>,
+	serial: SerialPort<'static>,
 	current_index: usize,
 	pressed: bool,
 	indicator: Pin<Output>,
@@ -120,27 +117,8 @@ struct UsbContext<S: SuspendNotifier> {
 
 impl<S: SuspendNotifier> UsbContext<S> {
 	fn poll(&mut self) {
-		if self.trigger.is_low() {
-			let next_report = if self.pressed {
-				BLANK_REPORT
-			} else {
-				PAYLOAD.get(self.current_index)
-					.copied()
-					.and_then(ascii_to_report)
-					.unwrap_or(BLANK_REPORT)
-			};
-
-			if self.hid_class.push_input(&next_report).is_ok() {
-				if self.pressed && self.current_index < PAYLOAD.len() {
-					self.current_index += 1;
-				}
-				self.pressed = !self.pressed;
-			}
-		} else {
-			self.current_index = 0;
-			self.pressed = false;
-			self.hid_class.push_input(&BLANK_REPORT).ok();
-		}
+		let write_buf = [b'?'; 20];
+		self.serial.write(&write_buf).unwrap();
 
 		if self.usb_device.poll(&mut [&mut self.hid_class]) {
 			let mut report_buf = [0u8; 1];
@@ -154,29 +132,4 @@ impl<S: SuspendNotifier> UsbContext<S> {
 			}
 		}
 	}
-}
-
-const BLANK_REPORT: KeyboardReport = KeyboardReport {
-	modifier: 0,
-	reserved: 0,
-	leds: 0,
-	keycodes: [0; 6],
-};
-
-fn ascii_to_report(c: u8) -> Option<KeyboardReport> {
-	let (keycode, shift) = if c.is_ascii_alphabetic() {
-		(c.to_ascii_lowercase() - b'a' + 0x04, c.is_ascii_uppercase())
-	} else {
-		match c {
-			b' ' => (0x2c, false),
-			_ => return None,
-		}
-	};
-
-	let mut report = BLANK_REPORT;
-	if shift {
-		report.modifier |= 0x2;
-	}
-	report.keycodes[0] = keycode;
-	Some(report)
 }
