@@ -85,51 +85,22 @@ fn main() -> ! {
 		.product("test product")
 		.serial_number("test serial number");
 
-	let usb_device = UsbDeviceBuilder::new(usb_bus, UsbVidPid(0x1209, 0x0001))
+	let mut usb_device = UsbDeviceBuilder::new(usb_bus, UsbVidPid(0x1209, 0x0001))
 		.strings(&[string_descriptors])
 		.unwrap()
 		.build();
 
-	unsafe {
-		USB_CTX = Some(UsbContext {
-			usb_device,
-			serial_usb,
-			current_index: 0,
-			pressed: false,
-			trigger: trigger.downgrade(),
-			counter: 0,
-		});
-	}
-
 	ufmt::uwriteln!(&mut serial_hw, "pre-loop").unwrap_infallible();
 
-	// unsafe { interrupt::enable() };
+	let mut counter = 0;
 	loop {
 		// sleep();
-		let ctx = unsafe { USB_CTX.as_mut().unwrap() };
-		ctx.poll();
-	}
-}
-
-static mut USB_CTX: Option<UsbContext<PLL>> = None;
-
-struct UsbContext<S: SuspendNotifier> {
-	usb_device: UsbDevice<'static, UsbBus<S>>,
-	serial_usb: SerialPort<'static, UsbBus<S>>,
-	current_index: usize,
-	pressed: bool,
-	trigger: Pin<Input<PullUp>>,
-	counter: u32,
-}
-
-impl<S: SuspendNotifier> UsbContext<S> {
-	fn poll(&mut self) {
-		self.counter+=1;
-		if self.counter % 10_000 == 0 {
+		counter+=1;
+		if counter % 10_000 == 0 {
 			let write_buf = [b'?'];
-			self.serial_usb.write(&write_buf).unwrap();
+			serial_usb.write(&write_buf).unwrap();
 		}
 
-		self.usb_device.poll(&mut [&mut self.serial_usb]);
+		usb_device.poll(&mut [&mut serial_usb]);
 	}
 }
