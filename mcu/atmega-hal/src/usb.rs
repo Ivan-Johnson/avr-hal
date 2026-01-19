@@ -355,9 +355,12 @@ where
 			let pll = self.pll.borrow(cs);
 
 			pll.pllcsr().modify(|_, w| CLOCKUSB::setup_pllcsr_pindiv(w));
-			// TODO TODO TODO: This breaks everything?
-			let initial_value = pll.pllfrq().read().bits();
-			assert_eq!(initial_value, 0b00000100);
+
+			// Explicitly reset pllfrq back to the value that it would have after
+			// power cycling the device.
+			pll.pllfrq().write(|w| unsafe{w.bits(0b0000_0100)});
+			// TODO: submit patch to avr-device to change PLLFRQ_SPEC's RESET_VALUE from zero to 4.
+			// pll.pllfrq().reset();
 
 			pll.pllcsr().modify(|_, w| w.plle().set_bit());
 			while pll.pllcsr().read().plock().bit_is_clear() {}
