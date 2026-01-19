@@ -26,6 +26,8 @@ use usb_device::UsbDirection;
 use usb_device::UsbError;
 
 const MAX_ENDPOINTS: usize = 7;
+
+// From datasheet section 22.1
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];
 
 // TODO: do the links work?
@@ -64,6 +66,16 @@ impl ClockUSB for MHz8 {
 //
 // * Ah. I guess this has to do with double bank mode? i.e. the `EPBK` field.
 const _DPRAM_SIZE: u16 = 832;
+
+// TODO: cleanup these "footnotes". Make sure that they show up properly in the docs, and that I'm able to link to them as expected
+// * https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html#footnotes
+
+// FOOTNOTE-EP0: TODO verify
+//
+// As I understand it, a USB endpoint is *ALWAYS* either IN or OUT. In particular, there are actually
+// two endpoint zeros: one for IN, and one for OUT. However, the atmega registers treat these two
+// EP0s as if they were a single endpoint. As a result, this introduces a bunch of edge cases where ep0
+// needs to be treated specially.
 
 /// Convert the EndpointType enum to the bits used by the eptype field in UECFG0X.
 ///
