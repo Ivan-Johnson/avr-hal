@@ -20,7 +20,7 @@
 
     [X] Delete `delay_cycles` function
 
-    [ ] Create `pll: Mutex<PLL>,` field
+    [X] Create `pll: Mutex<PLL>,` field
 
     [ ] move PLL code
 
