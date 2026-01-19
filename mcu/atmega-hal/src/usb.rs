@@ -27,7 +27,7 @@ use usb_device::UsbError;
 
 const MAX_ENDPOINTS: usize = 7;
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];
-const DPRAM_SIZE: u16 = 832;
+const _DPRAM_SIZE: u16 = 832;
 
 const EP_TYPE_CONTROL: u8 = 0b00;
 
