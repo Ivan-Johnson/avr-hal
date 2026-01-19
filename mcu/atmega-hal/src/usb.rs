@@ -175,6 +175,7 @@ where
 		if usb.uenum().read().bits() & 0b111 != (index as u8) {
 			return Err(UsbError::InvalidState);
 		}
+
 		Ok(())
 	}
 
@@ -264,6 +265,9 @@ where
 		max_packet_size: u16,
 		_interval: u8,
 	) -> Result<EndpointAddress, UsbError> {
+		// We intentionally don't use a critical section here. This is because, unlike all the other
+		// functions in this trait, this function only modifies `self`'s internal state.
+
 		// Ignore duplicate ep0 allocation by usb_device.
 		// Endpoints can only be configured once, and
 		// control endpoint must be configured as "OUT".
