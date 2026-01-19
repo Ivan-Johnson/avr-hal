@@ -257,77 +257,62 @@ where
 		// We intentionally don't use a critical section here. This is because, unlike all the other
 		// functions in this trait, this function only modifies `self`'s internal state.
 
-		let ep_addr = match ep_addr {
-			Some(addr) => {
-				let index = addr.index();
-
-				if addr.direction() != ep_dir {
-					unreachable!("Requested endpoint address has mismatched direction. This suggests a bug in usb-device?");
-				}
-
-				if index >= self.endpoints.len() {
-					return Err(UsbError::InvalidEndpoint);
-				}
-
-				// TODO: is this really necessary?
-				//
-				// > Ignore duplicate ep0 allocation by usb_device.
-				// > Endpoints can only be configured once, and
-				// > control endpoint must be configured as "OUT".
-				//
-				// ref @FOOTNOTE-EP0
-				//
-				// (FWIW, section 22.18.2's docs for UECFG0X.EPDIR confirm that ep0
-				// must be configured as "OUT")
-				if index == 0 && addr.direction() == UsbDirection::In {
-					return Ok(ep_addr.unwrap());
-				}
-
-				if self.endpoints[index].is_some()
-					|| max_packet_size > ENDPOINT_MAX_BUFSIZE[index]
-				{
-					// `usb-device`'s docs say that we *should attempt* to use the specified address.
-					// Since the requested address is not availabe, falling back to automatic allocation
-					// is acceptable.
-					return self.alloc_ep(
-						ep_dir,
-						None,
-						ep_type,
-						max_packet_size,
-						interval,
-					);
-				}
-
-				addr
-			}
-			None => {
-				// Find the next free endpoint
-				let index = self
-					.endpoints
-					.iter()
-					.enumerate()
-					.skip(1) // Skip the control endpoint, which is always index zero
-					.find_map(|(index, ep)| {
-						if ep.is_none()
-							&& max_packet_size
-								<= ENDPOINT_MAX_BUFSIZE[index]
-						{
-							Some(index)
-						} else {
-							None
-						}
-					})
-					.ok_or(UsbError::EndpointMemoryOverflow)?;
-				EndpointAddress::from_parts(index, ep_dir)
-			}
+		// WLOG: ep_addr is not None
+		let Some(addr) = ep_addr else {
+			// If it is None, then find an index and do a recursive call.
+			let index = self
+				.endpoints
+				.iter()
+				.enumerate()
+				.skip(1) // Skip the control endpoint, which is always index zero
+				.find_map(|(index, ep)| {
+					if ep.is_none()
+						&& max_packet_size
+							<= ENDPOINT_MAX_BUFSIZE[index]
+					{
+						Some(index)
+					} else {
+						None
+					}
+				})
+				.ok_or(UsbError::EndpointMemoryOverflow)?;
+			let ep_addr = Some(EndpointAddress::from_parts(index, ep_dir));
+			return self.alloc_ep(ep_dir, ep_addr, ep_type, max_packet_size, interval);
 		};
 
-		self.endpoints[ep_addr.index()] = Some(EndpointTableEntry {
+
+		let index = addr.index();
+		if addr.direction() != ep_dir {
+			unreachable!("Requested endpoint address has mismatched direction. This suggests a bug in usb-device?");
+		}
+		if index >= self.endpoints.len() {
+			return Err(UsbError::InvalidEndpoint);
+		}
+		// TODO: is this really necessary?
+		//
+		// > Ignore duplicate ep0 allocation by usb_device.
+		// > Endpoints can only be configured once, and
+		// > control endpoint must be configured as "OUT".
+		//
+		// ref @FOOTNOTE-EP0
+		//
+		// (FWIW, section 22.18.2's docs for UECFG0X.EPDIR confirm that ep0
+		// must be configured as "OUT")
+		if index == 0 && addr.direction() == UsbDirection::In {
+			return Ok(ep_addr.unwrap());
+		}
+		if self.endpoints[index].is_some()
+			|| max_packet_size > ENDPOINT_MAX_BUFSIZE[index]
+		{
+			return Err(UsbError::InvalidEndpoint);
+		}
+
+		self.endpoints[addr.index()] = Some(EndpointTableEntry {
 			ep_type,
 			ep_dir,
 			max_packet_size,
 		});
-		Ok(ep_addr)
+		Ok(addr)
 	}
 
 	/// Enables and initializes the USB peripheral. Soon after enabling the device will be reset, so
