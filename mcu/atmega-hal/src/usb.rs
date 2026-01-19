@@ -267,8 +267,7 @@ where
 				.skip(1) // Skip the control endpoint, which is always index zero
 				.find_map(|(index, ep)| {
 					if ep.is_none()
-						&& max_packet_size
-							<= ENDPOINT_MAX_BUFSIZE[index]
+						&& max_packet_size <= ENDPOINT_MAX_BUFSIZE[index]
 					{
 						Some(index)
 					} else {
@@ -279,7 +278,6 @@ where
 			let ep_addr = Some(EndpointAddress::from_parts(index, ep_dir));
 			return self.alloc_ep(ep_dir, ep_addr, ep_type, max_packet_size, interval);
 		};
-
 
 		let index = addr.index();
 		if addr.direction() != ep_dir {
@@ -301,8 +299,7 @@ where
 		if index == 0 && addr.direction() == UsbDirection::In {
 			return Ok(ep_addr.unwrap());
 		}
-		if self.endpoints[index].is_some()
-			|| max_packet_size > ENDPOINT_MAX_BUFSIZE[index]
+		if self.endpoints[index].is_some() || max_packet_size > ENDPOINT_MAX_BUFSIZE[index]
 		{
 			return Err(UsbError::InvalidEndpoint);
 		}
