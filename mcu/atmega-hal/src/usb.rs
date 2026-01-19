@@ -69,6 +69,39 @@ impl ClockUSB for MHz8 {
 	}
 }
 
+/// Convert the EndpointType enum to the bits used by the eptype field in UECFG0X.
+///
+/// Refer to section 22.18.2 of the datasheet.
+fn eptype_bits_from_ep_type(ep_type: EndpointType) -> u8 {
+	match ep_type {
+		EndpointType::Control => 0b00,
+		EndpointType::Isochronous { .. } => 0b01,
+		EndpointType::Bulk => 0b10,
+		EndpointType::Interrupt => 0b11,
+	}
+}
+
+fn epdir_bit_from_direction(direction: UsbDirection) -> bool {
+	match direction {
+		UsbDirection::In => true,
+		UsbDirection::Out => false,
+	}
+}
+
+fn epsize_bits_from_max_packet_size(max_packet_size: u16) -> u8 {
+	let value = max(8, max_packet_size.next_power_of_two());
+	match value {
+		8 => 0b000,
+		16 => 0b001,
+		32 => 0b010,
+		64 => 0b011,
+		128 => 0b100,
+		256 => 0b101,
+		512 => 0b110,
+		_ => unreachable!(),
+	}
+}
+
 #[derive(Default)]
 struct EndpointTableEntry {
 	is_allocated: bool,
