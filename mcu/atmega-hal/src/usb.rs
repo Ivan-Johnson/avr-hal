@@ -234,26 +234,27 @@ where
 			return Ok(ep_addr.unwrap());
 		}
 
-		let ep_addr = match ep_addr {
-			Some(addr) if !self.endpoints[addr.index()].is_allocated => addr,
-			_ => {
-				// Find next free endpoint
-				let index = self
-					.endpoints
-					.iter()
-					.enumerate()
-					.skip(1)
-					.find_map(|(index, ep)| {
-						if !ep.is_allocated && max_packet_size <= ENDPOINT_MAX_BUFSIZE[index] {
+		let ep_addr =
+			match ep_addr {
+				Some(addr) if !self.endpoints[addr.index()].is_allocated => addr,
+				_ => {
+					// Find next free endpoint
+					let index =
+						self.endpoints
+							.iter()
+							.enumerate()
+							.skip(1)
+							.find_map(|(index, ep)| {
+								if !ep.is_allocated && max_packet_size <= ENDPOINT_MAX_BUFSIZE[index] {
 							Some(index)
 						} else {
 							None
 						}
-					})
-					.ok_or(UsbError::EndpointOverflow)?;
-				EndpointAddress::from_parts(index, ep_dir)
-			}
-		};
+							})
+							.ok_or(UsbError::EndpointOverflow)?;
+					EndpointAddress::from_parts(index, ep_dir)
+				}
+			};
 		let entry = &mut self.endpoints[ep_addr.index()];
 		entry.eptype_bits = eptype_bits_from_ep_type(ep_type);
 		entry.epdir_bit = epdir_bit_from_direction(ep_dir);
@@ -354,8 +355,9 @@ where
 					return Err(UsbError::WouldBlock);
 				}
 				//NB: RXOUTI serves as KILLBK for IN endpoints and needs to stay zero:
-				usb.ueintx()
-					.clear_interrupts(|w| w.txini().clear_bit().rxouti().clear_bit());
+				usb.ueintx().clear_interrupts(|w| {
+					w.txini().clear_bit().rxouti().clear_bit()
+				});
 
 				for &byte in buf {
 					if usb.ueintx().read().rwal().bit_is_clear() {
@@ -365,8 +367,9 @@ where
 				}
 
 				//NB: RXOUTI serves as KILLBK for IN endpoints and needs to stay zero:
-				usb.ueintx()
-					.clear_interrupts(|w| w.fifocon().clear_bit().rxouti().clear_bit());
+				usb.ueintx().clear_interrupts(|w| {
+					w.fifocon().clear_bit().rxouti().clear_bit()
+				});
 			}
 
 			let pending_ins = self.pending_ins.borrow(cs);
@@ -388,7 +391,8 @@ where
 			//   packet and to clear the endpoint bank.**
 			if endpoint.eptype_bits == EP_TYPE_CONTROL {
 				let ueintx = usb.ueintx().read();
-				if ueintx.rxouti().bit_is_clear() && ueintx.rxstpi().bit_is_clear() {
+				if ueintx.rxouti().bit_is_clear() && ueintx.rxstpi().bit_is_clear()
+				{
 					return Err(UsbError::WouldBlock);
 				}
 
@@ -400,8 +404,9 @@ where
 				for slot in &mut buf[..bytes_to_read] {
 					*slot = usb.uedatx().read().bits();
 				}
-				usb.ueintx()
-					.clear_interrupts(|w| w.rxouti().clear_bit().rxstpi().clear_bit());
+				usb.ueintx().clear_interrupts(|w| {
+					w.rxouti().clear_bit().rxstpi().clear_bit()
+				});
 
 				Ok(bytes_to_read)
 			} else {
@@ -433,8 +438,9 @@ where
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
 			if self.set_current_endpoint(cs, ep_addr.index()).is_ok() {
-				usb.ueconx()
-					.modify(|_, w| w.stallrq().bit(stalled).stallrqc().bit(!stalled));
+				usb.ueconx().modify(|_, w| {
+					w.stallrq().bit(stalled).stallrqc().bit(!stalled)
+				});
 			}
 		});
 	}
@@ -522,7 +528,9 @@ where
 					if ueintx.rxstpi().bit_is_set() {
 						ep_setup |= 1 << index;
 					}
-					if pending_ins.get() & (1 << index) != 0 && ueintx.txini().bit_is_set() {
+					if pending_ins.get() & (1 << index) != 0
+						&& ueintx.txini().bit_is_set()
+					{
 						ep_in_complete |= 1 << index;
 						pending_ins.set(pending_ins.get() & !(1 << index));
 					}

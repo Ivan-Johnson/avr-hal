@@ -292,8 +292,8 @@ macro_rules! pins {
 macro_rules! pins {
 	($p:expr) => {
 		$crate::Pins::new(
-			$p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE, $p.PORTF, $p.PORTG, $p.PORTH, $p.PORTJ,
-			$p.PORTK, $p.PORTL,
+			$p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE, $p.PORTF, $p.PORTG,
+			$p.PORTH, $p.PORTJ, $p.PORTK, $p.PORTL,
 		)
 	};
 }

@@ -131,7 +131,10 @@ where
 	}
 }
 // AVR supports multiple writes
-impl<H, EEPROM> embedded_storage::nor_flash::MultiwriteNorFlash for Eeprom<H, EEPROM> where EEPROM: EepromOps<H> {}
+impl<H, EEPROM> embedded_storage::nor_flash::MultiwriteNorFlash for Eeprom<H, EEPROM> where
+	EEPROM: EepromOps<H>
+{
+}
 
 #[macro_export]
 macro_rules! impl_eeprom_common {
@@ -187,14 +190,16 @@ macro_rules! impl_eeprom_common {
 								let $periph_ewmode_var = &self;
 								$set_erasewrite_mode
 							}
-							self.eecr().modify(|_, w| w.eepe().set_bit()); // Start Erase+Write operation.
+							self.eecr()
+								.modify(|_, w| w.eepe().set_bit()); // Start Erase+Write operation.
 						} else {
 							// Now we know that all bits should be erased.
 							{
 								let $periph_emode_var = &self;
 								$set_erase_mode
 							}
-							self.eecr().modify(|_, w| w.eepe().set_bit()); // Start Erase-only operation.
+							self.eecr()
+								.modify(|_, w| w.eepe().set_bit()); // Start Erase-only operation.
 						}
 					}
 					//Now we know that _no_ bits need to be erased to '1'.
@@ -207,7 +212,8 @@ macro_rules! impl_eeprom_common {
 								let $periph_wmode_var = &self;
 								$set_write_mode
 							}
-							self.eecr().modify(|_, w| w.eepe().set_bit()); // Start Write-only operation.
+							self.eecr()
+								.modify(|_, w| w.eepe().set_bit()); // Start Write-only operation.
 						}
 					}
 				}

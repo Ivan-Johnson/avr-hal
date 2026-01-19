@@ -33,9 +33,12 @@
 use crate::port;
 pub use avr_hal_generic::usart::*;
 
-pub type Usart<USART, RX, TX, CLOCK> = avr_hal_generic::usart::Usart<crate::Atmega, USART, RX, TX, CLOCK>;
-pub type UsartWriter<USART, RX, TX, CLOCK> = avr_hal_generic::usart::UsartWriter<crate::Atmega, USART, RX, TX, CLOCK>;
-pub type UsartReader<USART, RX, TX, CLOCK> = avr_hal_generic::usart::UsartReader<crate::Atmega, USART, RX, TX, CLOCK>;
+pub type Usart<USART, RX, TX, CLOCK> =
+	avr_hal_generic::usart::Usart<crate::Atmega, USART, RX, TX, CLOCK>;
+pub type UsartWriter<USART, RX, TX, CLOCK> =
+	avr_hal_generic::usart::UsartWriter<crate::Atmega, USART, RX, TX, CLOCK>;
+pub type UsartReader<USART, RX, TX, CLOCK> =
+	avr_hal_generic::usart::UsartReader<crate::Atmega, USART, RX, TX, CLOCK>;
 
 #[cfg(any(feature = "atmega16"))]
 pub type Usart0<CLOCK> = Usart<
@@ -231,7 +234,10 @@ impl
 		}
 	}
 
-	fn raw_write(&mut self, byte: u8) -> avr_hal_generic::nb::Result<(), core::convert::Infallible> {
+	fn raw_write(
+		&mut self,
+		byte: u8,
+	) -> avr_hal_generic::nb::Result<(), core::convert::Infallible> {
 		// Call flush to make sure the data-register is empty
 		self.raw_flush()?;
 
@@ -311,7 +317,10 @@ impl
 		}
 	}
 
-	fn raw_write(&mut self, byte: u8) -> avr_hal_generic::nb::Result<(), core::convert::Infallible> {
+	fn raw_write(
+		&mut self,
+		byte: u8,
+	) -> avr_hal_generic::nb::Result<(), core::convert::Infallible> {
 		// Call flush to make sure the data-register is empty
 		self.raw_flush()?;
 
@@ -389,7 +398,10 @@ impl
 		}
 	}
 
-	fn raw_write(&mut self, byte: u8) -> avr_hal_generic::nb::Result<(), core::convert::Infallible> {
+	fn raw_write(
+		&mut self,
+		byte: u8,
+	) -> avr_hal_generic::nb::Result<(), core::convert::Infallible> {
 		// Call flush to make sure the data-register is empty
 		self.raw_flush()?;
 
