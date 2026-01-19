@@ -110,6 +110,13 @@ fn epsize_bits_from_max_packet_size(max_packet_size: u16) -> u8 {
 	}
 }
 
+// TODO: section 21.9 of the datasheet says:
+//
+// > The reservation of a Pipe or an Endpoint can only be made in the increasing order (Pipe/Endpo>
+// > Pipe/Endpoint). The firmware shall thus configure them in the same order
+//
+// Do we respect this?
+
 struct EndpointTableEntry {
 	ep_type: EndpointType,
 	ep_dir: UsbDirection,
