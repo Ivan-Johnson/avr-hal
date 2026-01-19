@@ -114,7 +114,7 @@ fn epsize_bits_from_max_packet_size(max_packet_size: u16) -> u8 {
 
 struct EndpointTableEntry {
 	ep_type: EndpointType,
-	direction: UsbDirection,
+	ep_dir: UsbDirection,
 	max_packet_size: u16,
 }
 
@@ -243,7 +243,7 @@ where
 	/// >   but the endpoint in question has already been allocated.
 	fn alloc_ep(
 		&mut self,
-		direction: UsbDirection,
+		ep_dir: UsbDirection,
 		ep_addr: Option<EndpointAddress>,
 		ep_type: EndpointType,
 		max_packet_size: u16,
@@ -256,7 +256,7 @@ where
 			Some(addr) => {
 				let index = addr.index();
 
-				if addr.direction() != direction {
+				if addr.direction() != ep_dir {
 					unreachable!("Requested endpoint address has mismatched direction. This suggests a bug in usb-device?");
 				}
 
@@ -285,7 +285,7 @@ where
 					// Since the requested address is not availabe, falling back to automatic allocation
 					// is acceptable.
 					return self.alloc_ep(
-						direction,
+						ep_dir,
 						None,
 						ep_type,
 						max_packet_size,
@@ -313,13 +313,13 @@ where
 						}
 					})
 					.ok_or(UsbError::EndpointMemoryOverflow)?;
-				EndpointAddress::from_parts(index, direction)
+				EndpointAddress::from_parts(index, ep_dir)
 			}
 		};
 
 		self.endpoints[ep_addr.index()] = Some(EndpointTableEntry {
 			ep_type,
-			direction,
+			ep_dir,
 			max_packet_size,
 		});
 		Ok(ep_addr)
@@ -488,7 +488,7 @@ where
 				//     > #define EP_TYPE_INTERRUPT_IN ((1<<EPTYPE1) | (1<<EPTYPE0) | (1<<EPDIR))
 				usb.uecfg0x().write(|w| unsafe {
 					w.epdir()
-						.bit(epdir_bit_from_direction(endpoint.direction))
+						.bit(epdir_bit_from_direction(endpoint.ep_dir))
 						.eptype()
 						.bits(eptype_bits_from_ep_type(endpoint.ep_type))
 				});
@@ -598,7 +598,7 @@ where
 			assert_eq!(UsbDirection::In, ep_addr.direction());
 			if index != 0 {
 				// endpoint 0 is a special case; ref @FOOTNOTE-EP0
-				assert_eq!(UsbDirection::In, endpoint.direction);
+				assert_eq!(UsbDirection::In, endpoint.ep_dir);
 			}
 
 			let usb = self.usb.borrow(cs);
@@ -684,7 +684,7 @@ where
 			assert_eq!(UsbDirection::Out, ep_addr.direction());
 			if index != 0 {
 				// endpoint 0 is a special case; ref @FOOTNOTE-EP0
-				assert_eq!(UsbDirection::Out, endpoint.direction);
+				assert_eq!(UsbDirection::Out, endpoint.ep_dir);
 			}
 
 			self.set_current_endpoint(cs, index)?;
