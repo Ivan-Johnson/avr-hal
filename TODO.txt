@@ -18,6 +18,12 @@
 
     [X] cleanup imports
 
+    [ ] Delete `delay_cycles` function
+
+    [ ] Create `pll: Mutex<PLL>,` field
+
+    [ ] move PLL code
+
     [ ] Delete code for configuring interrupt-related registers (usb.rs)
 
     [ ] verify everything still works
