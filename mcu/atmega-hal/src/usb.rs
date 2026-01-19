@@ -155,7 +155,7 @@ where
 			usb: Mutex::new(usb),
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
-			phantom: PhantomData {},
+			phantom: PhantomData,
 		}
 	}
 
