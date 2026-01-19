@@ -261,16 +261,8 @@ where
 			}
 		};
 		let entry = &mut self.endpoints[ep_addr.index()];
-		entry.eptype_bits = match ep_type {
-			EndpointType::Control => EP_TYPE_CONTROL,
-			EndpointType::Isochronous { .. } => EP_TYPE_ISOCHRONOUS,
-			EndpointType::Bulk => EP_TYPE_BULK,
-			EndpointType::Interrupt => EP_TYPE_INTERRUPT,
-		};
-		entry.epdir_bit = match ep_dir {
-			UsbDirection::Out => EP_DIR_OUT,
-			UsbDirection::In => EP_DIR_IN,
-		};
+		entry.eptype_bits = eptype_bits_from_ep_type(ep_type);
+		entry.epdir_bit = epdir_bit_from_direction(ep_dir);
 		let ep_size = max(8, max_packet_size.next_power_of_two());
 		if DPRAM_SIZE - self.dpram_usage < ep_size {
 			return Err(UsbError::EndpointMemoryOverflow);
