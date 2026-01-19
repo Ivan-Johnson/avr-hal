@@ -13,7 +13,7 @@ use avr_device::atmega32u4::usb_device::USBINT;
 use avr_device::atmega32u4::USB_DEVICE;
 use avr_device::interrupt::CriticalSection;
 use avr_device::interrupt::Mutex;
-use avr_device::interrupt::{self};
+use avr_device::interrupt;
 use avr_hal_generic::clock::Clock;
 use avr_hal_generic::clock::MHz16;
 use avr_hal_generic::clock::MHz8;
