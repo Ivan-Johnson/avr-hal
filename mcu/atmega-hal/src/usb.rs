@@ -358,8 +358,9 @@ where
 			let pll = self.pll.borrow(cs);
 
 			pll.pllcsr().modify(|_, w| CLOCKUSB::setup_pllcsr_pindiv(w));
-			pll.pllfrq()
-				.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
+			// TODO TODO TODO: This breaks everything?
+			let initial_value = pll.pllfrq().read().bits();
+			assert_eq!(initial_value, 0b00000100);
 
 			pll.pllcsr().modify(|_, w| w.plle().set_bit());
 			while pll.pllcsr().read().plock().bit_is_clear() {}
