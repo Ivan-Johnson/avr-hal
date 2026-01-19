@@ -13,7 +13,6 @@ use avr_hal_generic::clock::Clock;
 use avr_hal_generic::clock::MHz16;
 use avr_hal_generic::clock::MHz8;
 use avr_hal_generic::delay::Delay;
-use core::arch::asm;
 use core::cell::Cell;
 use core::cmp::max;
 use core::marker::PhantomData;
@@ -664,9 +663,8 @@ where
 				.modify(|_, w| w.detach().set_bit());
 		});
 
-		// Delay for at least 1ms (exactly 1ms at 16 MHz)
-		// to allow the host to detect the change.
-		delay_cycles(16000);
+		let mut delay = Delay::<CLOCKUSB>::new();
+		delay.delay_ms(1);
 
 		interrupt::free(|cs| {
 			self.usb.borrow(cs)
@@ -736,34 +734,5 @@ impl ClearInterrupts for USBINT {
 	{
 		// Bits 7:1 are reserved as do not set.
 		self.write(|w| f(unsafe { w.bits(0x01) }));
-	}
-}
-
-/// Placeholder for `avr_device::asm::delay_cycles`
-///
-/// https://github.com/Rahix/avr-device/pull/127
-#[inline(always)]
-#[allow(unused)]
-fn delay_cycles(cycles: u32) {
-	let mut cycles_bytes = cycles.to_le_bytes();
-	// Each loop iteration takes 6 cycles when the branch is taken,
-	// and 5 cycles when the branch is not taken.
-	// So, this loop is guaranteed to run for at least `cycles - 1` cycles,
-	// and there will be approximately 4 cycles before the loop to initialize
-	// the counting registers.
-	unsafe {
-		asm!(
-		    "1:",
-		    "subi {r0}, 6",
-		    "sbci {r1}, 0",
-		    "sbci {r2}, 0",
-		    "sbci {r3}, 0",
-		    "brcc 1b",
-
-		    r0 = inout(reg_upper) cycles_bytes[0],
-		    r1 = inout(reg_upper) cycles_bytes[1],
-		    r2 = inout(reg_upper) cycles_bytes[2],
-		    r3 = inout(reg_upper) cycles_bytes[3],
-		)
 	}
 }
