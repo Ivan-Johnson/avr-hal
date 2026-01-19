@@ -336,8 +336,6 @@ where
 		});
 	}
 
-
-
 	/// Called when the host resets the device. This will be soon called after
 	/// [`poll`](crate::device::UsbDevice::poll) returns [`PollResult::Reset`]. This method should
 	/// reset the state of all endpoints and peripheral flags back to a state suitable for
@@ -440,7 +438,6 @@ where
 		})
 	}
 
-
 	/// Reads a single packet of data from the specified endpoint and returns the actual length of
 	/// the packet.
 	///
@@ -539,9 +536,6 @@ where
 			}
 		})
 	}
-
-
-
 
 	/// Causes the USB peripheral to enter USB suspend mode, lowering power consumption and
 	/// preparing to detect a USB wakeup event. This will be called after
