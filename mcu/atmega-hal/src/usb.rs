@@ -272,7 +272,8 @@ where
 				//
 				// ref @FOOTNOTE-EP0
 				//
-				// (FWIW, section 22.18.2's docs for UECFG0X.EPDIR confirm that ep0 must be configured as "OUT")
+				// (FWIW, section 22.18.2's docs for UECFG0X.EPDIR confirm that ep0
+				// must be configured as "OUT")
 				if index == 0 && addr.direction() == UsbDirection::In {
 					return Ok(ep_addr.unwrap());
 				}
