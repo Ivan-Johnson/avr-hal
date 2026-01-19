@@ -189,7 +189,6 @@ where
 		Ok(())
 	}
 
-
 	///  This function returns the full eleven-bit value of the BYCT register.
 	///
 	///  The datasheet's docs for UEBCLX says:
