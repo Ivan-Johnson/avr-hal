@@ -96,9 +96,7 @@ fn epsize_bits_from_max_packet_size(max_packet_size: u16) -> u8 {
 	}
 }
 
-#[derive(Default)]
 struct EndpointTableEntry {
-	is_allocated: bool,
 	eptype_bits: u8,
 	epdir_bit: bool,
 	epsize_bits: u8,
@@ -125,7 +123,7 @@ where
 {
 	usb: Mutex<USB_DEVICE>,
 	pending_ins: Mutex<Cell<u8>>,
-	endpoints: [EndpointTableEntry; MAX_ENDPOINTS],
+	endpoints: [Option<EndpointTableEntry>; MAX_ENDPOINTS],
 	dpram_usage: u16,
 	phantom: PhantomData<CLOCKUSB>,
 }
@@ -161,7 +159,8 @@ where
 		self.endpoints
 			.iter()
 			.enumerate()
-			.filter(|&(_, ep)| ep.is_allocated)
+			.filter(|&(_, ep)| ep.is_some())
+			.map(|(index, ep)| (index, ep.as_ref().unwrap()))
 	}
 
 	fn set_current_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
@@ -188,7 +187,10 @@ where
 	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		let usb = self.usb.borrow(cs);
 		self.set_current_endpoint(cs, index)?;
-		let endpoint = &self.endpoints[index];
+		let Some(ref endpoint) = self.endpoints[index] else {
+			// TODO
+			return Err(UsbError::InvalidState);
+		};
 
 		usb.ueconx().modify(|_, w| w.epen().set_bit());
 		usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
