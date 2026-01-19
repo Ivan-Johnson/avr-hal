@@ -139,19 +139,6 @@ where
 	Delay<CLOCKUSB>: DelayNs,
 {
 	pub fn new(usb: USB_DEVICE, pll: avr_device::atmega32u4::PLL) -> Self {
-		// Configure PLL interface
-		// prescale 16MHz crystal -> 8MHz
-		pll.pllcsr().write(|w| w.pindiv().set_bit());
-		// 96MHz PLL output; /1.5 for 64MHz timers, /2 for 48MHz USB
-		pll.pllfrq()
-			.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
-
-		// Enable PLL
-		pll.pllcsr().modify(|_, w| w.plle().set_bit());
-
-		// Check PLL lock
-		while pll.pllcsr().read().plock().bit_is_clear() {}
-
 		Self {
 			usb: Mutex::new(usb),
 			pll: Mutex::new(pll),
@@ -320,10 +307,26 @@ where
 	/// there is no need to perform a USB reset in this method.
 	fn enable(&mut self) {
 		interrupt::free(|cs| {
+			let pll = self.pll.borrow(cs);
 			let usb = self.usb.borrow(cs);
+
+			pll.pllcsr().write(|w| w.pindiv().set_bit());
+			pll.pllfrq()
+				.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
+
+			// Enable PLL
+			pll.pllcsr().modify(|_, w| w.plle().set_bit());
+
+			// Check PLL lock
+			while pll.pllcsr().read().plock().bit_is_clear() {}
+
 			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
 			usb.usbcon()
 				.modify(|_, w| w.usbe().set_bit().otgpade().set_bit());
+
+
+
+
 			// NB: FRZCLK cannot be set/cleared when USBE=0, and
 			// cannot be modified at the same time.
 			usb.usbcon()
