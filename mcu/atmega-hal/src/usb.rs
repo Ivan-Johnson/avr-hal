@@ -124,7 +124,6 @@ where
 	usb: Mutex<USB_DEVICE>,
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [Option<EndpointTableEntry>; MAX_ENDPOINTS],
-	dpram_usage: u16,
 	phantom: PhantomData<CLOCKUSB>,
 }
 
@@ -150,7 +149,6 @@ where
 			usb: Mutex::new(usb),
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
-			dpram_usage: 0,
 			phantom: PhantomData {},
 		}
 	}
@@ -238,7 +236,7 @@ where
 
 		let ep_addr =
 			match ep_addr {
-				Some(addr) if !self.endpoints[addr.index()].is_allocated => addr,
+				Some(addr) if self.endpoints[addr.index()].is_none() => addr,
 				_ => {
 					// Find next free endpoint
 					let index =
@@ -247,7 +245,7 @@ where
 							.enumerate()
 							.skip(1)
 							.find_map(|(index, ep)| {
-								if !ep.is_allocated && max_packet_size <= ENDPOINT_MAX_BUFSIZE[index] {
+								if ep.is_none() && max_packet_size <= ENDPOINT_MAX_BUFSIZE[index] {
 							Some(index)
 						} else {
 							None
@@ -257,27 +255,15 @@ where
 					EndpointAddress::from_parts(index, ep_dir)
 				}
 			};
-		let entry = &mut self.endpoints[ep_addr.index()];
-		entry.eptype_bits = eptype_bits_from_ep_type(ep_type);
-		entry.epdir_bit = epdir_bit_from_direction(ep_dir);
-		let ep_size = max(8, max_packet_size.next_power_of_two());
-		if DPRAM_SIZE - self.dpram_usage < ep_size {
-			return Err(UsbError::EndpointMemoryOverflow);
-		}
-		entry.epsize_bits = match ep_size {
-			8 => EP_SIZE_8,
-			16 => EP_SIZE_16,
-			32 => EP_SIZE_32,
-			64 => EP_SIZE_64,
-			128 => EP_SIZE_128,
-			256 => EP_SIZE_256,
-			512 => EP_SIZE_512,
-			_ => return Err(UsbError::EndpointMemoryOverflow),
-		};
+
 
 		// Configuration succeeded, commit/finalize:
-		entry.is_allocated = true;
-		self.dpram_usage += ep_size;
+		let entry = EndpointTableEntry {
+			eptype_bits: eptype_bits_from_ep_type(ep_type),
+			epdir_bit: epdir_bit_from_direction(ep_dir),
+			epsize_bits: epsize_bits_from_max_packet_size(max_packet_size),
+		};
+		self.endpoints[ep_addr.index()] = Some(entry);
 		Ok(ep_addr)
 	}
 
@@ -331,7 +317,7 @@ where
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
 			self.set_current_endpoint(cs, ep_addr.index())?;
-			let endpoint = &self.endpoints[ep_addr.index()];
+			let endpoint = self.endpoints[ep_addr.index()].as_ref().unwrap();
 
 			// Different logic is needed for control endpoints:
 			// - The FIFOCON and RWAL fields are irrelevant with CONTROL endpoints.
@@ -385,7 +371,7 @@ where
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
 			self.set_current_endpoint(cs, ep_addr.index())?;
-			let endpoint = &self.endpoints[ep_addr.index()];
+			let endpoint = self.endpoints[ep_addr.index()].as_ref().unwrap();
 
 			// Different logic is needed for control endpoints:
 			// - The FIFOCON and RWAL fields are irrelevant with CONTROL endpoints.
