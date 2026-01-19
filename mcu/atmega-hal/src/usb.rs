@@ -174,8 +174,11 @@ where
 				.eptype()
 				.bits(eptype_bits_from_ep_type(endpoint.ep_type))
 		});
-		usb.uecfg1x()
-			.write(|w| unsafe { w.epbk().bits(0).epsize().bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size)) });
+		usb.uecfg1x().write(|w| unsafe {
+			w.epbk().bits(0)
+				.epsize()
+				.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
+		});
 		usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
 
 		assert!(
@@ -230,7 +233,6 @@ where
 					EndpointAddress::from_parts(index, ep_dir)
 				}
 			};
-
 
 		// Configuration succeeded, commit/finalize:
 		let entry = EndpointTableEntry {
