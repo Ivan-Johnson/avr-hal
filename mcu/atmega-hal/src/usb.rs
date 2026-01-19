@@ -167,12 +167,24 @@ where
 		if index >= MAX_ENDPOINTS {
 			return Err(UsbError::InvalidEndpoint);
 		}
+		let index: u8 = index.try_into().unwrap();
 		let usb = self.usb.borrow(cs);
 		if usb.usbcon().read().frzclk().bit_is_set() {
 			return Err(UsbError::InvalidState);
 		}
-		usb.uenum().write(|w| unsafe { w.bits(index as u8) });
-		if usb.uenum().read().bits() & 0b111 != (index as u8) {
+		// TODO: there's no reason why this needs to be unsafe?
+		// I think we could just update the patch file [1] to make `uenum` work like `PLLCSR`
+		//
+		// [1]: https://github.com/Rahix/avr-device/blob/main/patch/atmega32u4.yaml
+		usb.uenum().write(|w| unsafe { w.bits(index) });
+		let read_back = usb.uenum().read().bits();
+
+		// The `atmeta-usbd` crate uses this bitmask [1]. According to the datasheet the other bits should always read as zero, but I'm leaving this check in just in case.
+		//
+		// [1] https://github.com/agausmann/atmega-usbd/blob/5fc68ca813ce0a37dab65dd4d66efe1ec125f2a8/src/lib.rs#L126
+		assert_eq!(read_back & 0b111, read_back);
+
+		if read_back != index {
 			return Err(UsbError::InvalidState);
 		}
 
