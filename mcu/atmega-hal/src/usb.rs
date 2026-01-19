@@ -161,7 +161,7 @@ where
 		if index >= MAX_ENDPOINTS {
 			return Err(UsbError::InvalidEndpoint);
 		}
-		let index = index as u8;
+		let index:u8 = index.try_into().unwrap();
 		let usb = self.usb.borrow(cs);
 		if usb.usbcon().read().frzclk().bit_is_set() {
 			return Err(UsbError::InvalidState);
