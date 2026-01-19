@@ -18,7 +18,7 @@
 
     [X] cleanup imports
 
-    [ ] Delete `delay_cycles` function
+    [X] Delete `delay_cycles` function
 
     [ ] Create `pll: Mutex<PLL>,` field
 
