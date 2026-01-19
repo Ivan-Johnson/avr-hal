@@ -1,6 +1,3 @@
-use core::cell::Cell;
-use core::cmp::max;
-
 use crate::pac::pll::pllcsr::W as pllcsr_writer;
 use avr_device::atmega32u4::PLL;
 use avr_device::atmega32u4::USB_DEVICE;
@@ -11,6 +8,8 @@ use avr_hal_generic::clock::Clock;
 use avr_hal_generic::clock::MHz16;
 use avr_hal_generic::clock::MHz8;
 use avr_hal_generic::delay::Delay;
+use core::cell::Cell;
+use core::cmp::max;
 use core::marker::PhantomData;
 use embedded_hal::delay::DelayNs;
 use usb_device::bus::PollResult;
