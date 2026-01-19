@@ -324,7 +324,7 @@ where
 			let usb = self.usb.borrow(cs);
 			let pll = self.pll.borrow(cs);
 
-			pll.pllcsr().write(|w| CLOCKUSB::setup_pllcsr_pindiv(w));
+			pll.pllcsr().modify(|_, w| CLOCKUSB::setup_pllcsr_pindiv(w));
 			pll.pllfrq()
 				.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
 
