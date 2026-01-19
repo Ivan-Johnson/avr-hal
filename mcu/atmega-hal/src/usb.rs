@@ -5,6 +5,7 @@ use avr_device::atmega32u4::usb_device::usbint;
 use avr_device::atmega32u4::usb_device::UDINT;
 use avr_device::atmega32u4::usb_device::UEINTX;
 use avr_device::atmega32u4::usb_device::USBINT;
+use avr_device::atmega32u4::PLL;
 use avr_device::atmega32u4::USB_DEVICE;
 use avr_device::interrupt;
 use avr_device::interrupt::CriticalSection;
@@ -127,6 +128,7 @@ where
 	Delay<CLOCKUSB>: DelayNs,
 {
 	usb: Mutex<USB_DEVICE>,
+	pll: Mutex<PLL>,
 	pending_ins: Mutex<Cell<u8>>,
 	endpoints: [Option<EndpointTableEntry>; MAX_ENDPOINTS],
 	phantom: PhantomData<CLOCKUSB>,
@@ -152,6 +154,7 @@ where
 
 		Self {
 			usb: Mutex::new(usb),
+			pll: Mutex::new(pll),
 			pending_ins: Mutex::new(Cell::new(0)),
 			endpoints: Default::default(),
 			phantom: PhantomData,
