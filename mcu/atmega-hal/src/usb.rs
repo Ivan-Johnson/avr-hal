@@ -1,4 +1,10 @@
 use crate::pac::pll::pllcsr::W as pllcsr_writer;
+use avr_device::atmega32u4::usb_device::udint;
+use avr_device::atmega32u4::usb_device::ueintx;
+use avr_device::atmega32u4::usb_device::usbint;
+use avr_device::atmega32u4::usb_device::UDINT;
+use avr_device::atmega32u4::usb_device::UEINTX;
+use avr_device::atmega32u4::usb_device::USBINT;
 use avr_device::atmega32u4::PLL;
 use avr_device::atmega32u4::USB_DEVICE;
 use avr_device::interrupt;
@@ -161,7 +167,7 @@ where
 		if index >= MAX_ENDPOINTS {
 			return Err(UsbError::InvalidEndpoint);
 		}
-		let index:u8 = index.try_into().unwrap();
+		let index: u8 = index.try_into().unwrap();
 		let usb = self.usb.borrow(cs);
 		if usb.usbcon().read().frzclk().bit_is_set() {
 			return Err(UsbError::InvalidState);
@@ -875,13 +881,6 @@ trait ClearInterrupts {
 	where
 		for<'w> F: FnOnce(&mut Self::Writer) -> &mut Self::Writer;
 }
-
-use avr_device::atmega32u4::usb_device::udint;
-use avr_device::atmega32u4::usb_device::ueintx;
-use avr_device::atmega32u4::usb_device::usbint;
-use avr_device::atmega32u4::usb_device::UDINT;
-use avr_device::atmega32u4::usb_device::UEINTX;
-use avr_device::atmega32u4::usb_device::USBINT;
 
 impl ClearInterrupts for UDINT {
 	type Writer = udint::W;
