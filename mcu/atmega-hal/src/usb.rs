@@ -30,12 +30,6 @@ const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64]
 const DPRAM_SIZE: u16 = 832;
 
 const EP_TYPE_CONTROL: u8 = 0b00;
-const EP_TYPE_ISOCHRONOUS: u8 = 0b01;
-const EP_TYPE_BULK: u8 = 0b10;
-const EP_TYPE_INTERRUPT: u8 = 0b11;
-
-const EP_DIR_IN: bool = true;
-const EP_DIR_OUT: bool = false;
 
 const EP_SIZE_8: u8 = 0b000;
 const EP_SIZE_16: u8 = 0b001;
