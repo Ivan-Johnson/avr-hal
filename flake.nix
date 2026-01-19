@@ -16,7 +16,10 @@
 			fenix,
 		}:
 		let
-			pkgs = import nixpkgs { system = "x86_64-linux"; };
+			pkgs = import nixpkgs {
+				system = "x86_64-linux";
+				config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "vscode" ];
+			};
 		in
 		{
 			devShells.x86_64-linux.default = pkgs.mkShell {
@@ -25,13 +28,18 @@
 					(pkgs.python3.withPackages (python-pkgs: with python-pkgs; [ pyserial ]))
 					pkgs.minicom
 					pkgs.ravedude
+					pkgs.arduino-ide
+					pkgs.vscode
 					(fenix.packages.x86_64-linux.fromToolchainFile {
 						file = ./rust-toolchain.toml;
-						sha256 = "sha256-z8J/GH7znPPg9kKvPirKcBeXqHikj1M7KB+anwsDx0M=";
+
+						# 20251230->present
+						sha256 = "sha256-UTAqJO6LFvfLyZTO7d3myyE+rdMP/Mny0m0n/jBKzLQ=";
 					})
 				];
 				RAVEDUDE_PORT = "/dev/ttyACM0";
-				AVR_HAL_BUILD_TARGETS = "all";
+				AVR_HAL_BUILD_TARGETS = "arduino-micro";
+				# NIXPKGS_ALLOW_UNFREE=1;
 
 				# Setting PATH directly doesn't work at all:
 				#
