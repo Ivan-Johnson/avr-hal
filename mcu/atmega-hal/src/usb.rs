@@ -243,6 +243,30 @@ impl<CLOCKUSB: ClockUSB> UsbBus for UsbdBus<CLOCKUSB>
 where
 	Delay<CLOCKUSB>: DelayNs,
 {
+	/// This function initializes a single element in `self.endpoints`
+	///
+	/// Upstream docs:
+	///
+	/// > Allocates an endpoint and specified endpoint parameters. This method is called by the device
+	/// > and class implementations to allocate endpoints, and can only be called before
+	/// > [`enable`](UsbBus::enable) is called.
+	/// >
+	/// > # Arguments
+	/// >
+	/// > * `ep_dir` - The endpoint direction.
+	/// > * `ep_addr` - A static endpoint address to allocate. If Some, the implementation should
+	/// >   attempt to return an endpoint with the specified address. If None, the implementation
+	/// >   should return the next available one.
+	/// > * `max_packet_size` - Maximum packet size in bytes.
+	/// > * `interval` - Polling interval parameter for interrupt endpoints.
+	/// >
+	/// > # Errors
+	/// >
+	/// > * [`EndpointOverflow`](crate::UsbError::EndpointOverflow) - Available total number of
+	/// >   endpoints, endpoints of the specified type, or endpoind packet memory has been exhausted.
+	/// >   This is generally caused when a user tries to add too many classes to a composite device.
+	/// > * [`InvalidEndpoint`](crate::UsbError::InvalidEndpoint) - A specific `ep_addr` was specified
+	/// >   but the endpoint in question has already been allocated.
 	fn alloc_ep(
 		&mut self,
 		ep_dir: UsbDirection,
@@ -290,6 +314,8 @@ where
 		Ok(ep_addr)
 	}
 
+	/// Enables and initializes the USB peripheral. Soon after enabling the device will be reset, so
+	/// there is no need to perform a USB reset in this method.
 	fn enable(&mut self) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
@@ -311,6 +337,13 @@ where
 		});
 	}
 
+
+
+	/// Called when the host resets the device. This will be soon called after
+	/// [`poll`](crate::device::UsbDevice::poll) returns [`PollResult::Reset`]. This method should
+	/// reset the state of all endpoints and peripheral flags back to a state suitable for
+	/// enumeration, as well as ensure that all endpoints previously allocated with alloc_ep are
+	/// initialized as specified.
 	fn reset(&self) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
@@ -327,6 +360,7 @@ where
 		})
 	}
 
+	/// Sets the device USB address to `addr`.
 	fn set_device_address(&self, addr: u8) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
@@ -336,7 +370,25 @@ where
 		});
 	}
 
-	fn write(&self, ep_addr: EndpointAddress, buf: &[u8]) -> usb_device::Result<usize> {
+	/// Writes a single packet of data to the specified endpoint and returns number of bytes
+	/// actually written.
+	///
+	/// The only reason for a short write is if the caller passes a slice larger than the amount of
+	/// memory allocated earlier, and this is generally an error in the class implementation.
+	///
+	/// # Errors
+	///
+	/// * [`InvalidEndpoint`](crate::UsbError::InvalidEndpoint) - The `ep_addr` does not point to a
+	///   valid endpoint that was previously allocated with [`UsbBus::alloc_ep`].
+	/// * [`WouldBlock`](crate::UsbError::WouldBlock) - A previously written packet is still pending
+	///   to be sent.
+	/// * [`BufferOverflow`](crate::UsbError::BufferOverflow) - The packet is too long to fit in the
+	///   transmission buffer. This is generally an error in the class implementation, because the
+	///   class shouldn't provide more data than the `max_packet_size` it specified when allocating
+	///   the endpoint.
+	///
+	/// Implementations may also return other errors if applicable.
+	fn write(&self, ep_addr: EndpointAddress, buf: &[u8]) -> Result<usize, UsbError> {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
 			self.set_current_endpoint(cs, ep_addr.index())?;
@@ -389,7 +441,26 @@ where
 		})
 	}
 
-	fn read(&self, ep_addr: EndpointAddress, buf: &mut [u8]) -> usb_device::Result<usize> {
+
+	/// Reads a single packet of data from the specified endpoint and returns the actual length of
+	/// the packet.
+	///
+	/// This should also clear any NAK flags and prepare the endpoint to receive the next packet.
+	///
+	/// # Errors
+	///
+	/// * [`InvalidEndpoint`](crate::UsbError::InvalidEndpoint) - The `ep_addr` does not point to a
+	///   valid endpoint that was previously allocated with [`UsbBus::alloc_ep`].
+	/// * [`WouldBlock`](crate::UsbError::WouldBlock) - There is no packet to be read. Note that
+	///   this is different from a received zero-length packet, which is valid in USB. A zero-length
+	///   packet will return `Ok(0)`.
+	/// * [`BufferOverflow`](crate::UsbError::BufferOverflow) - The received packet is too long to
+	///   fit in `buf`. This is generally an error in the class implementation, because the class
+	///   should use a buffer that is large enough for the `max_packet_size` it specified when
+	///   allocating the endpoint.
+	///
+	/// Implementations may also return other errors if applicable.
+	fn read(&self, ep_addr: EndpointAddress, buf: &mut [u8]) -> Result<usize, UsbError> {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
 			self.set_current_endpoint(cs, ep_addr.index())?;
@@ -444,6 +515,8 @@ where
 		})
 	}
 
+	/// Sets or clears the STALL condition for an endpoint. If the endpoint is an OUT endpoint, it
+	/// should be prepared to receive data again.
 	fn set_stalled(&self, ep_addr: EndpointAddress, stalled: bool) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
@@ -455,6 +528,7 @@ where
 		});
 	}
 
+	/// Gets whether the STALL condition is set for an endpoint.
 	fn is_stalled(&self, ep_addr: EndpointAddress) -> bool {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
@@ -467,6 +541,14 @@ where
 		})
 	}
 
+
+
+
+	/// Causes the USB peripheral to enter USB suspend mode, lowering power consumption and
+	/// preparing to detect a USB wakeup event. This will be called after
+	/// [`poll`](crate::device::UsbDevice::poll) returns [`PollResult::Suspend`]. The device will
+	/// continue be polled, and it shall return a value other than `Suspend` from `poll` when it no
+	/// longer detects the suspend condition.
 	fn suspend(&self) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
@@ -478,6 +560,8 @@ where
 		});
 	}
 
+	/// Resumes from suspend mode. This may only be called after the peripheral has been previously
+	/// suspended.
 	fn resume(&self) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
@@ -489,6 +573,8 @@ where
 		});
 	}
 
+	/// Gets information about events and incoming data. Usually called in a loop or from an
+	/// interrupt handler. See the [`PollResult`] struct for more information.
 	fn poll(&self) -> PollResult {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
@@ -558,6 +644,15 @@ where
 		})
 	}
 
+	/// Simulates a disconnect from the USB bus, causing the host to reset and re-enumerate the
+	/// device.
+	///
+	/// The default implementation just returns `Unsupported`.
+	///
+	/// # Errors
+	///
+	/// * [`Unsupported`](crate::UsbError::Unsupported) - This UsbBus implementation doesn't support
+	///   simulating a disconnect or it has not been enabled at creation time.
 	fn force_reset(&self) -> usb_device::Result<()> {
 		// 22.9 "It is possible to re-enumerate a device, simply by setting and
 		// clearing the DETACH bit (but firmware must take in account a
