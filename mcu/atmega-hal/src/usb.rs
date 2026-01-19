@@ -193,6 +193,18 @@ where
 		((usb.uebchx().read().bits() as u16) << 8) | (usb.uebclx().read().bits() as u16)
 	}
 
+	fn get_endpoint_table_entry(
+		&self,
+		_cs: CriticalSection,
+		index: usize,
+	) -> Result<&EndpointTableEntry, UsbError> {
+		if let Some(Some(ref endpoint)) = self.endpoints.get(index) {
+			Ok(endpoint)
+		} else {
+			Err(UsbError::InvalidEndpoint)
+		}
+	}
+
 	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		let usb = self.usb.borrow(cs);
 		self.set_current_endpoint(cs, index)?;
@@ -297,13 +309,11 @@ where
 				}
 			};
 
-		// Configuration succeeded, commit/finalize:
-		let entry = EndpointTableEntry {
+		self.endpoints[ep_addr.index()] = Some(EndpointTableEntry {
 			ep_type,
 			ep_dir,
 			max_packet_size,
-		};
-		self.endpoints[ep_addr.index()] = Some(entry);
+		});
 		Ok(ep_addr)
 	}
 
@@ -396,7 +406,7 @@ where
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
 			self.set_current_endpoint(cs, ep_addr.index())?;
-			let endpoint = self.endpoints[ep_addr.index()].as_ref().unwrap();
+			let endpoint = self.get_endpoint_table_entry(cs, ep_addr.index())?;
 
 			// Different logic is needed for control endpoints:
 			// - The FIFOCON and RWAL fields are irrelevant with CONTROL endpoints.
@@ -467,7 +477,7 @@ where
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
 			self.set_current_endpoint(cs, ep_addr.index())?;
-			let endpoint = self.endpoints[ep_addr.index()].as_ref().unwrap();
+			let endpoint = self.get_endpoint_table_entry(cs, ep_addr.index())?;
 
 			// Different logic is needed for control endpoints:
 			// - The FIFOCON and RWAL fields are irrelevant with CONTROL endpoints.
