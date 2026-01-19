@@ -19,6 +19,7 @@ use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
 use usb_device::UsbError;
+
 const MAX_ENDPOINTS: usize = 7;
 
 // From datasheet section 22.1
