@@ -381,11 +381,12 @@ where
 			// contains the definition of `DefaultClock`).
 			pll.pllcsr().modify(|_, w| CLOCKUSB::setup_pllcsr_pindiv(w));
 
-			// For added safety, verify that the `pllfrq` register still has its default
-			// value. In particular:
-			// 1. The PLL is configured to output 48MHz to the USB controller
-			// 2. The hardware timer input is disconnected from the PLL output
-			assert_eq!(pll.pllfrq().read().bits(), 0b00000100);
+
+			// Explicitly reset pllfrq back to the value that it would have after
+			// power cycling the device.
+			pll.pllfrq().write(|w| unsafe{w.bits(0b0000_0100)});
+			// TODO: submit patch to avr-device to change PLLFRQ_SPEC's RESET_VALUE from zero to 4.
+			// pll.pllfrq().reset();
 
 			// >         PLLCSR |= (1<<PLLE);
 			// >         while (!(PLLCSR & (1<<PLOCK)))          // wait for lock pll
