@@ -138,7 +138,7 @@ impl<CLOCKUSB: ClockUSB> UsbdBus<CLOCKUSB>
 where
 	Delay<CLOCKUSB>: DelayNs,
 {
-	pub fn new(usb: USB_DEVICE, pll: avr_device::atmega32u4::PLL) -> Self {
+	pub fn new(usb: USB_DEVICE, pll: PLL) -> Self {
 		Self {
 			usb: Mutex::new(usb),
 			pll: Mutex::new(pll),
