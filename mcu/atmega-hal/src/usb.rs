@@ -321,17 +321,14 @@ where
 	/// there is no need to perform a USB reset in this method.
 	fn enable(&mut self) {
 		interrupt::free(|cs| {
-			let pll = self.pll.borrow(cs);
 			let usb = self.usb.borrow(cs);
+			let pll = self.pll.borrow(cs);
 
-			pll.pllcsr().write(|w| w.pindiv().set_bit());
+			pll.pllcsr().write(|w| CLOCKUSB::setup_pllcsr_pindiv(w));
 			pll.pllfrq()
 				.write(|w| w.pdiv().mhz96().plltm().factor_15().pllusb().set_bit());
 
-			// Enable PLL
 			pll.pllcsr().modify(|_, w| w.plle().set_bit());
-
-			// Check PLL lock
 			while pll.pllcsr().read().plock().bit_is_clear() {}
 
 			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
