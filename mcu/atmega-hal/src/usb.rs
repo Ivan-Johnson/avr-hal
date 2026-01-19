@@ -167,6 +167,13 @@ where
 			.map(|(index, ep)| (index, ep.as_ref().unwrap()))
 	}
 
+	/// Docs from the data sheet:
+	///
+	/// > Prior to any operation performed by the CPU, the endpoint must first be selected. This
+	/// > is done by setting the EPNUM2:0 bits (UENUM register) with the endpoint number which
+	/// > will be managed by the CPU.
+	/// >
+	/// > The CPU can then access to the various endpoint registers and data
 	fn set_current_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
 		if index >= MAX_ENDPOINTS {
 			return Err(UsbError::InvalidEndpoint);
@@ -182,9 +189,18 @@ where
 		Ok(())
 	}
 
+
+	///  This function returns the full eleven-bit value of the BYCT register.
+	///
+	///  The datasheet's docs for UEBCLX says:
+	///
+	///  > Set by the hardware. BYCT10:0 is:
+	///  > * (for IN endpoint) increased after each writing into the endpoint and decremented after each byte sent,
+	///  > * (for OUT endpoint) increased after each byte sent by the host, and decremented after each byte read by the software.
 	fn endpoint_byte_count(&self, cs: CriticalSection) -> u16 {
 		let usb = self.usb.borrow(cs);
-		// FIXME: Potential for desync here? LUFA doesn't seem to care.
+		// The BYCT register is split across two registers:
+		// uebclx (low eight bits) and uebchx (high three bits).
 		((usb.uebchx().read().bits() as u16) << 8) | (usb.uebclx().read().bits() as u16)
 	}
 
