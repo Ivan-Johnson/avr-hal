@@ -20,6 +20,7 @@ use avr_hal_generic::clock::MHz8;
 use avr_hal_generic::delay::Delay;
 use embedded_hal::delay::DelayNs;
 use usb_device::bus::PollResult;
+use usb_device::bus::UsbBus;
 use usb_device::endpoint::EndpointAddress;
 use usb_device::endpoint::EndpointType;
 use usb_device::UsbDirection;
@@ -239,7 +240,7 @@ where
 	}
 }
 
-impl<CLOCKUSB: ClockUSB> usb_device::bus::UsbBus for UsbdBus<CLOCKUSB>
+impl<CLOCKUSB: ClockUSB> UsbBus for UsbdBus<CLOCKUSB>
 where
 	Delay<CLOCKUSB>: DelayNs,
 {
