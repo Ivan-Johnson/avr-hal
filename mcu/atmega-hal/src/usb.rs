@@ -29,16 +29,6 @@ const MAX_ENDPOINTS: usize = 7;
 const ENDPOINT_MAX_BUFSIZE: [u16; MAX_ENDPOINTS] = [64, 256, 64, 64, 64, 64, 64];
 const _DPRAM_SIZE: u16 = 832;
 
-const EP_TYPE_CONTROL: u8 = 0b00;
-
-const EP_SIZE_8: u8 = 0b000;
-const EP_SIZE_16: u8 = 0b001;
-const EP_SIZE_32: u8 = 0b010;
-const EP_SIZE_64: u8 = 0b011;
-const EP_SIZE_128: u8 = 0b100;
-const EP_SIZE_256: u8 = 0b101;
-const EP_SIZE_512: u8 = 0b110;
-
 // TODO: do the links work?
 /// The USB controller can only be used when the MCU is running at certain
 /// specific clock speends. This trait represents those clock speeds.
@@ -97,24 +87,9 @@ fn epsize_bits_from_max_packet_size(max_packet_size: u16) -> u8 {
 }
 
 struct EndpointTableEntry {
-	eptype_bits: u8,
-	epdir_bit: bool,
-	epsize_bits: u8,
-}
-
-impl EndpointTableEntry {
-	fn buffer_size(&self) -> usize {
-		match self.epsize_bits {
-			EP_SIZE_8 => 8,
-			EP_SIZE_16 => 16,
-			EP_SIZE_32 => 32,
-			EP_SIZE_64 => 64,
-			EP_SIZE_128 => 128,
-			EP_SIZE_256 => 256,
-			EP_SIZE_512 => 512,
-			_ => unreachable!(),
-		}
-	}
+	ep_type: EndpointType,
+	ep_dir: UsbDirection,
+	max_packet_size: u16,
 }
 
 pub struct UsbdBus<CLOCKUSB: ClockUSB>
@@ -195,12 +170,12 @@ where
 
 		usb.uecfg0x().write(|w| unsafe {
 			w.epdir()
-				.bit(endpoint.epdir_bit)
+				.bit(epdir_bit_from_direction(endpoint.ep_dir))
 				.eptype()
-				.bits(endpoint.eptype_bits)
+				.bits(eptype_bits_from_ep_type(endpoint.ep_type))
 		});
 		usb.uecfg1x()
-			.write(|w| unsafe { w.epbk().bits(0).epsize().bits(endpoint.epsize_bits) });
+			.write(|w| unsafe { w.epbk().bits(0).epsize().bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size)) });
 		usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
 
 		assert!(
@@ -259,9 +234,9 @@ where
 
 		// Configuration succeeded, commit/finalize:
 		let entry = EndpointTableEntry {
-			eptype_bits: eptype_bits_from_ep_type(ep_type),
-			epdir_bit: epdir_bit_from_direction(ep_dir),
-			epsize_bits: epsize_bits_from_max_packet_size(max_packet_size),
+			ep_type,
+			ep_dir,
+			max_packet_size,
 		};
 		self.endpoints[ep_addr.index()] = Some(entry);
 		Ok(ep_addr)
@@ -323,13 +298,12 @@ where
 			// - The FIFOCON and RWAL fields are irrelevant with CONTROL endpoints.
 			// - TXINI ... shall be cleared by firmware to **send the
 			//   packet and to clear the endpoint bank.**
-			if endpoint.eptype_bits == EP_TYPE_CONTROL {
+			if endpoint.ep_type == EndpointType::Control {
 				if usb.ueintx().read().txini().bit_is_clear() {
 					return Err(UsbError::WouldBlock);
 				}
 
-				let buffer_size = endpoint.buffer_size();
-				if buf.len() > buffer_size {
+				if buf.len() > endpoint.max_packet_size.into() {
 					return Err(UsbError::BufferOverflow);
 				}
 
@@ -377,7 +351,7 @@ where
 			// - The FIFOCON and RWAL fields are irrelevant with CONTROL endpoints.
 			// - RXSTPI/RXOUTI ... shall be cleared by firmware to **send the
 			//   packet and to clear the endpoint bank.**
-			if endpoint.eptype_bits == EP_TYPE_CONTROL {
+			if endpoint.ep_type == EndpointType::Control {
 				let ueintx = usb.ueintx().read();
 				if ueintx.rxouti().bit_is_clear() && ueintx.rxstpi().bit_is_clear()
 				{
