@@ -404,19 +404,33 @@ where
 	/// Implementations may also return other errors if applicable.
 	fn write(&self, ep_addr: EndpointAddress, buf: &[u8]) -> Result<usize, UsbError> {
 		interrupt::free(|cs| {
+			let index = ep_addr.index();
+			let endpoint = self.get_endpoint_table_entry(cs, index)?;
+
+			// We should only be writing to endpoints that are "IN" towards the host.
+			assert_eq!(UsbDirection::In, ep_addr.direction());
+			if index != 0 {
+				// endpoint 0 is a special case; ref @FOOTNOTE-EP0
+				assert_eq!(UsbDirection::In, endpoint.ep_dir);
+			}
+
 			let usb = self.usb.borrow(cs);
 			self.set_current_endpoint(cs, ep_addr.index())?;
-			let endpoint = self.get_endpoint_table_entry(cs, ep_addr.index())?;
 
-			// Different logic is needed for control endpoints:
-			// - The FIFOCON and RWAL fields are irrelevant with CONTROL endpoints.
-			// - TXINI ... shall be cleared by firmware to **send the
-			//   packet and to clear the endpoint bank.**
 			if endpoint.ep_type == EndpointType::Control {
 				if usb.ueintx().read().txini().bit_is_clear() {
 					return Err(UsbError::WouldBlock);
 				}
 
+				// Note: This check sometimes returns a buffer overflow error even when the
+				// buffer is large enough to fit the data. This is intentional.
+				//
+				// During setup the user requested that we allocate `max_packet_size` bytes, but
+				// the number of bytes that we actually allocated may be larger than that. The
+				// `UsbBus` trait doesn't provide a way for the user to query how much memory
+				// was actually allocated. As such, if they try to write more than `max_packet_size` bytes,
+				// then there's probably a bug in the users code, and we should return an error even if the
+				// buffer would not overflow.
 				if buf.len() > endpoint.max_packet_size.into() {
 					return Err(UsbError::BufferOverflow);
 				}
