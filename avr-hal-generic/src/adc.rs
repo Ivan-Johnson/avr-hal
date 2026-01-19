@@ -192,7 +192,9 @@ where
 	) -> nb::Result<u16, core::convert::Infallible> {
 		match (&self.reading_channel, self.p.raw_is_converting()) {
 			// Measurement on current pin is ongoing
-			(Some(channel), true) if *channel == pin.channel() => Err(nb::Error::WouldBlock),
+			(Some(channel), true) if *channel == pin.channel() => {
+				Err(nb::Error::WouldBlock)
+			}
 			// Measurement on current pin completed
 			(Some(channel), false) if *channel == pin.channel() => {
 				self.reading_channel = None;

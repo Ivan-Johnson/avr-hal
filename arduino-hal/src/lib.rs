@@ -182,9 +182,12 @@ pub mod usart {
 	pub use crate::hal::usart::Baudrate;
 	pub use crate::hal::usart::UsartOps;
 
-	pub type Usart<USART, RX, TX> = crate::hal::usart::Usart<USART, RX, TX, crate::DefaultClock>;
-	pub type UsartWriter<USART, RX, TX> = crate::hal::usart::UsartWriter<USART, RX, TX, crate::DefaultClock>;
-	pub type UsartReader<USART, RX, TX> = crate::hal::usart::UsartReader<USART, RX, TX, crate::DefaultClock>;
+	pub type Usart<USART, RX, TX> =
+		crate::hal::usart::Usart<USART, RX, TX, crate::DefaultClock>;
+	pub type UsartWriter<USART, RX, TX> =
+		crate::hal::usart::UsartWriter<USART, RX, TX, crate::DefaultClock>;
+	pub type UsartReader<USART, RX, TX> =
+		crate::hal::usart::UsartReader<USART, RX, TX, crate::DefaultClock>;
 }
 
 #[doc(no_inline)]

@@ -238,7 +238,11 @@ pub struct Usart<H, USART: UsartOps<H, RX, TX>, RX, TX, CLOCK> {
 impl<H, USART, RXPIN, TXPIN, CLOCK>
 	Usart<H, USART, port::Pin<port::mode::Input, RXPIN>, port::Pin<port::mode::Output, TXPIN>, CLOCK>
 where
-	USART: UsartOps<H, port::Pin<port::mode::Input, RXPIN>, port::Pin<port::mode::Output, TXPIN>>,
+	USART: UsartOps<
+		H,
+		port::Pin<port::mode::Input, RXPIN>,
+		port::Pin<port::mode::Output, TXPIN>,
+	>,
 	RXPIN: port::PinOps,
 	TXPIN: port::PinOps,
 {
@@ -395,7 +399,10 @@ pub struct UsartReader<H, USART: UsartOps<H, RX, TX>, RX, TX, CLOCK> {
 
 impl<H, USART: UsartOps<H, RX, TX>, RX, TX, CLOCK> UsartWriter<H, USART, RX, TX, CLOCK> {
 	/// Merge this `UsartWriter` with a [`UsartReader`] back into a single [`Usart`] peripheral.
-	pub fn reunite(self, other: UsartReader<H, USART, RX, TX, CLOCK>) -> Usart<H, USART, RX, TX, CLOCK> {
+	pub fn reunite(
+		self,
+		other: UsartReader<H, USART, RX, TX, CLOCK>,
+	) -> Usart<H, USART, RX, TX, CLOCK> {
 		Usart {
 			p: self.p,
 			rx: other.rx,
@@ -408,7 +415,10 @@ impl<H, USART: UsartOps<H, RX, TX>, RX, TX, CLOCK> UsartWriter<H, USART, RX, TX,
 
 impl<H, USART: UsartOps<H, RX, TX>, RX, TX, CLOCK> UsartReader<H, USART, RX, TX, CLOCK> {
 	/// Merge this `UsartReader` with a [`UsartWriter`] back into a single [`Usart`] peripheral.
-	pub fn reunite(self, other: UsartWriter<H, USART, RX, TX, CLOCK>) -> Usart<H, USART, RX, TX, CLOCK> {
+	pub fn reunite(
+		self,
+		other: UsartWriter<H, USART, RX, TX, CLOCK>,
+	) -> Usart<H, USART, RX, TX, CLOCK> {
 		Usart {
 			p: self.p,
 			rx: self.rx,
@@ -419,7 +429,9 @@ impl<H, USART: UsartOps<H, RX, TX>, RX, TX, CLOCK> UsartReader<H, USART, RX, TX,
 	}
 }
 
-impl<H, USART: UsartOps<H, RX, TX>, RX, TX, CLOCK> ufmt::uWrite for UsartWriter<H, USART, RX, TX, CLOCK> {
+impl<H, USART: UsartOps<H, RX, TX>, RX, TX, CLOCK> ufmt::uWrite
+	for UsartWriter<H, USART, RX, TX, CLOCK>
+{
 	type Error = core::convert::Infallible;
 
 	fn write_str(&mut self, s: &str) -> Result<(), Self::Error> {

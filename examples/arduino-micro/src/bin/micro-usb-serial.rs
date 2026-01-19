@@ -64,9 +64,9 @@ fn main() -> ! {
 		// right... In the meantime, simply echo the string back
 
 		// TODO: is this `.expect()` safe?
-		let len = serial_usb
-			.write(&read_buf[0..read_count])
-			.expect("The host should be reading data faster than the arduino can write it");
+		let len = serial_usb.write(&read_buf[0..read_count]).expect(
+			"The host should be reading data faster than the arduino can write it",
+		);
 		assert_eq!(len, read_count);
 	}
 }

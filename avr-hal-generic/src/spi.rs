@@ -144,7 +144,9 @@ impl<CSPIN: port::PinOps> embedded_hal_v0::digital::v2::StatefulOutputPin for Ch
 	}
 }
 
-impl<CSPIN: port::PinOps> embedded_hal_v0::digital::v2::ToggleableOutputPin for ChipSelectPin<CSPIN> {
+impl<CSPIN: port::PinOps> embedded_hal_v0::digital::v2::ToggleableOutputPin
+	for ChipSelectPin<CSPIN>
+{
 	type Error = core::convert::Infallible;
 	fn toggle(&mut self) -> Result<(), Self::Error> {
 		self.0.toggle();
@@ -263,7 +265,10 @@ where
 	}
 
 	/// Reconfigure the SPI peripheral after initializing
-	pub fn reconfigure(&mut self, settings: Settings) -> nb::Result<(), core::convert::Infallible> {
+	pub fn reconfigure(
+		&mut self,
+		settings: Settings,
+	) -> nb::Result<(), core::convert::Infallible> {
 		// wait for any in-flight writes to complete
 		self.flush()?;
 		self.p.raw_setup(&settings);
@@ -348,7 +353,8 @@ where
 	type Error = core::convert::Infallible;
 }
 
-impl<H, SPI, SCLKPIN, MOSIPIN, MISOPIN, CSPIN> SpiBus for Spi<H, SPI, SCLKPIN, MOSIPIN, MISOPIN, CSPIN>
+impl<H, SPI, SCLKPIN, MOSIPIN, MISOPIN, CSPIN> SpiBus
+	for Spi<H, SPI, SCLKPIN, MOSIPIN, MISOPIN, CSPIN>
 where
 	SPI: SpiOps<H, SCLKPIN, MOSIPIN, MISOPIN, CSPIN>,
 	SCLKPIN: port::PinOps,
@@ -465,8 +471,12 @@ macro_rules! impl_spi {
 					w.mstr().set_bit();
 					// set up data order control bit
 					match settings.data_order {
-						DataOrder::MostSignificantFirst => w.dord().clear_bit(),
-						DataOrder::LeastSignificantFirst => w.dord().set_bit(),
+						DataOrder::MostSignificantFirst => {
+							w.dord().clear_bit()
+						}
+						DataOrder::LeastSignificantFirst => {
+							w.dord().set_bit()
+						}
 					};
 					// set up polarity control bit
 					match settings.mode.polarity {
@@ -475,8 +485,12 @@ macro_rules! impl_spi {
 					};
 					// set up phase control bit
 					match settings.mode.phase {
-						spi::Phase::CaptureOnFirstTransition => w.cpha().clear_bit(),
-						spi::Phase::CaptureOnSecondTransition => w.cpha().set_bit(),
+						spi::Phase::CaptureOnFirstTransition => {
+							w.cpha().clear_bit()
+						}
+						spi::Phase::CaptureOnSecondTransition => {
+							w.cpha().set_bit()
+						}
 					};
 					// set up clock rate control bit
 					match settings.clock {
@@ -486,7 +500,9 @@ macro_rules! impl_spi {
 						SerialClockRate::OscfOver16 => w.spr().fosc_16_8(),
 						SerialClockRate::OscfOver32 => w.spr().fosc_64_32(),
 						SerialClockRate::OscfOver64 => w.spr().fosc_64_32(),
-						SerialClockRate::OscfOver128 => w.spr().fosc_128_64(),
+						SerialClockRate::OscfOver128 => {
+							w.spr().fosc_128_64()
+						}
 					}
 				});
 				// set up 2x clock rate status bit
