@@ -324,9 +324,6 @@ where
 			usb.usbcon()
 				.modify(|_, w| w.usbe().set_bit().otgpade().set_bit());
 
-
-
-
 			// NB: FRZCLK cannot be set/cleared when USBE=0, and
 			// cannot be modified at the same time.
 			usb.usbcon()
