@@ -392,11 +392,11 @@ where
 			// > {
 
 			// >         UHWCON |= (1<<UVREGE);                  // power internal reg
-			// usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
+			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
 
 			// >         USBCON = (1<<USBE) | (1<<FRZCLK);       // clock frozen, usb enabled
-			// usb.usbcon()
-			// 	.modify(|_, w| w.usbe().set_bit().frzclk().set_bit());
+			usb.usbcon()
+				.modify(|_, w| w.usbe().set_bit().frzclk().set_bit());
 
 			// >         // ATmega32U4
 			// >         #if F_CPU == 16000000UL
@@ -429,10 +429,6 @@ where
 			pll.pllcsr().modify(|_, w| w.plle().set_bit());
 			while pll.pllcsr().read().plock().bit_is_clear() {}
 
-			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
-			usb.usbcon()
-				.modify(|_, w| w.usbe().set_bit().otgpade().set_bit());
-
 			// >         // Some tests on specific versions of macosx (10.7.3), reported some
 			// >         // strange behaviors when the board is reset using the serial
 			// >         // port touch at 1200 bps. This delay fixes this behavior.
@@ -450,8 +446,8 @@ where
 			}
 
 			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
-			// usb.usbcon()
-			// 	.modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
+			usb.usbcon()
+				.modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
 			usb.udcon().modify(|_, w| w.detach().clear_bit());
 
 			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
