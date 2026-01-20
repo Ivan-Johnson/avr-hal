@@ -584,6 +584,16 @@ where
 
 			usb.udint()
 				.clear_interrupts(|w| w.wakeupi().clear_bit().suspi().clear_bit());
+
+			// This code is NOT ported from C++. TODO: cleanup this explanation of why.
+			//
+			// Tests from the `usb2` branch suggest that this is
+			// necessary.  Why? It makes no sense. The docs seems to
+			// suggest that I'm allowed to enable both at the same
+			// time.
+			//
+			// If I *am* allowed to enable them both at the same time, then
+			// this is absolutely pointless??
 			usb.udien()
 				.modify(|_, w| w.wakeupe().clear_bit().suspe().set_bit());
 		})
@@ -795,7 +805,6 @@ where
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
 			if self.set_current_endpoint(cs, ep_addr.index()).is_ok() {
-				// NB: The datasheet says STALLRQ is write-only but LUFA reads from it...
 				usb.ueconx().read().stallrq().bit_is_set()
 			} else {
 				false
@@ -840,7 +849,14 @@ where
 
 			let usbint = usb.usbint().read();
 			let udint = usb.udint().read();
+
+			// TODO: This is sketchy?
+			//
+			// IMO it would be cleaner to always have both bits set
+			// in `udien`. Then instead of storing state in `udien`,
+			// just make an enum in `self`.
 			let udien = usb.udien().read();
+
 			if usbint.vbusti().bit_is_set() {
 				usb.usbint().clear_interrupts(|w| w.vbusti().clear_bit());
 				if usb.usbsta().read().vbus().bit_is_set() {
