@@ -37,6 +37,9 @@ fn main() -> ! {
 		.device_class(usbd_serial::USB_CLASS_CDC)
 		.build();
 
+	// TODO: only in dev builds
+	usb_dev.force_reset().unwrap();
+
 	loop {
 		// Wait until we have data
 		if !usb_dev.poll(&mut [&mut serial_usb]) {

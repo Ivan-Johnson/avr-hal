@@ -890,8 +890,22 @@ where
 	/// * [`Unsupported`](crate::UsbError::Unsupported) - This UsbBus implementation doesn't support
 	///   simulating a disconnect or it has not been enabled at creation time.
 	fn force_reset(&self) -> Result<(), UsbError> {
-		// TODO: implement using udcon.detach
-		Err(UsbError::Unsupported)
+		interrupt::free(|cs| {
+			self.usb.borrow(cs)
+				.udcon()
+				.modify(|_, w| w.detach().set_bit());
+		});
+
+		let mut delay = Delay::<CLOCKUSB>::new();
+		delay.delay_ms(10);
+
+		interrupt::free(|cs| {
+			self.usb.borrow(cs)
+				.udcon()
+				.modify(|_, w| w.detach().clear_bit());
+		});
+
+		Ok(())
 	}
 }
 
