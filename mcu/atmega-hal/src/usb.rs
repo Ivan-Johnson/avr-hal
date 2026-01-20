@@ -476,6 +476,10 @@ where
 	fn reset(&self) {
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
+
+			// This is NOT ported from C++.
+			//
+			// TODO: is this actually necessary? If so, explain why.
 			usb.udint().modify(|_, w| w.eorsti().clear_bit());
 
 			// Refer to the `InitEndpoints` function from:
@@ -582,9 +586,6 @@ where
 			// usb.uerst().write(|w| unsafe { w.bits(0x7E) });
 			// usb.uerst().write(|w| unsafe { w.bits(0) });
 
-			usb.udint()
-				.clear_interrupts(|w| w.wakeupi().clear_bit().suspi().clear_bit());
-
 			// This code is NOT ported from C++. TODO: cleanup this explanation of why.
 			//
 			// Tests from the `usb2` branch suggest that this is
@@ -594,6 +595,8 @@ where
 			//
 			// If I *am* allowed to enable them both at the same time, then
 			// this is absolutely pointless??
+			usb.udint()
+				.clear_interrupts(|w| w.wakeupi().clear_bit().suspi().clear_bit());
 			usb.udien()
 				.modify(|_, w| w.wakeupe().clear_bit().suspe().set_bit());
 		})
