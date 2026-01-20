@@ -506,13 +506,14 @@ where
 				// * epbk: 0b00 (single bank mode)
 				// * alloc: 0b1 (allocate)
 				usb.uecfg1x().write(|w| unsafe {
-					w.epbk().bits(0b00).epsize().bits(
-						epsize_bits_from_max_packet_size(
+					w.epbk().bits(0b00)
+						.epsize()
+						.bits(epsize_bits_from_max_packet_size(
 							endpoint.max_packet_size,
-						),
-					)
+						))
+						.alloc()
+						.set_bit()
 				});
-				usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
 
 				// Check CFGOK (config okay) to make sure that everything works
 				//
