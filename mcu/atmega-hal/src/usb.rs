@@ -428,6 +428,11 @@ where
 		interrupt::free(|cs| {
 			let usb = self.usb.borrow(cs);
 
+			// This is NOT ported from C++.
+			//
+			// TODO: is this actually necessary? If so, explain why.
+			usb.udint().modify(|_, w| w.eorsti().clear_bit());
+
 			// Refer to the `InitEndpoints` function from:
 			// https://github.com/arduino/ArduinoCore-avr/blob/7c38f34da561266e1e5cf7769f0e61b0aa5dda39/cores/arduino/USBCore.cpp#L364-L382
 
@@ -539,6 +544,8 @@ where
 			//
 			// If I *am* allowed to enable them both at the same time, then
 			// this is absolutely pointless??
+			usb.udint()
+				.clear_interrupts(|w| w.wakeupi().clear_bit().suspi().clear_bit());
 			usb.udien()
 				.modify(|_, w| w.wakeupe().clear_bit().suspe().set_bit());
 		})
