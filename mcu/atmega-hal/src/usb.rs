@@ -453,8 +453,6 @@ where
 			// usb.usbcon()
 			// 	.modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
 			usb.udcon().modify(|_, w| w.detach().clear_bit());
-			usb.udien()
-				.modify(|_, w| w.eorste().set_bit());
 
 			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
 			// usb.udcon().modify(|_, w| {
