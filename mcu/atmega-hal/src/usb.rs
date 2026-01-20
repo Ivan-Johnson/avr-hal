@@ -559,11 +559,11 @@ where
 				// Check CFGOK (config okay) to make sure that everything works
 				//
 				// The C++ code doesn't bother with this for some reason.
-				// assert!(
-				// 	usb.uesta0x().read().cfgok().bit_is_set(),
-				// 	"could not configure endpoint {}",
-				// 	index
-				// );
+				assert!(
+					usb.uesta0x().read().cfgok().bit_is_set(),
+					"could not configure endpoint {}",
+					index
+				);
 			}
 			// > }
 
@@ -915,26 +915,8 @@ where
 	/// * [`Unsupported`](crate::UsbError::Unsupported) - This UsbBus implementation doesn't support
 	///   simulating a disconnect or it has not been enabled at creation time.
 	fn force_reset(&self) -> Result<(), UsbError> {
-		// 22.9 "It is possible to re-enumerate a device, simply by setting and
-		// clearing the DETACH bit (but firmware must take in account a
-		// debouncing delay of some milliseconds)."
-
-		interrupt::free(|cs| {
-			self.usb.borrow(cs)
-				.udcon()
-				.modify(|_, w| w.detach().set_bit());
-		});
-
-		let mut delay = Delay::<CLOCKUSB>::new();
-		delay.delay_ms(1);
-
-		interrupt::free(|cs| {
-			self.usb.borrow(cs)
-				.udcon()
-				.modify(|_, w| w.detach().clear_bit());
-		});
-
-		Ok(())
+		// TODO: implement using udcon.detach
+		Err(UsbError::Unsupported)
 	}
 }
 
