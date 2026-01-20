@@ -354,20 +354,91 @@ where
 			let usb = self.usb.borrow(cs);
 			let pll = self.pll.borrow(cs);
 
+			// The Datasheet is quite vague; the best I can find is section 21.12, which states:
+			//
+			// > ## Power On the USB interface
+			// >
+			// > * Power-On USB pads regulator
+			// > * Configure PLL interface
+			// > * Enable PLL
+			// > * Check PLL lock
+			// > * Enable USB interface
+			// > * Configure USB interface (USB speed, Endpoints configuration...)
+			// > * Wait for USB VBUS information connection
+			//
+			// So instead, we reference the code that Arduino uses:
+			// https://github.com/arduino/ArduinoCore-avr/blob/7c38f34da561266e1e5cf7769f0e61b0aa5dda39/cores/arduino/USBCore.cpp#L680-L754
+			//
+			// > /* Copyright (c) 2010, Peter Barrett
+			// > ** Sleep/Wakeup support added by Michael Dreher
+			// > **
+			// > ** Permission to use, copy, modify, and/or distribute this software for
+			// > ** any purpose with or without fee is hereby granted, provided that the
+			// > ** above copyright notice and this permission notice appear in all copies.
+			// > **
+			// > ** THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+			// > ** WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+			// > ** WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR
+			// > ** BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES
+			// > ** OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+			// > ** WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+			// > ** ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+			// > ** SOFTWARE.
+			// > */
+			// >
+			// > ...
+			// >
+			// > static inline void USB_ClockEnable()
+			// > {
+
+			// >         UHWCON |= (1<<UVREGE);                  // power internal reg
+			// usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
+
+			// >         USBCON = (1<<USBE) | (1<<FRZCLK);       // clock frozen, usb enabled
+			// usb.usbcon()
+			// 	.modify(|_, w| w.usbe().set_bit().frzclk().set_bit());
+
+			// >         // ATmega32U4
+			// >         #if F_CPU == 16000000UL
+			// >                 PLLCSR |= (1<<PINDIV);                   // Need 16 MHz xtal
+			// >         #elif F_CPU == 8000000UL
+			// >                 PLLCSR &= ~(1<<PINDIV);                  // Need  8 MHz xtal
+			// >         #else
+			// >                 #error "Clock rate of F_CPU not supported"
+			// >         #endif
+			//
+			// The C++ code raises an error at build time if the clock speed isn't
+			// 16MHz or 8MHz. We do the same thing in Rust using the ClockUSB trait.
+			//
+			// Using an `if` would arguably be the cleaner solution. However if we wanted to
+			// do that while still enforcing the 8MHz/16MHz requirement at compile time, then
+			// we would have to move `usb.rs` from `mcu/atmega-hal` to `arduino-hal` (which
+			// contains the definition of `DefaultClock`).
 			pll.pllcsr().modify(|_, w| CLOCKUSB::setup_pllcsr_pindiv(w));
 
 			// Explicitly reset pllfrq back to the value that it would have after
 			// power cycling the device.
-			pll.pllfrq().write(|w| unsafe{w.bits(0b0000_0100)});
+			pll.pllfrq().write(|w| unsafe { w.bits(0b0000_0100) });
 			// TODO: submit patch to avr-device to change PLLFRQ_SPEC's RESET_VALUE from zero to 4.
 			// pll.pllfrq().reset();
 
+			// >         PLLCSR |= (1<<PLLE);
+			// >         while (!(PLLCSR & (1<<PLOCK)))          // wait for lock pll
+			// >         {
+			// >         }
 			pll.pllcsr().modify(|_, w| w.plle().set_bit());
 			while pll.pllcsr().read().plock().bit_is_clear() {}
 
 			usb.uhwcon().modify(|_, w| w.uvrege().set_bit());
 			usb.usbcon()
 				.modify(|_, w| w.usbe().set_bit().otgpade().set_bit());
+
+			// >         // Some tests on specific versions of macosx (10.7.3), reported some
+			// >         // strange behaviors when the board is reset using the serial
+			// >         // port touch at 1200 bps. This delay fixes this behavior.
+			// >         delay(1);
+			let mut delay = Delay::<CLOCKUSB>::new();
+			delay.delay_ms(1);
 
 			// NB: FRZCLK cannot be set/cleared when USBE=0, and
 			// cannot be modified at the same time.
@@ -378,9 +449,24 @@ where
 				self.configure_endpoint(cs, index).unwrap();
 			}
 
+			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
+			// usb.usbcon()
+			// 	.modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
 			usb.udcon().modify(|_, w| w.detach().clear_bit());
 			usb.udien()
 				.modify(|_, w| w.eorste().set_bit().sofe().set_bit());
+
+			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
+			// usb.udcon().modify(|_, w| {
+			// 	w.rstcpu()
+			// 		.clear_bit()
+			// 		.lsm()
+			// 		.clear_bit()
+			// 		.rmwkup()
+			// 		.clear_bit()
+			// 		.detach()
+			// 		.clear_bit()
+			// });
 		});
 	}
 
