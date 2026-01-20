@@ -436,18 +436,19 @@ where
 			let mut delay = Delay::<CLOCKUSB>::new();
 			delay.delay_ms(1);
 
-			// NB: FRZCLK cannot be set/cleared when USBE=0, and
-			// cannot be modified at the same time.
-			usb.usbcon()
-				.modify(|_, w| w.frzclk().clear_bit().vbuste().set_bit());
+			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
+			usb.usbcon().modify(|_, w| {
+				w.frzclk()
+					.clear_bit()
+					.otgpade()
+					.set_bit()
+					.vbuste()
+					.set_bit()
+			});
 
 			for (index, _ep) in self.active_endpoints() {
 				self.configure_endpoint(cs, index).unwrap();
 			}
-
-			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
-			usb.usbcon()
-				.modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
 
 			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
 			usb.udcon().modify(|_, w| {
