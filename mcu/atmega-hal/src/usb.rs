@@ -407,7 +407,6 @@ where
 					.clear_bit()
 					.otgpade()
 					.set_bit()
-
 					// TODO: This is not part of C++???
 					// Why do we need this???
 					.vbuste()
@@ -504,21 +503,14 @@ where
 				//
 				// EP_DOUBLE_64 is defined as 0x36 == 0b0011_0110. This corresponds to:
 				// * epsize: 0b011 (64 bits)
-				// * epbk: 0b01 (double bank mode)
+				// * epbk: 0b00 (single bank mode)
 				// * alloc: 0b1 (allocate)
-				// usb.uecfg1x().write(|w| unsafe {
-				// 	w.epbk().bits(0b01) // TODO: patch the PAC to give human-readable name
-				// 		.epsize()
-				// 		.bits(epsize_bits_from_max_packet_size(
-				// 			endpoint.max_packet_size,
-				// 		))
-				// 		.alloc()
-				// 		.set_bit()
-				// });
 				usb.uecfg1x().write(|w| unsafe {
-					w.epbk().bits(0)
-						.epsize()
-						.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
+					w.epbk().bits(0b00).epsize().bits(
+						epsize_bits_from_max_packet_size(
+							endpoint.max_packet_size,
+						),
+					)
 				});
 				usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
 
@@ -530,9 +522,6 @@ where
 
 				usb.ueienx()
 					.modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
-
-
-
 
 				// Check CFGOK (config okay) to make sure that everything works
 				//
