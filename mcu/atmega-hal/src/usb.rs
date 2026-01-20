@@ -470,33 +470,6 @@ where
 				// > UENUM = i;
 				self.set_current_endpoint(cs, index).unwrap();
 
-				usb.ueconx().modify(|_, w| w.epen().set_bit());
-				usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
-
-				usb.uecfg0x().write(|w| unsafe {
-					w.epdir()
-						.bit(epdir_bit_from_direction(endpoint.ep_dir))
-						.eptype()
-						.bits(eptype_bits_from_ep_type(endpoint.ep_type))
-				});
-				usb.uecfg1x().write(|w| unsafe {
-					w.epbk().bits(0)
-						.epsize()
-						.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
-				});
-				usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
-
-				assert!(
-					usb.uesta0x().read().cfgok().bit_is_set(),
-					"could not configure endpoint {}",
-					index
-				);
-
-				usb.ueienx()
-					.modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
-
-
-
 				// > UECONX = (1<<EPEN);
 				// usb.ueconx().modify(|_, w| w.epen().set_bit());
 
@@ -542,6 +515,36 @@ where
 				// 		.alloc()
 				// 		.set_bit()
 				// });
+
+
+
+				usb.ueconx().modify(|_, w| w.epen().set_bit());
+				usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
+
+				usb.uecfg0x().write(|w| unsafe {
+					w.epdir()
+						.bit(epdir_bit_from_direction(endpoint.ep_dir))
+						.eptype()
+						.bits(eptype_bits_from_ep_type(endpoint.ep_type))
+				});
+				usb.uecfg1x().write(|w| unsafe {
+					w.epbk().bits(0)
+						.epsize()
+						.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
+				});
+				usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
+
+				assert!(
+					usb.uesta0x().read().cfgok().bit_is_set(),
+					"could not configure endpoint {}",
+					index
+				);
+
+				usb.ueienx()
+					.modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
+
+
+
 
 				// Check CFGOK (config okay) to make sure that everything works
 				//
