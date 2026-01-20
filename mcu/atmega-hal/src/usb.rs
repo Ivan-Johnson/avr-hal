@@ -471,14 +471,14 @@ where
 				self.set_current_endpoint(cs, index).unwrap();
 
 				// > UECONX = (1<<EPEN);
-				// usb.ueconx().modify(|_, w| w.epen().set_bit());
+				usb.ueconx().modify(|_, w| w.epen().set_bit());
 
 				// Nobody else does this (TODO!?), but if the `alloc` bit is already
 				// set then it's a good idea to toggle it off first.
 				//
 				// This ensures that there isn't any wasted memory in between `index`'s buffer and
 				// `index - 1`'s buffer (refer to section 21.9: Memory Management).
-				// usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
+				usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
 
 				// > UECFG0X = _initEndpoints[i];
 				//
@@ -487,12 +487,12 @@ where
 				//     > #define EP_TYPE_BULK_IN      ((1<<EPTYPE1) | (1<<EPDIR))
 				//     > #define EP_TYPE_BULK_OUT      (1<<EPTYPE1)
 				//     > #define EP_TYPE_INTERRUPT_IN ((1<<EPTYPE1) | (1<<EPTYPE0) | (1<<EPDIR))
-				// usb.uecfg0x().write(|w| unsafe {
-				// 	w.epdir()
-				// 		.bit(epdir_bit_from_direction(endpoint.ep_dir))
-				// 		.eptype()
-				// 		.bits(eptype_bits_from_ep_type(endpoint.ep_type))
-				// });
+				usb.uecfg0x().write(|w| unsafe {
+					w.epdir()
+						.bit(epdir_bit_from_direction(endpoint.ep_dir))
+						.eptype()
+						.bits(eptype_bits_from_ep_type(endpoint.ep_type))
+				});
 
 				// > #if USB_EP_SIZE == 16
 				// > ...
@@ -515,18 +515,6 @@ where
 				// 		.alloc()
 				// 		.set_bit()
 				// });
-
-
-
-				usb.ueconx().modify(|_, w| w.epen().set_bit());
-				usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
-
-				usb.uecfg0x().write(|w| unsafe {
-					w.epdir()
-						.bit(epdir_bit_from_direction(endpoint.ep_dir))
-						.eptype()
-						.bits(eptype_bits_from_ep_type(endpoint.ep_type))
-				});
 				usb.uecfg1x().write(|w| unsafe {
 					w.epbk().bits(0)
 						.epsize()
