@@ -505,6 +505,9 @@ where
 				// * epsize: 0b011 (64 bits)
 				// * epbk: 0b00 (single bank mode)
 				// * alloc: 0b1 (allocate)
+				//
+				// TODO: Why are we using single bank mode, even
+				// though the C++ code uses double bank mode?
 				usb.uecfg1x().write(|w| unsafe {
 					w.epbk().bits(0b00)
 						.epsize()
