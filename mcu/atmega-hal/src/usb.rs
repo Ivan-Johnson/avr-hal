@@ -520,9 +520,6 @@ where
 					index
 				);
 
-				usb.ueienx()
-					.modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
-
 				// Check CFGOK (config okay) to make sure that everything works
 				//
 				// The C++ code doesn't bother with this for some reason.
