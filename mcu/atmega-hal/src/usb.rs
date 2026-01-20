@@ -722,14 +722,19 @@ where
 	/// Implementations may also return other errors if applicable.
 	fn read(&self, ep_addr: EndpointAddress, buf: &mut [u8]) -> Result<usize, UsbError> {
 		interrupt::free(|cs| {
+			let index = ep_addr.index();
+			let endpoint = self.get_endpoint_table_entry(cs, index)?;
 			let usb = self.usb.borrow(cs);
-			self.set_current_endpoint(cs, ep_addr.index())?;
-			let endpoint = self.get_endpoint_table_entry(cs, ep_addr.index())?;
 
-			// Different logic is needed for control endpoints:
-			// - The FIFOCON and RWAL fields are irrelevant with CONTROL endpoints.
-			// - RXSTPI/RXOUTI ... shall be cleared by firmware to **send the
-			//   packet and to clear the endpoint bank.**
+			// We should only be reading if the data is flowing "OUT" from the host.
+			assert_eq!(UsbDirection::Out, ep_addr.direction());
+			if index != 0 {
+				// endpoint 0 is a special case; ref @FOOTNOTE-EP0
+				assert_eq!(UsbDirection::Out, endpoint.ep_dir);
+			}
+
+			self.set_current_endpoint(cs, index)?;
+
 			if endpoint.ep_type == EndpointType::Control {
 				let ueintx = usb.ueintx().read();
 				if ueintx.rxouti().bit_is_clear() && ueintx.rxstpi().bit_is_clear()
@@ -764,7 +769,6 @@ where
 					*slot = usb.uedatx().read().bits();
 					bytes_read += 1;
 				}
-
 				if usb.ueintx().read().rwal().bit_is_set() {
 					return Err(UsbError::BufferOverflow);
 				}
@@ -935,21 +939,6 @@ where
 }
 
 /// Extension trait for conveniently clearing AVR interrupt flag registers.
-///
-/// To clear an interrupt flag, a zero bit must be written. However, there are
-/// several other hazards to take into consideration:
-///
-/// 1. If you read-modify-write, it is possible that an interrupt flag will be
-///   set by hardware in between the read and write, and writing the zero that
-///   you previously read will clear that flag as well. So, use a default value
-///   of all ones and specifically clear the bits you want. HOWEVER:
-///
-/// 2. Some bits of the interrupt flag register are reserved, and it is
-///   specified that they should not be written as ones.
-///
-/// Implementers of this trait should provide an initial value to the callback
-/// with all _known_ interrupt flags set to the value that has no effect (which
-/// is 1, in most cases)
 trait ClearInterrupts {
 	type Writer;
 
@@ -994,3 +983,6 @@ impl ClearInterrupts for USBINT {
 		self.write(|w| f(unsafe { w.bits(0x01) }));
 	}
 }
+
+// TODO: add a drop implementation.
+// Either have it panic, or actually test it.
