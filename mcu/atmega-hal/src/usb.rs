@@ -402,8 +402,17 @@ where
 			delay.delay_ms(1);
 
 			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
-			usb.usbcon()
-				.modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
+			usb.usbcon().modify(|_, w| {
+				w.frzclk()
+					.clear_bit()
+					.otgpade()
+					.set_bit()
+
+					// TODO: This is not part of C++???
+					// Why do we need this???
+					.vbuste()
+					.set_bit()
+			});
 
 			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
 			usb.udcon().modify(|_, w| {
