@@ -931,10 +931,6 @@ where
 	/// * [`Unsupported`](crate::UsbError::Unsupported) - This UsbBus implementation doesn't support
 	///   simulating a disconnect or it has not been enabled at creation time.
 	fn force_reset(&self) -> Result<(), UsbError> {
-		// 22.9 "It is possible to re-enumerate a device, simply by setting and
-		// clearing the DETACH bit (but firmware must take in account a
-		// debouncing delay of some milliseconds)."
-
 		interrupt::free(|cs| {
 			self.usb.borrow(cs)
 				.udcon()
