@@ -514,12 +514,6 @@ where
 				});
 				usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
 
-				assert!(
-					usb.uesta0x().read().cfgok().bit_is_set(),
-					"could not configure endpoint {}",
-					index
-				);
-
 				// Check CFGOK (config okay) to make sure that everything works
 				//
 				// The C++ code doesn't bother with this for some reason.
