@@ -529,6 +529,18 @@ where
 			// TODO: once again, patch PAC to avoid this unnecessary unsafe.
 			usb.uerst().write(|w| unsafe { w.bits(0x7E) });
 			usb.uerst().write(|w| unsafe { w.bits(0) });
+
+			// This code is NOT ported from C++. TODO: cleanup this explanation of why.
+			//
+			// Tests from the `usb2` branch suggest that this is
+			// necessary.  Why? It makes no sense. The docs seems to
+			// suggest that I'm allowed to enable both at the same
+			// time.
+			//
+			// If I *am* allowed to enable them both at the same time, then
+			// this is absolutely pointless??
+			usb.udien()
+				.modify(|_, w| w.wakeupe().clear_bit().suspe().set_bit());
 		})
 	}
 
@@ -755,6 +767,8 @@ where
 			let usb = self.usb.borrow(cs);
 			usb.udint()
 				.clear_interrupts(|w| w.suspi().clear_bit().wakeupi().clear_bit());
+			usb.udien()
+				.modify(|_, w| w.wakeupe().set_bit().suspe().clear_bit());
 			usb.usbcon().modify(|_, w| w.frzclk().set_bit());
 		});
 	}
@@ -767,6 +781,8 @@ where
 			usb.usbcon().modify(|_, w| w.frzclk().clear_bit());
 			usb.udint()
 				.clear_interrupts(|w| w.wakeupi().clear_bit().suspi().clear_bit());
+			usb.udien()
+				.modify(|_, w| w.wakeupe().clear_bit().suspe().set_bit());
 		});
 	}
 
@@ -778,6 +794,14 @@ where
 
 			let usbint = usb.usbint().read();
 			let udint = usb.udint().read();
+
+			// TODO: This is sketchy?
+			//
+			// IMO it would be cleaner to always have both bits set
+			// in `udien`. Then instead of storing state in `udien`,
+			// just make an enum in `self`.
+			let udien = usb.udien().read();
+
 			if usbint.vbusti().bit_is_set() {
 				usb.usbint().clear_interrupts(|w| w.vbusti().clear_bit());
 				if usb.usbsta().read().vbus().bit_is_set() {
@@ -786,10 +810,10 @@ where
 					return PollResult::Suspend;
 				}
 			}
-			if udint.suspi().bit_is_set() {
+			if udint.suspi().bit_is_set() && udien.suspe().bit_is_set() {
 				return PollResult::Suspend;
 			}
-			if udint.wakeupi().bit_is_set() {
+			if udint.wakeupi().bit_is_set() && udien.wakeupe().bit_is_set() {
 				return PollResult::Resume;
 			}
 			if udint.eorsti().bit_is_set() {
