@@ -578,8 +578,8 @@ where
 			//     > Then, clear by software to complete the reset operation and start using the endpoint.
 			//
 			// TODO: once again, patch PAC to avoid this unnecessary unsafe.
-			// usb.uerst().write(|w| unsafe { w.bits(0x7E) });
-			// usb.uerst().write(|w| unsafe { w.bits(0) });
+			usb.uerst().write(|w| unsafe { w.bits(0x7E) });
+			usb.uerst().write(|w| unsafe { w.bits(0) });
 
 			// This code is NOT ported from C++. TODO: cleanup this explanation of why.
 			//
