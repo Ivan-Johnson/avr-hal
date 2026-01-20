@@ -503,10 +503,10 @@ where
 				//
 				// EP_DOUBLE_64 is defined as 0x36 == 0b0011_0110. This corresponds to:
 				// * epsize: 0b011 (64 bits)
-				// * epbk: 0b01 (double bank mode)
+				// * epbk: 0b00 (single bank mode)
 				// * alloc: 0b1 (allocate)
 				usb.uecfg1x().write(|w| unsafe {
-					w.epbk().bits(0b01) // TODO: patch the PAC to give human-readable name
+					w.epbk().bits(0b00)
 						.epsize()
 						.bits(epsize_bits_from_max_packet_size(
 							endpoint.max_packet_size,
