@@ -449,10 +449,6 @@ where
 					.set_bit()
 			});
 
-			for (index, _ep) in self.active_endpoints() {
-				self.configure_endpoint(cs, index).unwrap();
-			}
-
 			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
 			usb.udcon().modify(|_, w| {
 				w.rstcpu()
