@@ -465,12 +465,10 @@ where
 			// > for (u8 i = 1; i < sizeof(_initEndpoints) && _initEndpoints[i] != 0; i++)
 			// > {
 			for (index, _ep) in self.active_endpoints() {
-				self.set_current_endpoint(cs, index).unwrap();
+				let endpoint = self.get_endpoint_table_entry(cs, index).unwrap();
 
-				// TODO: cleanup
-				let Some(ref endpoint) = self.endpoints[index] else {
-					panic!();
-				};
+				// > UENUM = i;
+				self.set_current_endpoint(cs, index).unwrap();
 
 				usb.ueconx().modify(|_, w| w.epen().set_bit());
 				usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
@@ -497,10 +495,7 @@ where
 				usb.ueienx()
 					.modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
 
-				// let endpoint = self.get_endpoint_table_entry(cs, index).unwrap();
 
-				// > UENUM = i;
-				// self.set_current_endpoint(cs, index).unwrap();
 
 				// > UECONX = (1<<EPEN);
 				// usb.ueconx().modify(|_, w| w.epen().set_bit());
