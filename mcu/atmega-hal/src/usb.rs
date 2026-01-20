@@ -381,10 +381,9 @@ where
 			// contains the definition of `DefaultClock`).
 			pll.pllcsr().modify(|_, w| CLOCKUSB::setup_pllcsr_pindiv(w));
 
-
 			// Explicitly reset pllfrq back to the value that it would have after
 			// power cycling the device.
-			pll.pllfrq().write(|w| unsafe{w.bits(0b0000_0100)});
+			pll.pllfrq().write(|w| unsafe { w.bits(0b0000_0100) });
 			// TODO: submit patch to avr-device to change PLLFRQ_SPEC's RESET_VALUE from zero to 4.
 			// pll.pllfrq().reset();
 
