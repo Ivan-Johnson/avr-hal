@@ -216,41 +216,6 @@ where
 			Err(UsbError::InvalidEndpoint)
 		}
 	}
-
-	fn configure_endpoint(&self, cs: CriticalSection, index: usize) -> Result<(), UsbError> {
-		let usb = self.usb.borrow(cs);
-		self.set_current_endpoint(cs, index)?;
-		let Some(ref endpoint) = self.endpoints[index] else {
-			// TODO
-			return Err(UsbError::InvalidState);
-		};
-
-		usb.ueconx().modify(|_, w| w.epen().set_bit());
-		usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
-
-		usb.uecfg0x().write(|w| unsafe {
-			w.epdir()
-				.bit(epdir_bit_from_direction(endpoint.ep_dir))
-				.eptype()
-				.bits(eptype_bits_from_ep_type(endpoint.ep_type))
-		});
-		usb.uecfg1x().write(|w| unsafe {
-			w.epbk().bits(0)
-				.epsize()
-				.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
-		});
-		usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
-
-		assert!(
-			usb.uesta0x().read().cfgok().bit_is_set(),
-			"could not configure endpoint {}",
-			index
-		);
-
-		usb.ueienx()
-			.modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
-		Ok(())
-	}
 }
 
 impl<CLOCKUSB: ClockUSB> UsbBus for UsbdBus<CLOCKUSB>
@@ -500,7 +465,37 @@ where
 			// > for (u8 i = 1; i < sizeof(_initEndpoints) && _initEndpoints[i] != 0; i++)
 			// > {
 			for (index, _ep) in self.active_endpoints() {
-				self.configure_endpoint(cs, index).unwrap();
+				self.set_current_endpoint(cs, index).unwrap();
+
+				// TODO: cleanup
+				let Some(ref endpoint) = self.endpoints[index] else {
+					panic!();
+				};
+
+				usb.ueconx().modify(|_, w| w.epen().set_bit());
+				usb.uecfg1x().modify(|_, w| w.alloc().clear_bit());
+
+				usb.uecfg0x().write(|w| unsafe {
+					w.epdir()
+						.bit(epdir_bit_from_direction(endpoint.ep_dir))
+						.eptype()
+						.bits(eptype_bits_from_ep_type(endpoint.ep_type))
+				});
+				usb.uecfg1x().write(|w| unsafe {
+					w.epbk().bits(0)
+						.epsize()
+						.bits(epsize_bits_from_max_packet_size(endpoint.max_packet_size))
+				});
+				usb.uecfg1x().modify(|_, w| w.alloc().set_bit());
+
+				assert!(
+					usb.uesta0x().read().cfgok().bit_is_set(),
+					"could not configure endpoint {}",
+					index
+				);
+
+				usb.ueienx()
+					.modify(|_, w| w.rxoute().set_bit().rxstpe().set_bit());
 
 				// let endpoint = self.get_endpoint_table_entry(cs, index).unwrap();
 
