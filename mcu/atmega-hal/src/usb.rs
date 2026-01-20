@@ -448,19 +448,18 @@ where
 			// >         USBCON = (USBCON & ~(1<<FRZCLK)) | (1<<OTGPADE);        // start USB clock, enable VBUS Pad
 			usb.usbcon()
 				.modify(|_, w| w.frzclk().clear_bit().otgpade().set_bit());
-			usb.udcon().modify(|_, w| w.detach().clear_bit());
 
 			// >         UDCON &= ~((1<<RSTCPU) | (1<<LSM) | (1<<RMWKUP) | (1<<DETACH)); // enable attach resistor, set full speed mode
-			// usb.udcon().modify(|_, w| {
-			// 	w.rstcpu()
-			// 		.clear_bit()
-			// 		.lsm()
-			// 		.clear_bit()
-			// 		.rmwkup()
-			// 		.clear_bit()
-			// 		.detach()
-			// 		.clear_bit()
-			// });
+			usb.udcon().modify(|_, w| {
+				w.rstcpu()
+					.clear_bit()
+					.lsm()
+					.clear_bit()
+					.rmwkup()
+					.clear_bit()
+					.detach()
+					.clear_bit()
+			});
 		});
 	}
 
