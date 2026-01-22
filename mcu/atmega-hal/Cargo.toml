@@ -41,7 +41,7 @@ embedded-hal = { version = "1.0", optional = true }
 usb-device = { version = "0.3.2", optional = true }
 
 [dependencies.avr-device]
-version = "0.8"
+version = "0.8.1"
 
 # Because this crate has its own check that at least one device is selected, we
 # can safely "circumvent" the check in `avr-device`.
