@@ -5,8 +5,6 @@
     Is there anything I can learn from them? Obvious example: does Rahix have a
     preference for/against force pushes when updating CR?
 
-[ ] Verify: is it okay that I've deleted ~all the interrupt code?
-
 # Final testing
 
 Before updating PR, verify:
