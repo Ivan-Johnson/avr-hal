@@ -18,12 +18,38 @@
     * Some `unsafe` blocks are necessary. To reduce risk, I should make a safe
       wrapper: Unsafe PAC -> safe wrapper -> usb.rs
 
-# Final testing
+[ ] Extensive testing.
 
-Before updating PR, verify:
+    This might be a waste of time; check with Rahix first.
 
-* Run `doc`, and read the docs:
+    Goals:
 
-  file:///home/i/Workspaces/2/avr-hal/target/doc/atmega_hal/struct.UsbdBus.html#limit-1
+    * Looking for panics
 
-* publish the docs to my fork, and share a link so that Rahix can review
+    * Benchmark. Ideally compare against Arduino library. (Having worse
+      performance is okay? esp. because I'm in single bank mode)
+
+    Tests:
+
+    * Actually use the thing as a video game controller for a few hours.
+
+    * flood the serial output (& test input separately?). See if it crashes, or
+      if logs get dropped, or something.
+
+    * Stress test other classes. HID might not be useful? idk what else to try
+      though.
+
+    * Capture trace.
+
+      * Compare against Arduino? Would be nice, but probs won't work. Output is
+        expected to be different, I think?
+
+      * Is there an open source tool I can use to check if the thing complies
+        with USB spec?
+
+    * Is there hardware I can by to test for USB compliance?
+
+    * ???
+
+      Check docs on `rust-embedded-community/usb-device`. If nothing useful, ask
+      for guidance.
