@@ -1,1 +1,29 @@
-* remove ~all `.modify(...)`s. Replace with `write`s
+# TODO
+
+[ ] Pickup delivery (Leonardo & USB passthrough boards)
+
+[ ] Find example of bigger features that were implemented by people other than Rahix.
+
+    Is there anything I can learn from them? Obvious example: does Rahix have a
+    preference for/against force pushes when updating CR?
+
+[ ] Ensure that registers are initialized correctly on boot. i.e. replace many
+    `.modify(...)`s with `write`s
+
+[ ] Make code safer:
+
+    * Some `unsafe` blocks are unnecessary? I can patch avr-device to mark those
+      registers as safe?
+
+    * Some `unsafe` blocks are necessary. To reduce risk, I should make a safe
+      wrapper: Unsafe PAC -> safe wrapper -> usb.rs
+
+# Final testing
+
+Before updating PR, verify:
+
+* Run `docs`, and read the docs:
+
+  file:///home/i/Workspaces/2/avr-hal/target/doc/atmega_hal/struct.UsbdBus.html#limit-1
+
+* publish the docs to my fork, and share a link so that Rahix can review
