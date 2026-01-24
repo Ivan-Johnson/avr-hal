@@ -1,0 +1,3 @@
+[submodule "avr-device"]
+	path = avr-device
+	url = git@github.com:Rahix/avr-device.git
