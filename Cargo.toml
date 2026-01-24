@@ -12,6 +12,8 @@ opt-level = "s"
 
 [workspace]
 members = [
+    "avr-device",
+
     # The generic hal definitions
     "avr-hal-generic",
 
