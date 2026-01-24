@@ -1,5 +1,7 @@
 # TODO
 
+[ ] Pickup delivery (Leonardo & USB passthrough boards)
+
 [ ] Find example of bigger features that were implemented by people other than Rahix.
 
     Is there anything I can learn from them? Obvious example: does Rahix have a
@@ -16,8 +18,6 @@
 # Final testing
 
 Before updating PR, verify:
-
-* `micro-usb-serial.rs` actually works
 
 * Run `docs`, and read the docs:
 
