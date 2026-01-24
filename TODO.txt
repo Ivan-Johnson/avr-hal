@@ -22,7 +22,7 @@
 
 Before updating PR, verify:
 
-* Run `docs`, and read the docs:
+* Run `doc`, and read the docs:
 
   file:///home/i/Workspaces/2/avr-hal/target/doc/atmega_hal/struct.UsbdBus.html#limit-1
 
