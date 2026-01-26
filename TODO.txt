@@ -53,3 +53,11 @@
 
       Check docs on `rust-embedded-community/usb-device`. If nothing useful, ask
       for guidance.
+
+[ ] Questions for Rahix:
+
+    * Is it okay that I'm using so many `unsafe`s?
+
+      I think that removing them would require patching the `USB_DEVICE`
+      peripheral in `avr-device`. I've spent an hour or two trying to get that
+      working, but with little success.
