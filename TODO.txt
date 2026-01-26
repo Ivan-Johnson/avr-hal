@@ -56,7 +56,25 @@
 
 [ ] Questions for Rahix:
 
-    * Is it okay that I'm using so many `unsafe`s?
+    * Is it worth adding a `USB_DEVICE` patch to `avr-device`? If so, I'll
+      probably need your help with that.
+
+      * I'm pretty sure that my PR shouldn't need to have so many `unsafe`
+        blocks. However, I'm struggling to figure out what patches I need to
+        make in order for `svd2rust` to recognize that these fields are safe.
+
+      * Adding `usb-device` support to `avr-device`. Instead of this:
+
+        usb.uecfg0x().write(|w| w.eptype().value(eptype_bits_from_ep_type(ep_type)))
+
+        do this
+
+        usb.uecfg0x().write(|w| w.eptype().value(ep_type))
+
+      * Add support for `pllfrq().reset()`.
+
+
+      Is it okay that I'm using so many `unsafe`s?
 
       I think that removing them would require patching the `USB_DEVICE`
       peripheral in `avr-device`. I've spent an hour or two trying to get that

@@ -54,19 +54,6 @@ impl ClockUSB for MHz8 {
 	}
 }
 
-// From datasheet section 21.1
-//
-// TODO:
-//
-// * Why 832? 64*6 + 256 = 640.
-//
-// * This UsbdBus implementation is based on the assumption that we're able to allocate
-//   all endpoints with their respective maximum sizes. If this is not the case, then
-//   we will need to restore the old `dpram_usage` checks.
-//
-// * Ah. I guess this has to do with double bank mode? i.e. the `EPBK` field.
-const _DPRAM_SIZE: u16 = 832;
-
 // TODO: cleanup these "footnotes". Make sure that they show up properly in the docs, and that I'm able to link to them as expected
 // * https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html#footnotes
 
