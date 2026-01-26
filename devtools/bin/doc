@@ -49,6 +49,13 @@ fi
 # MAIN LOGIC #
 ##############
 
+
+echo "################################################################"
+echo "# avr-device"
+pushd avr-device &> /dev/null
+cargo doc --features atmega32u4,rt --open
+popd &> /dev/null
+exit 0
 echo "################################################################"
 echo "# atmega-hal"
 pushd mcu/atmega-hal &> /dev/null
