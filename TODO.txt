@@ -1,5 +1,41 @@
 # TODO
 
+[ ] Cleanup
+
+    [ ] usb.rs
+
+        [ ] Cleanup `ClockUSB`
+
+            Either de-duplicate `writer.pindiv()`, or rename function
+            appropriately
+
+        [ ] Cleanup `epsize_bits_from_max_packet_size`.
+
+            The `match` is unnecessary. Instead, ~`return lg2(value)`
+
+        [ ]
+
+
+    [ ] micro-usb-serial.rs
+
+        [ ] Delete the hardware serial port?
+
+    [ ] alloc order
+
+        section 21.9 of the datasheet says:
+
+        > The reservation of a Pipe or an Endpoint can only be made in the increasing order (Pipe/Endpoint 0 to the last
+        > Pipe/Endpoint). The firmware shall thus configure them in the same order
+
+        Do we respect this?
+
+        Probably want to un-allocating everything before we alloc?
+
+
+    [ ]
+
+        [ ] `enable`: re-read `USB_ClockEnable`
+
 [ ] Pickup delivery (Leonardo & USB passthrough boards)
 
 [ ] Find example of bigger features that were implemented by people other than Rahix.

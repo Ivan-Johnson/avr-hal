@@ -97,13 +97,6 @@ fn epsize_bits_from_max_packet_size(max_packet_size: u16) -> u8 {
 	}
 }
 
-// TODO: section 21.9 of the datasheet says:
-//
-// > The reservation of a Pipe or an Endpoint can only be made in the increasing order (Pipe/Endpoint 0 to the last
-// > Pipe/Endpoint). The firmware shall thus configure them in the same order
-//
-// Do we respect this?
-
 struct EndpointTableEntry {
 	ep_type: EndpointType,
 	ep_dir: UsbDirection,
@@ -318,14 +311,14 @@ where
 			usb.usbcon()
 				.modify(|_, w| w.usbe().set_bit().frzclk().set_bit());
 
-			// >         // ATmega32U4
-			// >         #if F_CPU == 16000000UL
-			// >                 PLLCSR |= (1<<PINDIV);                   // Need 16 MHz xtal
-			// >         #elif F_CPU == 8000000UL
-			// >                 PLLCSR &= ~(1<<PINDIV);                  // Need  8 MHz xtal
-			// >         #else
-			// >                 #error "Clock rate of F_CPU not supported"
-			// >         #endif
+			// > // ATmega32U4
+			// > #if F_CPU == 16000000UL
+			// >         PLLCSR |= (1<<PINDIV);                   // Need 16 MHz xtal
+			// > #elif F_CPU == 8000000UL
+			// >         PLLCSR &= ~(1<<PINDIV);                  // Need  8 MHz xtal
+			// > #else
+			// >         #error "Clock rate of F_CPU not supported"
+			// > #endif
 			//
 			// Using an `if` would arguably be the cleaner solution. However if we wanted to
 			// do that while still enforcing the 8MHz/16MHz requirement at compile time, then
