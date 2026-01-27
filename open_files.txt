@@ -1,7 +1,6 @@
 // Working on adding USB support:
 // https://github.com/Rahix/avr-hal/issues/40
 // https://github.com/Rahix/avr-hal/pull/694
-meta.txt
 arduino-hal/Cargo.toml
 arduino-hal/src/lib.rs
 avr-hal-generic/Cargo.toml

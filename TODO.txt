@@ -13,7 +13,9 @@
 
             The `match` is unnecessary. Instead, ~`return lg2(value)`
 
-        [ ]
+        [ ] ???
+
+        [ ] get rid of `pending_ins`?
 
 
     [ ] micro-usb-serial.rs
@@ -98,6 +100,12 @@
       * I'm pretty sure that my PR shouldn't need to have so many `unsafe`
         blocks. However, I'm struggling to figure out what patches I need to
         make in order for `svd2rust` to recognize that these fields are safe.
+
+      * Improved interrupt support
+
+        https://github.com/agausmann/atmega-usbd/blob/master/src/lib.rs#L529-L551
+
+        This ~~would~~ would NOT let us remove the `vbus_was_set` field.
 
       * Adding `usb-device` support to `avr-device`. Instead of this:
 

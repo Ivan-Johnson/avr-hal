@@ -346,7 +346,8 @@ where
 					.clear_bit()
 					.otgpade()
 					.set_bit()
-				// Why do we need this???
+					// Note: We need vbuste in order to be able to detect changes to `usbsta.vbus`
+					// TODO: Why does the C++ code not do this?
 					.vbuste()
 					.set_bit()
 			});
@@ -759,8 +760,20 @@ where
 			let udien = usb.udien().read();
 
 			if usbint.vbusti().bit_is_set() {
+				// TODO: is this a race condtion?
+				//
+				// Suppose we start with everything in a good state, and VBUS is set.
+				//
+				// Then VBUS is cleared. However, before we can
+				// return `Suspend`, VBUS is toggled again. We
+				// then return `Resume` even though usb-device
+				// is already in a `Resume` state.
+				let vbus_is_set = usb.usbsta().read().vbus().bit_is_set();
+
 				usb.usbint().clear_interrupts(|w| w.vbusti().clear_bit());
-				if usb.usbsta().read().vbus().bit_is_set() {
+
+				// TODO: I don't understand; what does vbus have to do with Suspend?
+				if vbus_is_set {
 					return PollResult::Resume;
 				} else {
 					return PollResult::Suspend;
