@@ -802,8 +802,8 @@ where
 
 				for (index, _ep) in self.active_endpoints() {
 					if self.set_current_endpoint(cs, index).is_err() {
-						// Endpoint selection has stopped working...
-						break;
+						// TODO: This case shouldn't ever happen? Should we panic?
+						continue;
 					}
 
 					let ueintx = usb.ueintx().read();
