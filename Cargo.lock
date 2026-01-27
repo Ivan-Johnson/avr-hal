@@ -50,6 +50,8 @@ dependencies = [
  "nb 1.1.0",
  "panic-halt",
  "ufmt",
+ "usb-device",
+ "usbd-serial",
 ]
 
 [[package]]
@@ -901,6 +903,8 @@ dependencies = [
  "nb 1.1.0",
  "panic-halt",
  "ufmt",
+ "usb-device",
+ "usbd-serial",
 ]
 
 [[package]]
