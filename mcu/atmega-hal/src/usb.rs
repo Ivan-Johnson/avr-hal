@@ -174,11 +174,7 @@ where
 		((usb.uebchx().read().bits() as u16) << 8) | (usb.uebclx().read().bits() as u16)
 	}
 
-	fn get_endpoint_table_entry(
-		&self,
-		_cs: CriticalSection,
-		index: usize,
-	) -> Result<&EndpointTableEntry, UsbError> {
+	fn get_endpoint_table_entry(&self, index: usize) -> Result<&EndpointTableEntry, UsbError> {
 		if let Some(Some(ref endpoint)) = self.endpoints.get(index) {
 			Ok(endpoint)
 		} else {
@@ -538,7 +534,7 @@ where
 	fn write(&self, ep_addr: EndpointAddress, buf: &[u8]) -> Result<usize, UsbError> {
 		interrupt::free(|cs| {
 			let index = ep_addr.index();
-			let endpoint = self.get_endpoint_table_entry(cs, index)?;
+			let endpoint = self.get_endpoint_table_entry(index)?;
 
 			// We should only be writing to endpoints that are "IN" towards the host.
 			assert_eq!(UsbDirection::In, ep_addr.direction());
@@ -623,7 +619,7 @@ where
 	fn read(&self, ep_addr: EndpointAddress, buf: &mut [u8]) -> Result<usize, UsbError> {
 		interrupt::free(|cs| {
 			let index = ep_addr.index();
-			let endpoint = self.get_endpoint_table_entry(cs, index)?;
+			let endpoint = self.get_endpoint_table_entry(index)?;
 			let usb = self.usb.borrow(cs);
 
 			// We should only be reading if the data is flowing "OUT" from the host.
