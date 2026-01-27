@@ -155,7 +155,7 @@ where
 
 		usb.uenum().write(|w| w.set(index));
 		let read_back = usb.uenum().read().bits();
-		assert_eq!(read_back, read_back);
+		assert_eq!(index, read_back);
 
 		Ok(())
 	}
