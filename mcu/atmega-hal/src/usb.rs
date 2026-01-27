@@ -835,13 +835,6 @@ where
 
 	/// Simulates a disconnect from the USB bus, causing the host to reset and re-enumerate the
 	/// device.
-	///
-	/// The default implementation just returns `Unsupported`.
-	///
-	/// # Errors
-	///
-	/// * [`Unsupported`](crate::UsbError::Unsupported) - This UsbBus implementation doesn't support
-	///   simulating a disconnect or it has not been enabled at creation time.
 	fn force_reset(&self) -> Result<(), UsbError> {
 		interrupt::free(|cs| {
 			self.usb.borrow(cs)
