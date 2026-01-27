@@ -20,7 +20,6 @@ features = ["arduino-uno"]
 
 [dependencies.avr-device]
 version = "0.8.1"
-path = "../../avr-device"
 
 [dependencies.either]
 version = "1.6.1"

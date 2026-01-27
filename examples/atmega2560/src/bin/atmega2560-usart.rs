@@ -2,8 +2,7 @@
 #![no_main]
 
 use atmega_hal::prelude::*;
-use atmega_hal::usart::Baudrate;
-use atmega_hal::usart::Usart;
+use atmega_hal::usart::{Baudrate, Usart};
 use panic_halt as _;
 
 // Define core clock. This can be used in the rest of the project.

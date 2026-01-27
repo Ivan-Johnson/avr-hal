@@ -1,6 +1,4 @@
-pub use avr_hal_generic::simple_pwm::IntoPwmPin;
-pub use avr_hal_generic::simple_pwm::Prescaler;
-pub use avr_hal_generic::simple_pwm::PwmPinOps;
+pub use avr_hal_generic::simple_pwm::{IntoPwmPin, Prescaler, PwmPinOps};
 
 #[allow(unused_imports)]
 use crate::port::*;
@@ -26,36 +24,36 @@ avr_hal_generic::impl_simple_pwm! {
     /// d5.enable();
     /// ```
     pub struct Timer0Pwm {
-    timer: crate::pac::TC0,
-    init: |tim, prescaler| {
-        tim.tccr0a().modify(|_r, w| w.wgm0().pwm_fast());
-        tim.tccr0b().modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs0().direct(),
-        Prescaler::Prescale8 => w.cs0().prescale_8(),
-        Prescaler::Prescale64 => w.cs0().prescale_64(),
-        Prescaler::Prescale256 => w.cs0().prescale_256(),
-        Prescaler::Prescale1024 => w.cs0().prescale_1024(),
-        });
-    },
-    pins: {
-        PD6: {
-        ocr: ocr0a,
-        into_pwm: |tim| if enable {
-            tim.tccr0a().modify(|_r, w| w.com0a().match_clear());
-        } else {
-            tim.tccr0a().modify(|_r, w| w.com0a().disconnected());
+        timer: crate::pac::TC0,
+        init: |tim, prescaler| {
+            tim.tccr0a().modify(|_r, w| w.wgm0().pwm_fast());
+            tim.tccr0b().modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs0().direct(),
+                Prescaler::Prescale8 => w.cs0().prescale_8(),
+                Prescaler::Prescale64 => w.cs0().prescale_64(),
+                Prescaler::Prescale256 => w.cs0().prescale_256(),
+                Prescaler::Prescale1024 => w.cs0().prescale_1024(),
+            });
         },
-        },
+        pins: {
+            PD6: {
+                ocr: ocr0a,
+                into_pwm: |tim| if enable {
+                    tim.tccr0a().modify(|_r, w| w.com0a().match_clear());
+                } else {
+                    tim.tccr0a().modify(|_r, w| w.com0a().disconnected());
+                },
+            },
 
-        PD5: {
-        ocr: ocr0b,
-        into_pwm: |tim| if enable {
-            tim.tccr0a().modify(|_r, w| w.com0b().match_clear());
-        } else {
-            tim.tccr0a().modify(|_r, w| w.com0b().disconnected());
+            PD5: {
+                ocr: ocr0b,
+                into_pwm: |tim| if enable {
+                    tim.tccr0a().modify(|_r, w| w.com0b().match_clear());
+                } else {
+                    tim.tccr0a().modify(|_r, w| w.com0b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -80,40 +78,40 @@ avr_hal_generic::impl_simple_pwm! {
     /// d9.enable();
     /// ```
     pub struct Timer1Pwm {
-    timer: crate::pac::TC1,
-    init: |tim, prescaler| {
-        tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
-        tim.tccr1b().modify(|_r, w| {
-        w.wgm1().set(0b01);
+        timer: crate::pac::TC1,
+        init: |tim, prescaler| {
+            tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
+            tim.tccr1b().modify(|_r, w| {
+                w.wgm1().set(0b01);
 
-        match prescaler {
-            Prescaler::Direct => w.cs1().direct(),
-            Prescaler::Prescale8 => w.cs1().prescale_8(),
-            Prescaler::Prescale64 => w.cs1().prescale_64(),
-            Prescaler::Prescale256 => w.cs1().prescale_256(),
-            Prescaler::Prescale1024 => w.cs1().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PB1: {
-        ocr: ocr1a,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs1().direct(),
+                    Prescaler::Prescale8 => w.cs1().prescale_8(),
+                    Prescaler::Prescale64 => w.cs1().prescale_64(),
+                    Prescaler::Prescale256 => w.cs1().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs1().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PB1: {
+                ocr: ocr1a,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+                },
+            },
 
-        PB2: {
-        ocr: ocr1b,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
+            PB2: {
+                ocr: ocr1b,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -138,36 +136,36 @@ avr_hal_generic::impl_simple_pwm! {
     /// d11.enable();
     /// ```
     pub struct Timer2Pwm {
-    timer: crate::pac::TC2,
-    init: |tim, prescaler| {
-        tim.tccr2a().modify(|_r, w| w.wgm2().pwm_fast());
-        tim.tccr2b().modify(|_r, w| match prescaler {
-            Prescaler::Direct => w.cs2().direct(),
-            Prescaler::Prescale8 => w.cs2().prescale_8(),
-            Prescaler::Prescale64 => w.cs2().prescale_64(),
-            Prescaler::Prescale256 => w.cs2().prescale_256(),
-            Prescaler::Prescale1024 => w.cs2().prescale_1024(),
-        });
-    },
-    pins: {
-        PB3: {
-        ocr: ocr2a,
-        into_pwm: |tim| if enable {
-            tim.tccr2a().modify(|_r, w| w.com2a().match_clear());
-        } else {
-            tim.tccr2a().modify(|_r, w| w.com2a().disconnected());
+        timer: crate::pac::TC2,
+        init: |tim, prescaler| {
+            tim.tccr2a().modify(|_r, w| w.wgm2().pwm_fast());
+            tim.tccr2b().modify(|_r, w| match prescaler {
+                    Prescaler::Direct => w.cs2().direct(),
+                    Prescaler::Prescale8 => w.cs2().prescale_8(),
+                    Prescaler::Prescale64 => w.cs2().prescale_64(),
+                    Prescaler::Prescale256 => w.cs2().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs2().prescale_1024(),
+            });
         },
-        },
+        pins: {
+            PB3: {
+                ocr: ocr2a,
+                into_pwm: |tim| if enable {
+                    tim.tccr2a().modify(|_r, w| w.com2a().match_clear());
+                } else {
+                    tim.tccr2a().modify(|_r, w| w.com2a().disconnected());
+                },
+            },
 
-        PD3: {
-        ocr: ocr2b,
-        into_pwm: |tim| if enable {
-            tim.tccr2a().modify(|_r, w| w.com2b().match_clear());
-        } else {
-            tim.tccr2a().modify(|_r, w| w.com2b().disconnected());
+            PD3: {
+                ocr: ocr2b,
+                into_pwm: |tim| if enable {
+                    tim.tccr2a().modify(|_r, w| w.com2b().match_clear());
+                } else {
+                    tim.tccr2a().modify(|_r, w| w.com2b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -175,40 +173,40 @@ avr_hal_generic::impl_simple_pwm! {
 avr_hal_generic::impl_simple_pwm! {
     /// Use `TC3` for PWM (pins `PD0`, `PD2`)
     pub struct Timer3Pwm {
-    timer: crate::pac::TC3,
-    init: |tim, prescaler| {
-        tim.tccr3a().modify(|_r, w| w.wgm3().set(0b01));
-        tim.tccr3b().modify(|_r, w| {
-        unsafe { w.wgm3().bits(0b01) };
+        timer: crate::pac::TC3,
+        init: |tim, prescaler| {
+            tim.tccr3a().modify(|_r, w| w.wgm3().set(0b01));
+            tim.tccr3b().modify(|_r, w| {
+                unsafe { w.wgm3().bits(0b01) };
 
-        match prescaler {
-            Prescaler::Direct => w.cs3().direct(),
-            Prescaler::Prescale8 => w.cs3().prescale_8(),
-            Prescaler::Prescale64 => w.cs3().prescale_64(),
-            Prescaler::Prescale256 => w.cs3().prescale_256(),
-            Prescaler::Prescale1024 => w.cs3().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PD0: {
-        ocr: ocr3a,
-        into_pwm: |tim| if enable {
-            tim.tccr3a().modify(|_r, w| w.com3a().match_clear());
-        } else {
-            tim.tccr3a().modify(|_r, w| w.com3a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs3().direct(),
+                    Prescaler::Prescale8 => w.cs3().prescale_8(),
+                    Prescaler::Prescale64 => w.cs3().prescale_64(),
+                    Prescaler::Prescale256 => w.cs3().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs3().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PD0: {
+                ocr: ocr3a,
+                into_pwm: |tim| if enable {
+                    tim.tccr3a().modify(|_r, w| w.com3a().match_clear());
+                } else {
+                    tim.tccr3a().modify(|_r, w| w.com3a().disconnected());
+                },
+            },
 
-        PD2: {
-        ocr: ocr3b,
-        into_pwm: |tim| if enable {
-            tim.tccr3a().modify(|_r, w| w.com3b().match_clear());
-        } else {
-            tim.tccr3a().modify(|_r, w| w.com3b().disconnected());
+            PD2: {
+                ocr: ocr3b,
+                into_pwm: |tim| if enable {
+                    tim.tccr3a().modify(|_r, w| w.com3b().match_clear());
+                } else {
+                    tim.tccr3a().modify(|_r, w| w.com3b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -216,40 +214,40 @@ avr_hal_generic::impl_simple_pwm! {
 avr_hal_generic::impl_simple_pwm! {
     /// Use `TC4` for PWM (pins `PD1`, `PD2`)
     pub struct Timer4Pwm {
-    timer: crate::pac::TC4,
-    init: |tim, prescaler| {
-        tim.tccr4a().modify(|_r, w| w.wgm4().set(0b01));
-        tim.tccr4b().modify(|_r, w| {
-        unsafe { w.wgm4().bits(0b01) };
+        timer: crate::pac::TC4,
+        init: |tim, prescaler| {
+            tim.tccr4a().modify(|_r, w| w.wgm4().set(0b01));
+            tim.tccr4b().modify(|_r, w| {
+                unsafe { w.wgm4().bits(0b01) };
 
-        match prescaler {
-            Prescaler::Direct => w.cs4().direct(),
-            Prescaler::Prescale8 => w.cs4().prescale_8(),
-            Prescaler::Prescale64 => w.cs4().prescale_64(),
-            Prescaler::Prescale256 => w.cs4().prescale_256(),
-            Prescaler::Prescale1024 => w.cs4().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PD1: {
-        ocr: ocr4a,
-        into_pwm: |tim| if enable {
-            tim.tccr4a().modify(|_r, w| w.com4a().match_clear());
-        } else {
-            tim.tccr4a().modify(|_r, w| w.com4a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs4().direct(),
+                    Prescaler::Prescale8 => w.cs4().prescale_8(),
+                    Prescaler::Prescale64 => w.cs4().prescale_64(),
+                    Prescaler::Prescale256 => w.cs4().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs4().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PD1: {
+                ocr: ocr4a,
+                into_pwm: |tim| if enable {
+                    tim.tccr4a().modify(|_r, w| w.com4a().match_clear());
+                } else {
+                    tim.tccr4a().modify(|_r, w| w.com4a().disconnected());
+                },
+            },
 
-        PD2: {
-        ocr: ocr4b,
-        into_pwm: |tim| if enable {
-            tim.tccr4a().modify(|_r, w| w.com4b().match_clear());
-        } else {
-            tim.tccr4a().modify(|_r, w| w.com4b().disconnected());
+            PD2: {
+                ocr: ocr4b,
+                into_pwm: |tim| if enable {
+                    tim.tccr4a().modify(|_r, w| w.com4b().match_clear());
+                } else {
+                    tim.tccr4a().modify(|_r, w| w.com4b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -268,36 +266,36 @@ avr_hal_generic::impl_simple_pwm! {
     /// d13.enable();
     /// ```
     pub struct Timer0Pwm {
-    timer: crate::pac::TC0,
-    init: |tim, prescaler| {
-        tim.tccr0a().modify(|_r, w| w.wgm0().pwm_fast());
-        tim.tccr0b().modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs0().direct(),
-        Prescaler::Prescale8 => w.cs0().prescale_8(),
-        Prescaler::Prescale64 => w.cs0().prescale_64(),
-        Prescaler::Prescale256 => w.cs0().prescale_256(),
-        Prescaler::Prescale1024 => w.cs0().prescale_1024(),
-        });
-    },
-    pins: {
-        PB7: {
-        ocr: ocr0a,
-        into_pwm: |tim| if enable {
-            tim.tccr0a().modify(|_r, w| w.com0a().match_clear());
-        } else {
-            tim.tccr0a().modify(|_r, w| w.com0a().disconnected());
+        timer: crate::pac::TC0,
+        init: |tim, prescaler| {
+            tim.tccr0a().modify(|_r, w| w.wgm0().pwm_fast());
+            tim.tccr0b().modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs0().direct(),
+                Prescaler::Prescale8 => w.cs0().prescale_8(),
+                Prescaler::Prescale64 => w.cs0().prescale_64(),
+                Prescaler::Prescale256 => w.cs0().prescale_256(),
+                Prescaler::Prescale1024 => w.cs0().prescale_1024(),
+            });
         },
-        },
+        pins: {
+            PB7: {
+                ocr: ocr0a,
+                into_pwm: |tim| if enable {
+                    tim.tccr0a().modify(|_r, w| w.com0a().match_clear());
+                } else {
+                    tim.tccr0a().modify(|_r, w| w.com0a().disconnected());
+                },
+            },
 
-        PG5: {
-        ocr: ocr0b,
-        into_pwm: |tim| if enable {
-            tim.tccr0a().modify(|_r, w| w.com0b().match_clear());
-        } else {
-            tim.tccr0a().modify(|_r, w| w.com0b().disconnected());
+            PG5: {
+                ocr: ocr0b,
+                into_pwm: |tim| if enable {
+                    tim.tccr0a().modify(|_r, w| w.com0b().match_clear());
+                } else {
+                    tim.tccr0a().modify(|_r, w| w.com0b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -317,49 +315,49 @@ avr_hal_generic::impl_simple_pwm! {
     /// d11.enable();
     /// ```
     pub struct Timer1Pwm {
-    timer: crate::pac::TC1,
-    init: |tim, prescaler| {
-        tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
-        tim.tccr1b().modify(|_r, w| {
-        w.wgm1().set(0b01);
+        timer: crate::pac::TC1,
+        init: |tim, prescaler| {
+            tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
+            tim.tccr1b().modify(|_r, w| {
+                w.wgm1().set(0b01);
 
-        match prescaler {
-            Prescaler::Direct => w.cs1().direct(),
-            Prescaler::Prescale8 => w.cs1().prescale_8(),
-            Prescaler::Prescale64 => w.cs1().prescale_64(),
-            Prescaler::Prescale256 => w.cs1().prescale_256(),
-            Prescaler::Prescale1024 => w.cs1().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PB5: {
-        ocr: ocr1a,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs1().direct(),
+                    Prescaler::Prescale8 => w.cs1().prescale_8(),
+                    Prescaler::Prescale64 => w.cs1().prescale_64(),
+                    Prescaler::Prescale256 => w.cs1().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs1().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PB5: {
+                ocr: ocr1a,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+                },
+            },
 
-        PB6: {
-        ocr: ocr1b,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
-        },
-        },
+            PB6: {
+                ocr: ocr1b,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
+                },
+            },
 
-        PB7: {
-        ocr: ocr1c,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1c().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1c().disconnected());
+            PB7: {
+                ocr: ocr1c,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1c().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1c().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -379,40 +377,40 @@ avr_hal_generic::impl_simple_pwm! {
     /// ```
 
     pub struct Timer2Pwm {
-    timer: crate::pac::TC2,
-    init: |tim, prescaler| {
-        tim.tccr2a().modify(|_r, w| w.wgm2().set(0b01));
-        tim.tccr2b().modify(|_r, w| {
-        w.wgm22().clear_bit();
+        timer: crate::pac::TC2,
+        init: |tim, prescaler| {
+            tim.tccr2a().modify(|_r, w| w.wgm2().set(0b01));
+            tim.tccr2b().modify(|_r, w| {
+                w.wgm22().clear_bit();
 
-        match prescaler {
-            Prescaler::Direct => w.cs2().direct(),
-            Prescaler::Prescale8 => w.cs2().prescale_8(),
-            Prescaler::Prescale64 => w.cs2().prescale_64(),
-            Prescaler::Prescale256 => w.cs2().prescale_256(),
-            Prescaler::Prescale1024 => w.cs2().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PB4: {
-        ocr: ocr2a,
-        into_pwm: |tim| if enable {
-            tim.tccr2a().modify(|_r, w| w.com2a().match_clear());
-        } else {
-            tim.tccr2a().modify(|_r, w| w.com2a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs2().direct(),
+                    Prescaler::Prescale8 => w.cs2().prescale_8(),
+                    Prescaler::Prescale64 => w.cs2().prescale_64(),
+                    Prescaler::Prescale256 => w.cs2().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs2().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PB4: {
+                ocr: ocr2a,
+                into_pwm: |tim| if enable {
+                    tim.tccr2a().modify(|_r, w| w.com2a().match_clear());
+                } else {
+                    tim.tccr2a().modify(|_r, w| w.com2a().disconnected());
+                },
+            },
 
-        PH6: {
-        ocr: ocr2b,
-        into_pwm: |tim| if enable {
-            tim.tccr2a().modify(|_r, w| w.com2b().match_clear());
-        } else {
-            tim.tccr2a().modify(|_r, w| w.com2b().disconnected());
+            PH6: {
+                ocr: ocr2b,
+                into_pwm: |tim| if enable {
+                    tim.tccr2a().modify(|_r, w| w.com2b().match_clear());
+                } else {
+                    tim.tccr2a().modify(|_r, w| w.com2b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -432,50 +430,50 @@ avr_hal_generic::impl_simple_pwm! {
     /// d5.enable();
     /// ```
     pub struct Timer3Pwm {
-    timer: crate::pac::TC3,
-    init: |tim, prescaler| {
-        tim.tccr3a().modify(|_r, w| w.wgm3().set(0b01));
-        tim.tccr3b().modify(|_r, w| {
-        w.wgm3().set(0b01);
+        timer: crate::pac::TC3,
+        init: |tim, prescaler| {
+            tim.tccr3a().modify(|_r, w| w.wgm3().set(0b01));
+            tim.tccr3b().modify(|_r, w| {
+                w.wgm3().set(0b01);
 
-        match prescaler {
-            Prescaler::Direct => w.cs3().direct(),
-            Prescaler::Prescale8 => w.cs3().prescale_8(),
-            Prescaler::Prescale64 => w.cs3().prescale_64(),
-            Prescaler::Prescale256 => w.cs3().prescale_256(),
-            Prescaler::Prescale1024 => w.cs3().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PE3: {
-        ocr: ocr3a,
-        into_pwm: |tim| if enable {
-            tim.tccr3a().modify(|_r, w| w.com3a().match_clear());
-        } else {
-            tim.tccr3a().modify(|_r, w| w.com3a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs3().direct(),
+                    Prescaler::Prescale8 => w.cs3().prescale_8(),
+                    Prescaler::Prescale64 => w.cs3().prescale_64(),
+                    Prescaler::Prescale256 => w.cs3().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs3().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PE3: {
+                ocr: ocr3a,
+                into_pwm: |tim| if enable {
+                    tim.tccr3a().modify(|_r, w| w.com3a().match_clear());
+                } else {
+                    tim.tccr3a().modify(|_r, w| w.com3a().disconnected());
+                },
+            },
 
-        PE4: {
-        ocr: ocr3b,
-        into_pwm: |tim| if enable {
-            tim.tccr3a().modify(|_r, w| w.com3b().match_clear());
-        } else {
-            tim.tccr3a().modify(|_r, w| w.com3b().disconnected());
-        },
-        },
+            PE4: {
+                ocr: ocr3b,
+                into_pwm: |tim| if enable {
+                    tim.tccr3a().modify(|_r, w| w.com3b().match_clear());
+                } else {
+                    tim.tccr3a().modify(|_r, w| w.com3b().disconnected());
+                },
+            },
 
-        PE5: {
-        ocr: ocr3c,
-        into_pwm: |tim| if enable {
-            tim.tccr3a().modify(|_r, w| w.com3c().match_clear());
-        } else {
-            tim.tccr3a().modify(|_r, w| w.com3c().disconnected());
-        },
-        },
+            PE5: {
+                ocr: ocr3c,
+                into_pwm: |tim| if enable {
+                    tim.tccr3a().modify(|_r, w| w.com3c().match_clear());
+                } else {
+                    tim.tccr3a().modify(|_r, w| w.com3c().disconnected());
+                },
+            },
 
-    },
+        },
     }
 }
 
@@ -495,50 +493,50 @@ avr_hal_generic::impl_simple_pwm! {
     /// d6.enable();
     /// ```
     pub struct Timer4Pwm {
-    timer: crate::pac::TC4,
-    init: |tim, prescaler| {
-        tim.tccr4a().modify(|_r, w| w.wgm4().set(0b01));
-        tim.tccr4b().modify(|_r, w| {
-        w.wgm4().set(0b01);
+        timer: crate::pac::TC4,
+        init: |tim, prescaler| {
+            tim.tccr4a().modify(|_r, w| w.wgm4().set(0b01));
+            tim.tccr4b().modify(|_r, w| {
+                w.wgm4().set(0b01);
 
-        match prescaler {
-            Prescaler::Direct => w.cs4().direct(),
-            Prescaler::Prescale8 => w.cs4().prescale_8(),
-            Prescaler::Prescale64 => w.cs4().prescale_64(),
-            Prescaler::Prescale256 => w.cs4().prescale_256(),
-            Prescaler::Prescale1024 => w.cs4().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PH3: {
-        ocr: ocr4a,
-        into_pwm: |tim| if enable {
-            tim.tccr4a().modify(|_r, w| w.com4a().match_clear());
-        } else {
-            tim.tccr4a().modify(|_r, w| w.com4a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs4().direct(),
+                    Prescaler::Prescale8 => w.cs4().prescale_8(),
+                    Prescaler::Prescale64 => w.cs4().prescale_64(),
+                    Prescaler::Prescale256 => w.cs4().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs4().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PH3: {
+                ocr: ocr4a,
+                into_pwm: |tim| if enable {
+                    tim.tccr4a().modify(|_r, w| w.com4a().match_clear());
+                } else {
+                    tim.tccr4a().modify(|_r, w| w.com4a().disconnected());
+                },
+            },
 
-        PH4: {
-        ocr: ocr4b,
-        into_pwm: |tim| if enable {
-            tim.tccr4a().modify(|_r, w| w.com4b().match_clear());
-        } else {
-            tim.tccr4a().modify(|_r, w| w.com4b().disconnected());
-        },
-        },
+            PH4: {
+                ocr: ocr4b,
+                into_pwm: |tim| if enable {
+                    tim.tccr4a().modify(|_r, w| w.com4b().match_clear());
+                } else {
+                    tim.tccr4a().modify(|_r, w| w.com4b().disconnected());
+                },
+            },
 
-        PH5: {
-        ocr: ocr4c,
-        into_pwm: |tim| if enable {
-            tim.tccr4a().modify(|_r, w| w.com4c().match_clear());
-        } else {
-            tim.tccr4a().modify(|_r, w| w.com4c().disconnected());
-        },
-        },
+            PH5: {
+                ocr: ocr4c,
+                into_pwm: |tim| if enable {
+                    tim.tccr4a().modify(|_r, w| w.com4c().match_clear());
+                } else {
+                    tim.tccr4a().modify(|_r, w| w.com4c().disconnected());
+                },
+            },
 
-    },
+        },
     }
 }
 
@@ -558,50 +556,50 @@ avr_hal_generic::impl_simple_pwm! {
     /// d46.enable();
     /// ```
     pub struct Timer5Pwm {
-    timer: crate::pac::TC5,
-    init: |tim, prescaler| {
-        tim.tccr5a().modify(|_r, w| w.wgm5().set(0b01));
-        tim.tccr5b().modify(|_r, w| {
-        w.wgm5().set(0b01);
+        timer: crate::pac::TC5,
+        init: |tim, prescaler| {
+            tim.tccr5a().modify(|_r, w| w.wgm5().set(0b01));
+            tim.tccr5b().modify(|_r, w| {
+                w.wgm5().set(0b01);
 
-        match prescaler {
-            Prescaler::Direct => w.cs5().direct(),
-            Prescaler::Prescale8 => w.cs5().prescale_8(),
-            Prescaler::Prescale64 => w.cs5().prescale_64(),
-            Prescaler::Prescale256 => w.cs5().prescale_256(),
-            Prescaler::Prescale1024 => w.cs5().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PL3: {
-        ocr: ocr5a,
-        into_pwm: |tim| if enable {
-            tim.tccr5a().modify(|_r, w| w.com5a().match_clear());
-        } else {
-            tim.tccr5a().modify(|_r, w| w.com5a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs5().direct(),
+                    Prescaler::Prescale8 => w.cs5().prescale_8(),
+                    Prescaler::Prescale64 => w.cs5().prescale_64(),
+                    Prescaler::Prescale256 => w.cs5().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs5().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PL3: {
+                ocr: ocr5a,
+                into_pwm: |tim| if enable {
+                    tim.tccr5a().modify(|_r, w| w.com5a().match_clear());
+                } else {
+                    tim.tccr5a().modify(|_r, w| w.com5a().disconnected());
+                },
+            },
 
-        PL4: {
-        ocr: ocr5b,
-        into_pwm: |tim| if enable {
-            tim.tccr5a().modify(|_r, w| w.com5b().match_clear());
-        } else {
-            tim.tccr5a().modify(|_r, w| w.com5b().disconnected());
-        },
-        },
+            PL4: {
+                ocr: ocr5b,
+                into_pwm: |tim| if enable {
+                    tim.tccr5a().modify(|_r, w| w.com5b().match_clear());
+                } else {
+                    tim.tccr5a().modify(|_r, w| w.com5b().disconnected());
+                },
+            },
 
-        PL5: {
-        ocr: ocr5c,
-        into_pwm: |tim| if enable {
-            tim.tccr5a().modify(|_r, w| w.com5c().match_clear());
-        } else {
-            tim.tccr5a().modify(|_r, w| w.com5c().disconnected());
-        },
-        },
+            PL5: {
+                ocr: ocr5c,
+                into_pwm: |tim| if enable {
+                    tim.tccr5a().modify(|_r, w| w.com5c().match_clear());
+                } else {
+                    tim.tccr5a().modify(|_r, w| w.com5c().disconnected());
+                },
+            },
 
-    },
+        },
     }
 }
 
@@ -620,36 +618,36 @@ avr_hal_generic::impl_simple_pwm! {
     /// d11.enable();
     /// ```
     pub struct Timer0Pwm {
-    timer: crate::pac::TC0,
-    init: |tim, prescaler| {
-        tim.tccr0a().modify(|_r, w| w.wgm0().pwm_fast());
-        tim.tccr0b().modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs0().direct(),
-        Prescaler::Prescale8 => w.cs0().prescale_8(),
-        Prescaler::Prescale64 => w.cs0().prescale_64(),
-        Prescaler::Prescale256 => w.cs0().prescale_256(),
-        Prescaler::Prescale1024 => w.cs0().prescale_1024(),
-        });
-    },
-    pins: {
-        PB7: {
-        ocr: ocr0a,
-        into_pwm: |tim| if enable {
-            tim.tccr0a().modify(|_r, w| w.com0a().match_clear());
-        } else {
-            tim.tccr0a().modify(|_r, w| w.com0a().disconnected());
+        timer: crate::pac::TC0,
+        init: |tim, prescaler| {
+            tim.tccr0a().modify(|_r, w| w.wgm0().pwm_fast());
+            tim.tccr0b().modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs0().direct(),
+                Prescaler::Prescale8 => w.cs0().prescale_8(),
+                Prescaler::Prescale64 => w.cs0().prescale_64(),
+                Prescaler::Prescale256 => w.cs0().prescale_256(),
+                Prescaler::Prescale1024 => w.cs0().prescale_1024(),
+            });
         },
-        },
+        pins: {
+            PB7: {
+                ocr: ocr0a,
+                into_pwm: |tim| if enable {
+                    tim.tccr0a().modify(|_r, w| w.com0a().match_clear());
+                } else {
+                    tim.tccr0a().modify(|_r, w| w.com0a().disconnected());
+                },
+            },
 
-        PD0: {
-        ocr: ocr0b,
-        into_pwm: |tim| if enable {
-            tim.tccr0a().modify(|_r, w| w.com0b().match_clear());
-        } else {
-            tim.tccr0a().modify(|_r, w| w.com0b().disconnected());
+            PD0: {
+                ocr: ocr0b,
+                into_pwm: |tim| if enable {
+                    tim.tccr0a().modify(|_r, w| w.com0b().match_clear());
+                } else {
+                    tim.tccr0a().modify(|_r, w| w.com0b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -669,47 +667,47 @@ avr_hal_generic::impl_simple_pwm! {
     /// d9.enable();
     /// ```
     pub struct Timer1Pwm {
-    timer: crate::pac::TC1,
-    init: |tim, prescaler| {
-        tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
-        tim.tccr1b().modify(|_r, w| w.wgm1().set(0b01));
+        timer: crate::pac::TC1,
+        init: |tim, prescaler| {
+            tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
+            tim.tccr1b().modify(|_r, w| w.wgm1().set(0b01));
 
-        tim.tccr1b().modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs1().direct(),
-        Prescaler::Prescale8 => w.cs1().prescale_8(),
-        Prescaler::Prescale64 => w.cs1().prescale_64(),
-        Prescaler::Prescale256 => w.cs1().prescale_256(),
-        Prescaler::Prescale1024 => w.cs1().prescale_1024(),
-        });
-    },
-    pins: {
-        PB5: {
-        ocr: ocr1a,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+            tim.tccr1b().modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs1().direct(),
+                Prescaler::Prescale8 => w.cs1().prescale_8(),
+                Prescaler::Prescale64 => w.cs1().prescale_64(),
+                Prescaler::Prescale256 => w.cs1().prescale_256(),
+                Prescaler::Prescale1024 => w.cs1().prescale_1024(),
+            });
         },
-        },
+        pins: {
+            PB5: {
+                ocr: ocr1a,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+                },
+            },
 
-        PB6: {
-        ocr: ocr1b,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
-        },
-        },
+            PB6: {
+                ocr: ocr1b,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
+                },
+            },
 
-        PB7: {
-        ocr: ocr1c,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1c().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1c().disconnected());
+            PB7: {
+                ocr: ocr1c,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1c().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1c().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -727,29 +725,29 @@ avr_hal_generic::impl_simple_pwm! {
     /// d5.enable();
     /// ```
     pub struct Timer3Pwm {
-    timer: crate::pac::TC3,
-    init: |tim, prescaler| {
-        tim.tccr3a().modify(|_r, w| w.wgm3().set(0b01));
-        tim.tccr3b().modify(|_r, w| w.wgm3().set(0b01));
+        timer: crate::pac::TC3,
+        init: |tim, prescaler| {
+            tim.tccr3a().modify(|_r, w| w.wgm3().set(0b01));
+            tim.tccr3b().modify(|_r, w| w.wgm3().set(0b01));
 
-        tim.tccr3b().modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs3().direct(),
-        Prescaler::Prescale8 => w.cs3().prescale_8(),
-        Prescaler::Prescale64 => w.cs3().prescale_64(),
-        Prescaler::Prescale256 => w.cs3().prescale_256(),
-        Prescaler::Prescale1024 => w.cs3().prescale_1024(),
-        });
-    },
-    pins: {
-        PC6: {
-        ocr: ocr3a,
-        into_pwm: |tim| if enable {
-            tim.tccr3a().modify(|_r, w| w.com3a().match_clear());
-        } else {
-            tim.tccr3a().modify(|_r, w| w.com3a().disconnected());
+            tim.tccr3b().modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs3().direct(),
+                Prescaler::Prescale8 => w.cs3().prescale_8(),
+                Prescaler::Prescale64 => w.cs3().prescale_64(),
+                Prescaler::Prescale256 => w.cs3().prescale_256(),
+                Prescaler::Prescale1024 => w.cs3().prescale_1024(),
+            });
         },
+        pins: {
+            PC6: {
+                ocr: ocr3a,
+                into_pwm: |tim| if enable {
+                    tim.tccr3a().modify(|_r, w| w.com3a().match_clear());
+                } else {
+                    tim.tccr3a().modify(|_r, w| w.com3a().disconnected());
+                },
+            },
         },
-    },
     }
 }
 
@@ -769,48 +767,48 @@ avr_hal_generic::impl_simple_pwm! {
     /// d6.enable();
     /// ```
     pub struct Timer4Pwm {
-    timer: crate::pac::TC4,
-    init: |tim, prescaler| {
-        tim.tccr4a().modify(|_r, w| w.pwm4a().set_bit());
-        tim.tccr4a().modify(|_r, w| w.pwm4b().set_bit());
-        tim.tccr4c().modify(|_r, w| w.pwm4d().set_bit());
+        timer: crate::pac::TC4,
+        init: |tim, prescaler| {
+            tim.tccr4a().modify(|_r, w| w.pwm4a().set_bit());
+            tim.tccr4a().modify(|_r, w| w.pwm4b().set_bit());
+            tim.tccr4c().modify(|_r, w| w.pwm4d().set_bit());
 
-        tim.tccr4b().modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs4().direct(),
-        Prescaler::Prescale8 => w.cs4().prescale_8(),
-        Prescaler::Prescale64 => w.cs4().prescale_64(),
-        Prescaler::Prescale256 => w.cs4().prescale_256(),
-        Prescaler::Prescale1024 => w.cs4().prescale_1024(),
-        });
-    },
-    pins: {
-        PB6: {
-        ocr: ocr4b,
-        into_pwm: |tim| if enable {
-            tim.tccr4a().modify(|_r, w| w.com4b().match_clear());
-        } else {
-            tim.tccr4a().modify(|_r, w| w.com4b().disconnected());
+            tim.tccr4b().modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs4().direct(),
+                Prescaler::Prescale8 => w.cs4().prescale_8(),
+                Prescaler::Prescale64 => w.cs4().prescale_64(),
+                Prescaler::Prescale256 => w.cs4().prescale_256(),
+                Prescaler::Prescale1024 => w.cs4().prescale_1024(),
+            });
         },
-        },
+        pins: {
+            PB6: {
+                ocr: ocr4b,
+                into_pwm: |tim| if enable {
+                    tim.tccr4a().modify(|_r, w| w.com4b().match_clear());
+                } else {
+                    tim.tccr4a().modify(|_r, w| w.com4b().disconnected());
+                },
+            },
 
-        PC7: {
-        ocr: ocr4a,
-        into_pwm: |tim| if enable {
-            tim.tccr4a().modify(|_r, w| w.com4a().match_clear());
-        } else {
-            tim.tccr4a().modify(|_r, w| w.com4a().disconnected());
-        },
-        },
+            PC7: {
+                ocr: ocr4a,
+                into_pwm: |tim| if enable {
+                    tim.tccr4a().modify(|_r, w| w.com4a().match_clear());
+                } else {
+                    tim.tccr4a().modify(|_r, w| w.com4a().disconnected());
+                },
+            },
 
-        PD7: {
-        ocr: ocr4d,
-        into_pwm: |tim| if enable {
-            tim.tccr4c().modify(|_r, w| w.com4d().match_clear());
-        } else {
-            tim.tccr4c().modify(|_r, w| w.com4d().disconnected());
+            PD7: {
+                ocr: ocr4d,
+                into_pwm: |tim| if enable {
+                    tim.tccr4c().modify(|_r, w| w.com4d().match_clear());
+                } else {
+                    tim.tccr4c().modify(|_r, w| w.com4d().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -829,36 +827,36 @@ avr_hal_generic::impl_simple_pwm! {
     /// b4.enable();
     /// ```
     pub struct Timer0Pwm {
-    timer: crate::pac::TC0,
-    init: |tim, prescaler| {
-        tim.tccr0a().modify(|_r, w| w.wgm0().pwm_fast());
-        tim.tccr0b().modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs0().direct(),
-        Prescaler::Prescale8 => w.cs0().prescale_8(),
-        Prescaler::Prescale64 => w.cs0().prescale_64(),
-        Prescaler::Prescale256 => w.cs0().prescale_256(),
-        Prescaler::Prescale1024 => w.cs0().prescale_1024(),
-        });
-    },
-    pins: {
-        PB3: {
-        ocr: ocr0a,
-        into_pwm: |tim| if enable {
-            tim.tccr0a().modify(|_r, w| w.com0a().match_clear());
-        } else {
-            tim.tccr0a().modify(|_r, w| w.com0a().disconnected());
+        timer: crate::pac::TC0,
+        init: |tim, prescaler| {
+            tim.tccr0a().modify(|_r, w| w.wgm0().pwm_fast());
+            tim.tccr0b().modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs0().direct(),
+                Prescaler::Prescale8 => w.cs0().prescale_8(),
+                Prescaler::Prescale64 => w.cs0().prescale_64(),
+                Prescaler::Prescale256 => w.cs0().prescale_256(),
+                Prescaler::Prescale1024 => w.cs0().prescale_1024(),
+            });
         },
-        },
+        pins: {
+            PB3: {
+                ocr: ocr0a,
+                into_pwm: |tim| if enable {
+                    tim.tccr0a().modify(|_r, w| w.com0a().match_clear());
+                } else {
+                    tim.tccr0a().modify(|_r, w| w.com0a().disconnected());
+                },
+            },
 
-        PB4: {
-        ocr: ocr0b,
-        into_pwm: |tim| if enable {
-            tim.tccr0a().modify(|_r, w| w.com0b().match_clear());
-        } else {
-            tim.tccr0a().modify(|_r, w| w.com0b().disconnected());
+            PB4: {
+                ocr: ocr0b,
+                into_pwm: |tim| if enable {
+                    tim.tccr0a().modify(|_r, w| w.com0b().match_clear());
+                } else {
+                    tim.tccr0a().modify(|_r, w| w.com0b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -877,40 +875,40 @@ avr_hal_generic::impl_simple_pwm! {
     /// d5.enable();
     /// ```
     pub struct Timer1Pwm {
-    timer: crate::pac::TC1,
-    init: |tim, prescaler| {
-        tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
-        tim.tccr1b().modify(|_r, w| {
-        w.wgm1().set(0b01);
+        timer: crate::pac::TC1,
+        init: |tim, prescaler| {
+            tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
+            tim.tccr1b().modify(|_r, w| {
+                w.wgm1().set(0b01);
 
-        match prescaler {
-            Prescaler::Direct => w.cs1().direct(),
-            Prescaler::Prescale8 => w.cs1().prescale_8(),
-            Prescaler::Prescale64 => w.cs1().prescale_64(),
-            Prescaler::Prescale256 => w.cs1().prescale_256(),
-            Prescaler::Prescale1024 => w.cs1().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PD5: {
-        ocr: ocr1a,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs1().direct(),
+                    Prescaler::Prescale8 => w.cs1().prescale_8(),
+                    Prescaler::Prescale64 => w.cs1().prescale_64(),
+                    Prescaler::Prescale256 => w.cs1().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs1().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PD5: {
+                ocr: ocr1a,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+                },
+            },
 
-        PD4: {
-        ocr: ocr1b,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
+            PD4: {
+                ocr: ocr1b,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -929,36 +927,36 @@ avr_hal_generic::impl_simple_pwm! {
     /// d7.enable();
     /// ```
     pub struct Timer2Pwm {
-    timer: crate::pac::TC2,
-    init: |tim, prescaler| {
-        tim.tccr2a().modify(|_r, w| w.wgm2().pwm_fast());
-        tim.tccr2b().modify(|_r, w| match prescaler {
-            Prescaler::Direct => w.cs2().direct(),
-            Prescaler::Prescale8 => w.cs2().prescale_8(),
-            Prescaler::Prescale64 => w.cs2().prescale_64(),
-            Prescaler::Prescale256 => w.cs2().prescale_256(),
-            Prescaler::Prescale1024 => w.cs2().prescale_1024(),
-        });
-    },
-    pins: {
-        PD7: {
-        ocr: ocr2a,
-        into_pwm: |tim| if enable {
-            tim.tccr2a().modify(|_r, w| w.com2a().match_clear());
-        } else {
-            tim.tccr2a().modify(|_r, w| w.com2a().disconnected());
+        timer: crate::pac::TC2,
+        init: |tim, prescaler| {
+            tim.tccr2a().modify(|_r, w| w.wgm2().pwm_fast());
+            tim.tccr2b().modify(|_r, w| match prescaler {
+                    Prescaler::Direct => w.cs2().direct(),
+                    Prescaler::Prescale8 => w.cs2().prescale_8(),
+                    Prescaler::Prescale64 => w.cs2().prescale_64(),
+                    Prescaler::Prescale256 => w.cs2().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs2().prescale_1024(),
+            });
         },
-        },
+        pins: {
+            PD7: {
+                ocr: ocr2a,
+                into_pwm: |tim| if enable {
+                    tim.tccr2a().modify(|_r, w| w.com2a().match_clear());
+                } else {
+                    tim.tccr2a().modify(|_r, w| w.com2a().disconnected());
+                },
+            },
 
-        PD6: {
-        ocr: ocr2b,
-        into_pwm: |tim| if enable {
-            tim.tccr2a().modify(|_r, w| w.com2b().match_clear());
-        } else {
-            tim.tccr2a().modify(|_r, w| w.com2b().disconnected());
+            PD6: {
+                ocr: ocr2b,
+                into_pwm: |tim| if enable {
+                    tim.tccr2a().modify(|_r, w| w.com2b().match_clear());
+                } else {
+                    tim.tccr2a().modify(|_r, w| w.com2b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -966,40 +964,40 @@ avr_hal_generic::impl_simple_pwm! {
 avr_hal_generic::impl_simple_pwm! {
     /// Use `TC3` for PWM (pins `PB6`, `PB7`)
     pub struct Timer3Pwm {
-    timer: crate::pac::TC3,
-    init: |tim, prescaler| {
-        tim.tccr3a().modify(|_r, w| w.wgm3().set(0b01));
-        tim.tccr3b().modify(|_r, w| {
-        w.wgm3().set(0b01);
+        timer: crate::pac::TC3,
+        init: |tim, prescaler| {
+            tim.tccr3a().modify(|_r, w| w.wgm3().set(0b01));
+            tim.tccr3b().modify(|_r, w| {
+                w.wgm3().set(0b01);
 
-        match prescaler {
-            Prescaler::Direct => w.cs3().direct(),
-            Prescaler::Prescale8 => w.cs3().prescale_8(),
-            Prescaler::Prescale64 => w.cs3().prescale_64(),
-            Prescaler::Prescale256 => w.cs3().prescale_256(),
-            Prescaler::Prescale1024 => w.cs3().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PB6: {
-        ocr: ocr3a,
-        into_pwm: |tim| if enable {
-            tim.tccr3a().modify(|_r, w| w.com3a().match_clear());
-        } else {
-            tim.tccr3a().modify(|_r, w| w.com3a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs3().direct(),
+                    Prescaler::Prescale8 => w.cs3().prescale_8(),
+                    Prescaler::Prescale64 => w.cs3().prescale_64(),
+                    Prescaler::Prescale256 => w.cs3().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs3().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PB6: {
+                ocr: ocr3a,
+                into_pwm: |tim| if enable {
+                    tim.tccr3a().modify(|_r, w| w.com3a().match_clear());
+                } else {
+                    tim.tccr3a().modify(|_r, w| w.com3a().disconnected());
+                },
+            },
 
-        PB7: {
-        ocr: ocr3b,
-        into_pwm: |tim| if enable {
-            tim.tccr3a().modify(|_r, w| w.com3b().match_clear());
-        } else {
-            tim.tccr3a().modify(|_r, w| w.com3b().disconnected());
+            PB7: {
+                ocr: ocr3b,
+                into_pwm: |tim| if enable {
+                    tim.tccr3a().modify(|_r, w| w.com3b().match_clear());
+                } else {
+                    tim.tccr3a().modify(|_r, w| w.com3b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -1018,40 +1016,40 @@ avr_hal_generic::impl_simple_pwm! {
     /// d9.enable();
     /// ```
     pub struct Timer1Pwm {
-    timer: crate::pac::TC1,
-    init: |tim, prescaler| {
-        tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
-        tim.tccr1b().modify(|_r, w| {
-        w.wgm1().set(0b01);
+        timer: crate::pac::TC1,
+        init: |tim, prescaler| {
+            tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
+            tim.tccr1b().modify(|_r, w| {
+                w.wgm1().set(0b01);
 
-        match prescaler {
-            Prescaler::Direct => w.cs1().direct(),
-            Prescaler::Prescale8 => w.cs1().prescale_8(),
-            Prescaler::Prescale64 => w.cs1().prescale_64(),
-            Prescaler::Prescale256 => w.cs1().prescale_256(),
-            Prescaler::Prescale1024 => w.cs1().prescale_1024(),
-        }
-        });
-    },
-    pins: {
-        PB1: {
-        ocr: ocr1a,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+                match prescaler {
+                    Prescaler::Direct => w.cs1().direct(),
+                    Prescaler::Prescale8 => w.cs1().prescale_8(),
+                    Prescaler::Prescale64 => w.cs1().prescale_64(),
+                    Prescaler::Prescale256 => w.cs1().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs1().prescale_1024(),
+                }
+            });
         },
-        },
+        pins: {
+            PB1: {
+                ocr: ocr1a,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1a().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1a().disconnected());
+                },
+            },
 
-        PB2: {
-        ocr: ocr1b,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
-        } else {
-            tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
+            PB2: {
+                ocr: ocr1b,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1b().match_clear());
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1b().disconnected());
+                },
+            },
         },
-        },
-    },
     }
 }
 
@@ -1070,27 +1068,27 @@ avr_hal_generic::impl_simple_pwm! {
     /// d11.enable();
     /// ```
     pub struct Timer2Pwm {
-    timer: crate::pac::TC2,
-    init: |tim, prescaler| {
-        tim.tccr2().modify(|_r, w| w.wgm20().set_bit().wgm21().set_bit());
-        tim.tccr2().modify(|_r, w| match prescaler {
-            Prescaler::Direct => w.cs2().direct(),
-            Prescaler::Prescale8 => w.cs2().prescale_8(),
-            Prescaler::Prescale64 => w.cs2().prescale_64(),
-            Prescaler::Prescale256 => w.cs2().prescale_256(),
-            Prescaler::Prescale1024 => w.cs2().prescale_1024(),
-        });
-    },
-    pins: {
-        PB3: {
-        ocr: ocr2,
-        into_pwm: |tim| if enable {
-            tim.tccr2().modify(|_r, w| w.com2().match_clear());
-        } else {
-            tim.tccr2().modify(|_r, w| w.com2().disconnected());
+        timer: crate::pac::TC2,
+        init: |tim, prescaler| {
+            tim.tccr2().modify(|_r, w| w.wgm20().set_bit().wgm21().set_bit());
+            tim.tccr2().modify(|_r, w| match prescaler {
+                    Prescaler::Direct => w.cs2().direct(),
+                    Prescaler::Prescale8 => w.cs2().prescale_8(),
+                    Prescaler::Prescale64 => w.cs2().prescale_64(),
+                    Prescaler::Prescale256 => w.cs2().prescale_256(),
+                    Prescaler::Prescale1024 => w.cs2().prescale_1024(),
+            });
         },
+        pins: {
+            PB3: {
+                ocr: ocr2,
+                into_pwm: |tim| if enable {
+                    tim.tccr2().modify(|_r, w| w.com2().match_clear());
+                } else {
+                    tim.tccr2().modify(|_r, w| w.com2().disconnected());
+                },
+            },
         },
-    },
     }
 }
 
@@ -1108,29 +1106,29 @@ avr_hal_generic::impl_simple_pwm! {
     /// b3.enable();
     /// ```
     pub struct Timer0Pwm {
-    timer: crate::pac::TC0,
-    init: |tim, prescaler| {
-        tim.tccr0a().modify(|_r, w| w.wgm0().set(0b11));
-        tim.tccr0a().modify(|_r, w| w.com0a().set(0b00));
-
-        tim.tccr0b().modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs0().running_no_prescaling(),
-        Prescaler::Prescale8 => w.cs0().running_clk_8(),
-        Prescaler::Prescale64 => w.cs0().running_clk_64(),
-        Prescaler::Prescale256 => w.cs0().running_clk_256(),
-        Prescaler::Prescale1024 => w.cs0().running_clk_1024(),
-        });
-    },
-    pins: {
-        PB3: {
-        ocr: ocr0a,
-        into_pwm: |tim| if enable {
-            tim.tccr0a().modify(|_r, w| w.com0a().set(0b11));
-        } else {
+        timer: crate::pac::TC0,
+        init: |tim, prescaler| {
+            tim.tccr0a().modify(|_r, w| w.wgm0().set(0b11));
             tim.tccr0a().modify(|_r, w| w.com0a().set(0b00));
+
+            tim.tccr0b().modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs0().running_no_prescaling(),
+                Prescaler::Prescale8 => w.cs0().running_clk_8(),
+                Prescaler::Prescale64 => w.cs0().running_clk_64(),
+                Prescaler::Prescale256 => w.cs0().running_clk_256(),
+                Prescaler::Prescale1024 => w.cs0().running_clk_1024(),
+            });
         },
+        pins: {
+            PB3: {
+                ocr: ocr0a,
+                into_pwm: |tim| if enable {
+                    tim.tccr0a().modify(|_r, w| w.com0a().set(0b11));
+                } else {
+                    tim.tccr0a().modify(|_r, w| w.com0a().set(0b00));
+                },
+            },
         },
-    },
     }
 }
 
@@ -1151,45 +1149,45 @@ avr_hal_generic::impl_simple_pwm! {
     /// d5.enable();
     /// ```
     pub struct Timer1Pwm {
-    timer: crate::pac::TC1,
-    init: |tim, prescaler| {
-        tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
-        tim.tccr1a().modify(|_r, w| w.com1a().set(0b00));
-        tim.tccr1a().modify(|_r, w| w.com1b().set(0b00));
-        #[cfg(any(feature = "atmega164pa"))]
-        tim.tccr1b().modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs1().running_no_prescaling(),
-        Prescaler::Prescale8 => w.cs1().running_clk_8(),
-        Prescaler::Prescale64 => w.cs1().running_clk_64(),
-        Prescaler::Prescale256 => w.cs1().running_clk_256(),
-        Prescaler::Prescale1024 => w.cs1().running_clk_1024(),
-        });
-        #[cfg(any(feature = "atmega16"))]
-        tim.tccr1b.modify(|_r, w| match prescaler {
-        Prescaler::Direct => w.cs1().val_0x01(),
-        Prescaler::Prescale8 => w.cs1().val_0x02(),
-        Prescaler::Prescale64 => w.cs1().val_0x03(),
-        Prescaler::Prescale256 => w.cs1().val_0x04(),
-        Prescaler::Prescale1024 => w.cs1().val_0x05(),
-        });
-    },
-    pins: {
-        PD4: {
-        ocr: ocr1a,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1a().set(0b11));
-        } else {
+        timer: crate::pac::TC1,
+        init: |tim, prescaler| {
+            tim.tccr1a().modify(|_r, w| w.wgm1().set(0b01));
             tim.tccr1a().modify(|_r, w| w.com1a().set(0b00));
-        },
-        },
-        PD5: {
-        ocr: ocr1b,
-        into_pwm: |tim| if enable {
-            tim.tccr1a().modify(|_r, w| w.com1b().set(0b11));
-        } else {
             tim.tccr1a().modify(|_r, w| w.com1b().set(0b00));
+            #[cfg(any(feature = "atmega164pa"))]
+            tim.tccr1b().modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs1().running_no_prescaling(),
+                Prescaler::Prescale8 => w.cs1().running_clk_8(),
+                Prescaler::Prescale64 => w.cs1().running_clk_64(),
+                Prescaler::Prescale256 => w.cs1().running_clk_256(),
+                Prescaler::Prescale1024 => w.cs1().running_clk_1024(),
+            });
+            #[cfg(any(feature = "atmega16"))]
+            tim.tccr1b.modify(|_r, w| match prescaler {
+                Prescaler::Direct => w.cs1().val_0x01(),
+                Prescaler::Prescale8 => w.cs1().val_0x02(),
+                Prescaler::Prescale64 => w.cs1().val_0x03(),
+                Prescaler::Prescale256 => w.cs1().val_0x04(),
+                Prescaler::Prescale1024 => w.cs1().val_0x05(),
+            });
         },
+        pins: {
+            PD4: {
+                ocr: ocr1a,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1a().set(0b11));
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1a().set(0b00));
+                },
+            },
+            PD5: {
+                ocr: ocr1b,
+                into_pwm: |tim| if enable {
+                    tim.tccr1a().modify(|_r, w| w.com1b().set(0b11));
+                } else {
+                    tim.tccr1a().modify(|_r, w| w.com1b().set(0b00));
+                },
+            },
         },
-    },
     }
 }

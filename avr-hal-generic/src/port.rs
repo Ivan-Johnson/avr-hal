@@ -3,12 +3,8 @@
 //! Please take a look at the documentation for [`Pin`] for a detailed explanation.
 
 use core::marker::PhantomData;
-use embedded_hal::digital::ErrorType;
-use embedded_hal::digital::InputPin;
-use embedded_hal::digital::OutputPin;
-use embedded_hal::digital::StatefulOutputPin;
-use embedded_hal_v0::digital::v2::InputPin as InputPinV0;
-use embedded_hal_v0::digital::v2::OutputPin as OutputPinV0;
+use embedded_hal::digital::{ErrorType, InputPin, OutputPin, StatefulOutputPin};
+use embedded_hal_v0::digital::v2::{InputPin as InputPinV0, OutputPin as OutputPinV0};
 
 pub trait PinMode: crate::Sealed {}
 /// GPIO pin modes

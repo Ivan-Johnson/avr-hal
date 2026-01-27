@@ -17,9 +17,7 @@
 #![no_main]
 
 use panic_halt as _;
-use pwm_pca9685::Address;
-use pwm_pca9685::Channel;
-use pwm_pca9685::Pca9685;
+use pwm_pca9685::{Address, Channel, Pca9685};
 
 #[arduino_hal::entry]
 fn main() -> ! {

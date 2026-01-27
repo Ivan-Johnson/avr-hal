@@ -122,13 +122,7 @@ pub use clock::default::DefaultClock;
 #[cfg(feature = "board-selected")]
 mod delay;
 #[cfg(feature = "board-selected")]
-pub use delay::delay_ms;
-#[cfg(feature = "board-selected")]
-pub use delay::delay_ns;
-#[cfg(feature = "board-selected")]
-pub use delay::delay_us;
-#[cfg(feature = "board-selected")]
-pub use delay::Delay;
+pub use delay::{delay_ms, delay_ns, delay_us, Delay};
 
 #[cfg(feature = "board-selected")]
 pub mod port;
@@ -140,13 +134,9 @@ pub use port::Pins;
 /// Analog to Digital converter.
 #[cfg(feature = "mcu-atmega")]
 pub mod adc {
-    pub use crate::hal::adc::channel;
-    pub use crate::hal::adc::AdcChannel;
-    pub use crate::hal::adc::AdcOps;
-    pub use crate::hal::adc::AdcSettings;
-    pub use crate::hal::adc::Channel;
-    pub use crate::hal::adc::ClockDivider;
-    pub use crate::hal::adc::ReferenceVoltage;
+    pub use crate::hal::adc::{
+        channel, AdcChannel, AdcOps, AdcSettings, Channel, ClockDivider, ReferenceVoltage,
+    };
 
     /// Check the [`avr_hal_generic::adc::Adc`] documentation.
     pub type Adc = crate::hal::Adc<crate::DefaultClock>;
@@ -179,8 +169,7 @@ pub use spi::Spi;
 
 #[cfg(feature = "mcu-atmega")]
 pub mod usart {
-    pub use crate::hal::usart::Baudrate;
-    pub use crate::hal::usart::UsartOps;
+    pub use crate::hal::usart::{Baudrate, UsartOps};
 
     pub type Usart<USART, RX, TX> = crate::hal::usart::Usart<USART, RX, TX, crate::DefaultClock>;
     pub type UsartWriter<USART, RX, TX> =
@@ -195,33 +184,11 @@ pub use usart::Usart;
 
 #[cfg(feature = "board-selected")]
 pub mod eeprom {
-    pub use crate::hal::eeprom::Eeprom;
-    pub use crate::hal::eeprom::EepromOps;
-    pub use crate::hal::eeprom::OutOfBoundsError;
+    pub use crate::hal::eeprom::{Eeprom, EepromOps, OutOfBoundsError};
 }
 #[doc(no_inline)]
 #[cfg(feature = "board-selected")]
 pub use eeprom::Eeprom;
-
-#[doc(no_inline)]
-#[cfg(any(
-    feature = "arduino-micro",
-    feature = "arduino-leonardo",
-    feature = "sparkfun-promicro"
-))]
-pub use atmega_hal::default_usb_bus_with_pll;
-
-#[cfg(any(
-    feature = "arduino-micro",
-    feature = "arduino-leonardo",
-    feature = "sparkfun-promicro"
-))]
-#[macro_export]
-macro_rules! default_usb_bus_with_pll_macro {
-    ($p:expr) => {
-        $crate::default_usb_bus_with_pll::<$crate::DefaultClock>($p.USB_DEVICE, $p.PLL)
-    };
-}
 
 #[cfg(feature = "board-selected")]
 pub mod simple_pwm {
@@ -238,14 +205,14 @@ pub mod prelude {
 
     cfg_if::cfg_if! {
         if #[cfg(any(
-        feature = "arduino-diecimila",
-        feature = "arduino-mega2560",
-        feature = "arduino-mega1280",
-        feature = "arduino-uno"
+            feature = "arduino-diecimila",
+            feature = "arduino-mega2560",
+            feature = "arduino-mega1280",
+            feature = "arduino-uno"
         ))] {
-        pub use crate::hal::usart::BaudrateArduinoExt as _;
+            pub use crate::hal::usart::BaudrateArduinoExt as _;
         } else {
-        pub use crate::hal::usart::BaudrateExt as _;
+            pub use crate::hal::usart::BaudrateExt as _;
         }
     }
 }

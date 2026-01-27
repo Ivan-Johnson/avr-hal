@@ -16,8 +16,7 @@ use avr_device::atmega328p::tc1::tccr1b::CS1_A;
 use avr_device::atmega328p::TC1;
 use core::mem;
 use panic_halt as _;
-use ufmt::uWrite;
-use ufmt::uwriteln;
+use ufmt::{uWrite, uwriteln};
 
 struct InterruptState {
     blinker: Pin<Output>,

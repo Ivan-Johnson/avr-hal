@@ -1,54 +1,82 @@
 {
-	description = "AVR HAL development environment";
+  description = "AVR HAL development environment";
 
-	inputs = {
-		nixpkgs.url = "nixpkgs/nixos-25.11-small";
-		fenix = {
-			url = "github:nix-community/fenix";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+  inputs.devshell.url = "github:numtide/devshell";
+  inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs.fenix.url = "github:nix-community/fenix";
 
-	outputs =
-		{
-			self,
-			nixpkgs,
-			fenix,
-		}:
-		let
-			pkgs = import nixpkgs {
-				system = "x86_64-linux";
-				config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "vscode" ];
-			};
-		in
-		{
-			devShells.x86_64-linux.default = pkgs.mkShell {
-				buildInputs = [
-					pkgs.pkgsCross.avr.buildPackages.gcc
-					(pkgs.python3.withPackages (python-pkgs: with python-pkgs; [ pyserial ]))
-					pkgs.minicom
-					pkgs.ravedude
-					pkgs.arduino-ide
-					pkgs.vscode
-					(fenix.packages.x86_64-linux.fromToolchainFile {
-						file = ./rust-toolchain.toml;
+  outputs =
+    {
+      self,
+      fenix,
+      flake-utils,
+      devshell,
+      nixpkgs,
+    }:
+    flake-utils.lib.eachDefaultSystem (system: {
+      devShell =
+        let
+          pkgs = import nixpkgs {
+            inherit system;
 
-						# 20251230->present
-						sha256 = "sha256-UTAqJO6LFvfLyZTO7d3myyE+rdMP/Mny0m0n/jBKzLQ=";
-					})
-				];
-				RAVEDUDE_PORT = "/dev/ttyACM0";
-				AVR_HAL_BUILD_TARGETS = "arduino-micro";
-				# NIXPKGS_ALLOW_UNFREE=1;
+            overlays = [ devshell.overlays.default fenix.overlays.default ];
+          };
+        in
+        pkgs.devshell.mkShell ({extraModulesPath, ...}: let
+          rust-toolchain = pkgs.fenix.fromToolchainFile {
+            file = ./rust-toolchain.toml;
+            sha256 = "DnyK5MS+xYySA+csnnMogu2gtEfyiy10W0ATmAvmjGg=";
+          };
+          c-compiler = pkgs.pkgsCross.avr.buildPackages.gcc;
+        in {
+          name = "avr-hal";
 
-				# Setting PATH directly doesn't work at all:
-				#
-				# PATH = ./devtools/bin;
-				#
-				# Even if it did work, it would probably copy everything into the nix store.
-				# I don't want to have to re-run `nix develop` every time I modify one of
-				# the devtools. As such, I go with this slightly uglier approach instead:
-				shellHook = ''PATH="$(realpath devtools/bin/):$PATH";'';
-			};
-		};
+          imports = [
+            "${extraModulesPath}/language/c.nix"
+          ];
+
+          language.c = {
+            compiler = c-compiler;
+          };
+
+          commands = [
+            {
+              name = "rustc";
+              category = "rust";
+              help = "Rust compiler";
+              package = rust-toolchain;
+            }
+            {
+              name = "cargo";
+              category = "rust";
+              help = "Rust build tool";
+              package = rust-toolchain;
+            }
+            {
+              name = "rustfmt";
+              category = "rust";
+              help = "Rust formatting tool";
+              package = rust-toolchain;
+            }
+            {
+              name = "avrdude";
+              category = "avr";
+              help = "Programmer for AVR chips";
+              package = pkgs.avrdude;
+            }
+            {
+              name = "ravedude";
+              category = "avr";
+              help = "Rust adapter for flashing with avrdude";
+              package = pkgs.ravedude;
+            }
+            {
+              name = "avr-gcc";
+              category = "avr";
+              help = "AVR C/C++ compiler (used for linking)";
+              package = c-compiler;
+            }
+          ];
+        });
+    });
 }

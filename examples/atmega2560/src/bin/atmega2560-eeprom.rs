@@ -2,8 +2,7 @@
 #![no_main]
 
 use atmega_hal::delay::Delay;
-use atmega_hal::usart::Baudrate;
-use atmega_hal::usart::Usart;
+use atmega_hal::usart::{Baudrate, Usart};
 use atmega_hal::Eeprom;
 use embedded_hal::delay::DelayNs;
 use panic_halt as _;

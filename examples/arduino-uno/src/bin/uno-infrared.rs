@@ -22,20 +22,16 @@
 use core::cell::Cell;
 use panic_halt as _;
 
-use arduino_hal::hal::port::PD2;
-use arduino_hal::hal::port::PD6;
-use arduino_hal::hal::port::PD7;
-use arduino_hal::pac::tc0::tccr0b::CS0_A;
-use arduino_hal::port::mode::Floating;
-use arduino_hal::port::mode::Input;
-use arduino_hal::port::mode::Output;
-use arduino_hal::port::Pin;
-use arduino_hal::prelude::*;
+use arduino_hal::{
+    hal::port::{PD2, PD6, PD7},
+    pac::tc0::tccr0b::CS0_A,
+    port::mode::{Floating, Input, Output},
+    port::Pin,
+    prelude::*,
+};
 use avr_device::interrupt::Mutex;
 
-use infrared::protocol::nec::NecCommand;
-use infrared::protocol::*;
-use infrared::Receiver;
+use infrared::{protocol::nec::NecCommand, protocol::*, Receiver};
 
 type IrPin = Pin<Input<Floating>, PD2>;
 type IrProto = Nec;

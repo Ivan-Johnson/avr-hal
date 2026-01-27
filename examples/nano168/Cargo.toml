@@ -18,4 +18,3 @@ features = ["nano168"]
 
 [dependencies.avr-device]
 version = "0.8.1"
-path = "../../avr-device"

@@ -14,9 +14,9 @@
   # The board layout
 
   A5----------+
-          |
+              |
   GND---10K---+--+
-          LDR
+                  LDR
   5V-------------+
 
   A connection from ground to the 10K resistor, to the light defined resistor, to 5V. Additionally the Analog port 5 of the arduino needs to be connected between the 10K and light defined resistor.
