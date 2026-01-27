@@ -24,13 +24,13 @@ pub mod wdt;
 
 /// Prelude containing all HAL traits
 pub mod prelude {
-    pub use crate::hal_v0::prelude::*;
-    pub use ufmt::uWrite as _ufmt_uWrite;
-    pub use unwrap_infallible::UnwrapInfallible as _unwrap_infallible_UnwrapInfallible;
+	pub use crate::hal_v0::prelude::*;
+	pub use ufmt::uWrite as _ufmt_uWrite;
+	pub use unwrap_infallible::UnwrapInfallible as _unwrap_infallible_UnwrapInfallible;
 }
 
 // For making certain traits unimplementable from outside this crate.
 mod sealed {
-    pub trait Sealed {}
+	pub trait Sealed {}
 }
 pub(crate) use sealed::Sealed;

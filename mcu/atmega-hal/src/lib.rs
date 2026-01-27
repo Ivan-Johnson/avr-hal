@@ -28,11 +28,11 @@
 //! ```
 
 #[cfg(all(
-    not(feature = "device-selected"),
-    not(feature = "disable-device-selection-error")
+	not(feature = "device-selected"),
+	not(feature = "disable-device-selection-error")
 ))]
 compile_error!(
-    "This crate requires you to specify your target chip as a feature.
+	"This crate requires you to specify your target chip as a feature.
 
     Please select one of the following
 
@@ -191,20 +191,14 @@ mod usb;
 ///   in order to make it easier to address the other issues without breaking backwards
 ///   compatibility.
 #[cfg(feature = "atmega32u4")]
-pub fn default_usb_bus_with_pll(
-    usb: avr_device::atmega32u4::USB_DEVICE,
-    pll: avr_device::atmega32u4::PLL,
-) -> impl usb_device::class_prelude::UsbBus {
-    return usb::UsbdBus::new(usb, pll);
-}
-
-/// This macro is exactly equivalent to [default_usb_bus_with_pll](default_usb_bus_with_pll).
-#[cfg(feature = "atmega32u4")]
-#[macro_export]
-macro_rules! default_usb_bus_with_pll_macro {
-    ($p:expr) => {
-        $crate::default_usb_bus_with_pll($p.USB_DEVICE, $p.PLL)
-    };
+pub fn default_usb_bus_with_pll<CLOCKUSB: ClockUSB>(
+	usb: avr_device::atmega32u4::USB_DEVICE,
+	pll: avr_device::atmega32u4::PLL,
+) -> impl usb_device::class_prelude::UsbBus
+where
+	avr_hal_generic::delay::Delay<CLOCKUSB>: embedded_hal::delay::DelayNs,
+{
+	return usb::UsbdBus::<CLOCKUSB>::new(usb, pll);
 }
 
 #[cfg(feature = "device-selected")]
@@ -237,6 +231,8 @@ pub use usart::Usart;
 
 #[cfg(feature = "device-selected")]
 pub mod wdt;
+#[cfg(feature = "atmega32u4")]
+use usb::ClockUSB;
 #[cfg(feature = "device-selected")]
 pub use wdt::Wdt;
 
@@ -248,72 +244,72 @@ pub use eeprom::Eeprom;
 pub struct Atmega;
 
 #[cfg(any(
-    feature = "atmega48p",
-    feature = "atmega88p",
-    feature = "atmega168",
-    feature = "atmega328p"
+	feature = "atmega48p",
+	feature = "atmega88p",
+	feature = "atmega168",
+	feature = "atmega328p"
 ))]
 #[macro_export]
 macro_rules! pins {
-    ($p:expr) => {
-        $crate::Pins::new($p.PORTB, $p.PORTC, $p.PORTD)
-    };
+	($p:expr) => {
+		$crate::Pins::new($p.PORTB, $p.PORTC, $p.PORTD)
+	};
 }
 #[cfg(any(feature = "atmega16", feature = "atmega164pa"))]
 #[macro_export]
 macro_rules! pins {
-    ($p:expr) => {
-        $crate::Pins::new($p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD)
-    };
+	($p:expr) => {
+		$crate::Pins::new($p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD)
+	};
 }
 #[cfg(feature = "atmega328pb")]
 #[macro_export]
 macro_rules! pins {
-    ($p:expr) => {
-        $crate::Pins::new($p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE)
-    };
+	($p:expr) => {
+		$crate::Pins::new($p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE)
+	};
 }
 #[cfg(feature = "atmega32u4")]
 #[macro_export]
 macro_rules! pins {
-    ($p:expr) => {
-        $crate::Pins::new($p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE, $p.PORTF)
-    };
+	($p:expr) => {
+		$crate::Pins::new($p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE, $p.PORTF)
+	};
 }
 
 #[cfg(any(feature = "atmega128a"))]
 #[macro_export]
 macro_rules! pins {
-    ($p:expr) => {
-        $crate::Pins::new(
-            $p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE, $p.PORTF, $p.PORTG,
-        )
-    };
+	($p:expr) => {
+		$crate::Pins::new(
+			$p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE, $p.PORTF, $p.PORTG,
+		)
+	};
 }
 
 #[cfg(any(feature = "atmega1280", feature = "atmega2560"))]
 #[macro_export]
 macro_rules! pins {
-    ($p:expr) => {
-        $crate::Pins::new(
-            $p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE, $p.PORTF, $p.PORTG, $p.PORTH,
-            $p.PORTJ, $p.PORTK, $p.PORTL,
-        )
-    };
+	($p:expr) => {
+		$crate::Pins::new(
+			$p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD, $p.PORTE, $p.PORTF, $p.PORTG,
+			$p.PORTH, $p.PORTJ, $p.PORTK, $p.PORTL,
+		)
+	};
 }
 
 #[cfg(any(feature = "atmega1284p", feature = "atmega32a"))]
 #[macro_export]
 macro_rules! pins {
-    ($p:expr) => {
-        $crate::Pins::new($p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD)
-    };
+	($p:expr) => {
+		$crate::Pins::new($p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD)
+	};
 }
 
 #[cfg(any(feature = "atmega8"))]
 #[macro_export]
 macro_rules! pins {
-    ($p:expr) => {
-        $crate::Pins::new($p.PORTB, $p.PORTC, $p.PORTD)
-    };
+	($p:expr) => {
+		$crate::Pins::new($p.PORTB, $p.PORTC, $p.PORTD)
+	};
 }

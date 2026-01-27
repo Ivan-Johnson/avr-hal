@@ -1,0 +1,34 @@
+max_width = 100
+hard_tabs = true
+tab_spaces = 8
+newline_style = "Auto"
+use_small_heuristics = "Default"
+fn_call_width = 60
+attr_fn_like_width = 70
+struct_lit_width = 18
+struct_variant_width = 35
+array_width = 60
+chain_width = 60
+single_line_if_else_max_width = 50
+single_line_let_else_max_width = 50
+reorder_imports = true
+reorder_modules = true
+remove_nested_parens = true
+short_array_element_width_threshold = 10
+match_arm_leading_pipes = "Never"
+fn_params_layout = "Tall"
+edition = "2015"
+merge_derives = true
+use_try_shorthand = false
+use_field_init_shorthand = false
+force_explicit_abi = true
+disable_all_formatting = false
+# In order to have each import on a separate line, I want to use this:
+# https://rust-lang.github.io/rustfmt/?version=v1.6.0&search=#imports_granularity
+#
+# ```
+imports_granularity = "Item"
+# ```
+#
+# Unfortunately, this option is not stable yet:
+# https://github.com/rust-lang/rustfmt/issues/4991

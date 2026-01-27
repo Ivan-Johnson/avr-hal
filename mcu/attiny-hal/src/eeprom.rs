@@ -18,7 +18,8 @@
 //! ufmt::uwriteln!(&mut serial, "Boot count: {}", boot_count).unwrap();
 //! ```
 
-pub use avr_hal_generic::eeprom::{EepromOps, OutOfBoundsError};
+pub use avr_hal_generic::eeprom::EepromOps;
+pub use avr_hal_generic::eeprom::OutOfBoundsError;
 
 pub type Eeprom = avr_hal_generic::eeprom::Eeprom<crate::Attiny, crate::pac::EEPROM>;
 
@@ -29,7 +30,7 @@ avr_hal_generic::impl_eeprom_attiny! {
     capacity: 128,
     addr_width: u8,
     set_address: |peripheral, address| {
-        peripheral.eear().write(|w| w.bits(address));
+	peripheral.eear().write(|w| w.bits(address));
     },
 }
 
@@ -40,7 +41,7 @@ avr_hal_generic::impl_eeprom_attiny! {
     capacity: 512,
     addr_width: u16,
     set_address: |peripheral, address| {
-        peripheral.eear().write(|w| w.bits(address));
+	peripheral.eear().write(|w| w.bits(address));
     },
 }
 
@@ -51,6 +52,6 @@ avr_hal_generic::impl_eeprom_attiny! {
     capacity: 64,
     addr_width: u8,
     set_address: |peripheral, address| {
-        peripheral.eearl().write(|w| w.bits(address));
+	peripheral.eearl().write(|w| w.bits(address));
     },
 }

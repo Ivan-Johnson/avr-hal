@@ -1,0 +1,125 @@
+# TODO
+
+[ ] Cleanup
+
+    [ ] usb.rs
+
+        [ ] Cleanup `ClockUSB`
+
+            Either de-duplicate `writer.pindiv()`, or rename function
+            appropriately
+
+        [ ] Cleanup `epsize_bits_from_max_packet_size`.
+
+            The `match` is unnecessary. Instead, ~`return lg2(value)`
+
+        [ ] ???
+
+        [ ] get rid of `pending_ins`?
+
+
+    [ ] micro-usb-serial.rs
+
+        [ ] Delete the hardware serial port?
+
+    [ ] alloc order
+
+        section 21.9 of the datasheet says:
+
+        > The reservation of a Pipe or an Endpoint can only be made in the increasing order (Pipe/Endpoint 0 to the last
+        > Pipe/Endpoint). The firmware shall thus configure them in the same order
+
+        Do we respect this?
+
+        Probably want to un-allocating everything before we alloc?
+
+
+    [ ]
+
+        [ ] `enable`: re-read `USB_ClockEnable`
+
+[ ] Pickup delivery (Leonardo & USB passthrough boards)
+
+[ ] Find example of bigger features that were implemented by people other than Rahix.
+
+    Is there anything I can learn from them? Obvious example: does Rahix have a
+    preference for/against force pushes when updating CR?
+
+[ ] Ensure that registers are initialized correctly on boot. i.e. replace many
+    `.modify(...)`s with `write`s
+
+[ ] Make code safer:
+
+    * Some `unsafe` blocks are unnecessary? I can patch avr-device to mark those
+      registers as safe?
+
+    * Some `unsafe` blocks are necessary. To reduce risk, I should make a safe
+      wrapper: Unsafe PAC -> safe wrapper -> usb.rs
+
+[ ] Make plan for thorough testing.
+
+    This might be a waste of time; check with Rahix first.
+
+    Goals:
+
+    * Looking for panics
+
+    * Benchmark. Ideally compare against Arduino library. (Having worse
+      performance is okay? esp. because I'm in single bank mode)
+
+    Tests:
+
+    * Actually use the thing as a video game controller for a few hours.
+
+    * flood the serial output (& test input separately?). See if it crashes, or
+      if logs get dropped, or something.
+
+    * Stress test other classes. HID might not be useful? idk what else to try
+      though.
+
+    * Capture trace.
+
+      * Compare against Arduino? Would be nice, but probs won't work. Output is
+        expected to be different, I think?
+
+      * Is there an open source tool I can use to check if the thing complies
+        with USB spec?
+
+    * Is there hardware I can by to test for USB compliance?
+
+    * ???
+
+      Check docs on `rust-embedded-community/usb-device`. If nothing useful, ask
+      for guidance.
+
+[ ] Questions for Rahix:
+
+    * Is it worth adding a `USB_DEVICE` patch to `avr-device`? If so, I'll
+      probably need your help with that.
+
+      * I'm pretty sure that my PR shouldn't need to have so many `unsafe`
+        blocks. However, I'm struggling to figure out what patches I need to
+        make in order for `svd2rust` to recognize that these fields are safe.
+
+      * Improved interrupt support
+
+        https://github.com/agausmann/atmega-usbd/blob/master/src/lib.rs#L529-L551
+
+        This ~~would~~ would NOT let us remove the `vbus_was_set` field.
+
+      * Adding `usb-device` support to `avr-device`. Instead of this:
+
+        usb.uecfg0x().write(|w| w.eptype().value(eptype_bits_from_ep_type(ep_type)))
+
+        do this
+
+        usb.uecfg0x().write(|w| w.eptype().value(ep_type))
+
+      * Add support for `pllfrq().reset()`.
+
+
+      Is it okay that I'm using so many `unsafe`s?
+
+      I think that removing them would require patching the `USB_DEVICE`
+      peripheral in `avr-device`. I've spent an hour or two trying to get that
+      working, but with little success.

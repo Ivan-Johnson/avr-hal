@@ -1,0 +1,23 @@
+// Working on adding USB support:
+// https://github.com/Rahix/avr-hal/issues/40
+// https://github.com/Rahix/avr-hal/pull/694
+arduino-hal/Cargo.toml
+arduino-hal/src/lib.rs
+avr-hal-generic/Cargo.toml
+avr-hal-generic/src/lib.rs
+examples/arduino-micro/Cargo.toml
+examples/arduino-micro/src/bin/micro-usb-serial.rs
+flake.nix
+mcu/atmega-hal/Cargo.toml
+mcu/atmega-hal/src/lib.rs
+// target/debug/build/avr-device-*/out/pac/atmega32u4.rs
+// target/avr-none/debug/build/avr-device-2da8ea2fb979f2eb/out/pac/atmega32u4.rs
+avr-device/vendor/atmega32u4.atdf
+
+avr-device/patch/atmega32u4.yaml
+mcu/atmega-hal/src/usb.rs
+avr-hal-generic/src/clock.rs
+Notes/usb.txt
+open_files.txt
+TODO.txt
+notes.txt
