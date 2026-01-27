@@ -155,10 +155,6 @@ where
 
 		usb.uenum().write(|w| w.set(index) );
 		let read_back = usb.uenum().read().bits();
-
-		// The `atmeta-usbd` crate uses this bitmask [1]. According to the datasheet the other bits should always read as zero, but I'm leaving this check in just in case.
-		//
-		// [1] https://github.com/agausmann/atmega-usbd/blob/5fc68ca813ce0a37dab65dd4d66efe1ec125f2a8/src/lib.rs#L126
 		assert_eq!(read_back & 0b111, read_back);
 
 		if read_back != index {
