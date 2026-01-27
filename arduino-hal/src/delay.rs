@@ -11,7 +11,7 @@ pub type Delay = avr_hal_generic::delay::Delay<crate::DefaultClock>;
 /// Busy-loop for the given time.  This function assumes the default clock speed defined by
 /// [`arduino_hal::DefaultClock`][crate::DefaultClock].
 pub fn delay_ms(ms: u32) {
-	Delay::new().delay_ms(ms)
+    Delay::new().delay_ms(ms)
 }
 
 /// Delay execution for a number of microseconds.
@@ -19,7 +19,7 @@ pub fn delay_ms(ms: u32) {
 /// Busy-loop for the given time.  This function assumes the default clock speed defined by
 /// [`arduino_hal::DefaultClock`][crate::DefaultClock].
 pub fn delay_us(us: u32) {
-	Delay::new().delay_us(us)
+    Delay::new().delay_us(us)
 }
 
 /// Delay execution for a number of nanoseconds.
@@ -27,5 +27,5 @@ pub fn delay_us(us: u32) {
 /// Busy-loop for the given time.  This function assumes the default clock speed defined by
 /// [`arduino_hal::DefaultClock`][crate::DefaultClock].
 pub fn delay_ns(ns: u32) {
-	Delay::new().delay_ns(ns)
+    Delay::new().delay_ns(ns)
 }

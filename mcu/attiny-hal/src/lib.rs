@@ -17,11 +17,11 @@
 //! ```
 
 #[cfg(all(
-	not(feature = "device-selected"),
-	not(feature = "disable-device-selection-error")
+    not(feature = "device-selected"),
+    not(feature = "disable-device-selection-error")
 ))]
 compile_error!(
-	"This crate requires you to specify your target chip as a feature.
+    "This crate requires you to specify your target chip as a feature.
 
     Please select one of the following
 
@@ -98,35 +98,35 @@ pub struct Attiny;
 #[cfg(feature = "attiny84")]
 #[macro_export]
 macro_rules! pins {
-	($p:expr) => {
-		$crate::Pins::new($p.PORTA, $p.PORTB)
-	};
+    ($p:expr) => {
+        $crate::Pins::new($p.PORTA, $p.PORTB)
+    };
 }
 #[cfg(feature = "attiny85")]
 #[macro_export]
 macro_rules! pins {
-	($p:expr) => {
-		$crate::Pins::new($p.PORTB)
-	};
+    ($p:expr) => {
+        $crate::Pins::new($p.PORTB)
+    };
 }
 #[cfg(feature = "attiny88")]
 #[macro_export]
 macro_rules! pins {
-	($p:expr) => {
-		$crate::Pins::new($p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD)
-	};
+    ($p:expr) => {
+        $crate::Pins::new($p.PORTA, $p.PORTB, $p.PORTC, $p.PORTD)
+    };
 }
 #[cfg(feature = "attiny167")]
 #[macro_export]
 macro_rules! pins {
-	($p:expr) => {
-		$crate::Pins::new($p.PORTA, $p.PORTB)
-	};
+    ($p:expr) => {
+        $crate::Pins::new($p.PORTA, $p.PORTB)
+    };
 }
 #[cfg(feature = "attiny2313")]
 #[macro_export]
 macro_rules! pins {
-	($p:expr) => {
-		$crate::Pins::new($p.PORTA, $p.PORTB, $p.PORTD)
-	};
+    ($p:expr) => {
+        $crate::Pins::new($p.PORTA, $p.PORTB, $p.PORTD)
+    };
 }

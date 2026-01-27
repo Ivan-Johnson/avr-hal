@@ -19,80 +19,80 @@ use arduino_hal::prelude::*;
 #[cfg(not(doc))]
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-	// disable interrupts - firmware has panicked so no ISRs should continue running
-	avr_device::interrupt::disable();
+    // disable interrupts - firmware has panicked so no ISRs should continue running
+    avr_device::interrupt::disable();
 
-	// get the peripherals so we can access serial and the LED.
-	//
-	// SAFETY: Because main() already has references to the peripherals this is an unsafe
-	// operation - but because no other code can run after the panic handler was called,
-	// we know it is okay.
-	let dp = unsafe { arduino_hal::Peripherals::steal() };
-	let pins = arduino_hal::pins!(dp);
-	let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
+    // get the peripherals so we can access serial and the LED.
+    //
+    // SAFETY: Because main() already has references to the peripherals this is an unsafe
+    // operation - but because no other code can run after the panic handler was called,
+    // we know it is okay.
+    let dp = unsafe { arduino_hal::Peripherals::steal() };
+    let pins = arduino_hal::pins!(dp);
+    let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
 
-	ufmt::uwriteln!(&mut serial, "Firmware panic!\r").unwrap_infallible();
+    ufmt::uwriteln!(&mut serial, "Firmware panic!\r").unwrap_infallible();
 
-	// Accessing the panic info unfortunately means that the optimizer can no longer remove panic
-	// messages from the resulting binary.  This leads to an explosion of SRAM usage, quickly
-	// surpassing available space.
-	//
-	// If you need precise panic info, currently your best bet is disabling `overflow-checks` and
-	// `debug-assertions` in the build profile and structuring your code such that panics never
-	// include a message payload.  For example, instead of calling `.unwrap()`, use these macros:
-	//
-	// #[macro_export]
-	// macro_rules! unwrap_result {
-	//     ($v:expr) => {
-	//         match $v {
-	//             Ok(v) => v,
-	//             Err(_) => panic!(),
-	//         }
-	//     };
-	// }
-	//
-	// #[macro_export]
-	// macro_rules! unwrap_option {
-	//     ($v:expr) => {
-	//         match $v {
-	//             Some(v) => v,
-	//             None => panic!(),
-	//         }
-	//     };
-	// }
+    // Accessing the panic info unfortunately means that the optimizer can no longer remove panic
+    // messages from the resulting binary.  This leads to an explosion of SRAM usage, quickly
+    // surpassing available space.
+    //
+    // If you need precise panic info, currently your best bet is disabling `overflow-checks` and
+    // `debug-assertions` in the build profile and structuring your code such that panics never
+    // include a message payload.  For example, instead of calling `.unwrap()`, use these macros:
+    //
+    // #[macro_export]
+    // macro_rules! unwrap_result {
+    //     ($v:expr) => {
+    //         match $v {
+    //             Ok(v) => v,
+    //             Err(_) => panic!(),
+    //         }
+    //     };
+    // }
+    //
+    // #[macro_export]
+    // macro_rules! unwrap_option {
+    //     ($v:expr) => {
+    //         match $v {
+    //             Some(v) => v,
+    //             None => panic!(),
+    //         }
+    //     };
+    // }
 
-	// Print panic location:
-	// if let Some(loc) = info.location() {
-	//     ufmt::uwriteln!(
-	//         &mut serial,
-	//         "  At {}:{}:{}\r",
-	//         loc.file(),
-	//         loc.line(),
-	//         loc.column(),
-	//     )
-	//     .unwrap_infallible();
-	// }
+    // Print panic location:
+    // if let Some(loc) = info.location() {
+    //     ufmt::uwriteln!(
+    //         &mut serial,
+    //         "  At {}:{}:{}\r",
+    //         loc.file(),
+    //         loc.line(),
+    //         loc.column(),
+    //     )
+    //     .unwrap_infallible();
+    // }
 
-	// Blink LED rapidly
-	let mut led = pins.d13.into_output();
-	loop {
-		led.toggle();
-		arduino_hal::delay_ms(100);
-	}
+    // Blink LED rapidly
+    let mut led = pins.d13.into_output();
+    loop {
+        led.toggle();
+        arduino_hal::delay_ms(100);
+    }
 }
 
 #[arduino_hal::entry]
 fn main() -> ! {
-	let dp = arduino_hal::Peripherals::take().unwrap();
-	let pins = arduino_hal::pins!(dp);
-	let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
+    let dp = arduino_hal::Peripherals::take().unwrap();
+    let pins = arduino_hal::pins!(dp);
+    let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
 
-	ufmt::uwriteln!(&mut serial, "Hello from Arduino!\r").unwrap_infallible();
-	ufmt::uwriteln!(&mut serial, "Panic in 5 seconds!\r").unwrap_infallible();
+    ufmt::uwriteln!(&mut serial, "Hello from Arduino!\r").unwrap_infallible();
+    ufmt::uwriteln!(&mut serial, "Panic in 5 seconds!\r").unwrap_infallible();
 
-	arduino_hal::delay_ms(5000);
+    arduino_hal::delay_ms(5000);
 
-	// Panic messages cannot yet be captured because they rely on core::fmt
-	// which is way too big for AVR
-	panic!();
+    // Panic messages cannot yet be captured because they rely on core::fmt
+    // which is way too big for AVR
+    panic!();
 }

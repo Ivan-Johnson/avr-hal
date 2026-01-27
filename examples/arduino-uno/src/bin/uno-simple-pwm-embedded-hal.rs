@@ -11,26 +11,26 @@ use embedded_hal::pwm::SetDutyCycle;
 use panic_halt as _;
 
 fn fade(led: &mut impl SetDutyCycle, delay: &mut impl DelayNs) -> ! {
-	loop {
-		for pct in (0..=100).chain((0..100).rev()) {
-			led.set_duty_cycle_percent(pct).unwrap();
-			delay.delay_ms(10);
-		}
-	}
+    loop {
+        for pct in (0..=100).chain((0..100).rev()) {
+            led.set_duty_cycle_percent(pct).unwrap();
+            delay.delay_ms(10);
+        }
+    }
 }
 
 #[arduino_hal::entry]
 fn main() -> ! {
-	let dp = arduino_hal::Peripherals::take().unwrap();
-	let pins = arduino_hal::pins!(dp);
+    let dp = arduino_hal::Peripherals::take().unwrap();
+    let pins = arduino_hal::pins!(dp);
 
-	let timer0 = Timer0Pwm::new(dp.TC0, Prescaler::Prescale64);
+    let timer0 = Timer0Pwm::new(dp.TC0, Prescaler::Prescale64);
 
-	// Digital pin 5 is connected to a LED and a resistor in series
-	let mut pwm_led = pins.d5.into_output().into_pwm(&timer0);
-	pwm_led.enable();
+    // Digital pin 5 is connected to a LED and a resistor in series
+    let mut pwm_led = pins.d5.into_output().into_pwm(&timer0);
+    pwm_led.enable();
 
-	let mut delay = arduino_hal::Delay::new();
+    let mut delay = arduino_hal::Delay::new();
 
-	fade(&mut pwm_led, &mut delay);
+    fade(&mut pwm_led, &mut delay);
 }
