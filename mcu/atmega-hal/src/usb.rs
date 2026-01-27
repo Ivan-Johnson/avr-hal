@@ -155,11 +155,7 @@ where
 
 		usb.uenum().write(|w| w.set(index));
 		let read_back = usb.uenum().read().bits();
-		assert_eq!(read_back & 0b111, read_back);
-
-		if read_back != index {
-			return Err(UsbError::InvalidState);
-		}
+		assert_eq!(read_back, read_back);
 
 		Ok(())
 	}
