@@ -394,9 +394,7 @@ where
 			// TODO: loop over all endpoints, not just the active ones? e.g. so we can free unused memory
 			// > for (u8 i = 1; i < sizeof(_initEndpoints) && _initEndpoints[i] != 0; i++)
 			// > {
-			for (index, _ep) in self.active_endpoints() {
-				let endpoint = self.get_endpoint_table_entry(cs, index).unwrap();
-
+			for (index, endpoint) in self.active_endpoints() {
 				// > UENUM = i;
 				self.set_current_endpoint(cs, index).unwrap();
 
