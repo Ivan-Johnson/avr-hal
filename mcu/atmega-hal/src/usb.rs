@@ -795,9 +795,9 @@ where
 			// Can only query endpoints while clock is running
 			// (e.g. not in suspend state)
 			if usb.usbcon().read().frzclk().bit_is_clear() {
-				let mut ep_out = 0u8;
-				let mut ep_setup = 0u8;
-				let mut ep_in_complete = 0u8;
+				let mut ep_out = 0u16;
+				let mut ep_setup = 0u16;
+				let mut ep_in_complete = 0u16;
 				let pending_ins = self.pending_ins.borrow(cs);
 
 				for (index, _ep) in self.active_endpoints() {
@@ -822,9 +822,9 @@ where
 				}
 				if ep_out | ep_setup | ep_in_complete != 0 {
 					return PollResult::Data {
-						ep_out: ep_out as u16,
-						ep_in_complete: ep_in_complete as u16,
-						ep_setup: ep_setup as u16,
+						ep_out,
+						ep_in_complete,
+						ep_setup,
 					};
 				}
 			}
